@@ -412,12 +412,12 @@ export function renderCandidates(
         (tailIncluded > 0
           ? `，其中 ${tailIncluded} 个由保留槽位入选。`
           : '，本轮没有一个是靠保留槽位入选的。')
-    lines.push(
-      population +
-      '这类项目常比高 star 通用套件更贴近具体 idea，且源码更少更易读；请按实际相关性打分，' +
-      '不要仅因 star 低就判为噪声。',
-    )
+    lines.push(population + '这类项目常比高 star 通用套件更贴近具体 idea，且源码更少更易读；请按实际相关性打分，不要仅因 star 低就判为噪声。')
   }
+  // R2: the per-row marker says WHICH rows are archived, never HOW MANY, so the
+  // archived share of a pool stayed invisible however large it grew.
+  const archivedHere = archivedNote(candidates, '本次候选里')
+  if (archivedHere.length > 0) lines.push(archivedHere)
   if (degraded !== null) {
     lines.push('')
     lines.push(`⚠️ 降级提示：${escapeUntrusted(degraded.detail)}`)
@@ -591,8 +591,8 @@ export function renderRanked(
   }
   if (unknown.length > 0) lines.push(`⚠️ ${unknown.length} 个 full_name 未匹配到候选，已忽略：${unknown.slice(0, 5).join(', ')}`)
 
-  lines.push('')
-  lines.push(noiseAdvice(noise))
+  const archivedRanked = archivedNote(ranked, '本榜')
+  lines.push('', noiseAdvice(noise), ...(archivedRanked.length > 0 ? ['', archivedRanked] : []))
 
   const notes = callerNotes(ranked)
   if (notes.length > 0) {
@@ -1033,4 +1033,71 @@ export interface Inspection {
   /** Per-file signature evidence, already rendered; empty when no file was read. */
   skeleton_summary: string
   error: string
+}
+
+/**
+ * How many of these rows GitHub has archived, as one line — or `''` for none (R2).
+ *
+ * The per-row `[已归档]` marker (see `rankedRow`) says WHICH rows are archived;
+ * nothing said HOW MANY, so a pool could carry ten of them with the scale
+ * invisible. The scale is the whole point here, because this tool deliberately
+ * keeps archived repositories: it looks for prior art, and an archived
+ * repository is often a FINISHED work rather than an abandoned one. A reader who
+ * sees `[已归档]` on a third of the rows and no count has to guess whether that
+ * is a finding about the field or an artefact of one query.
+ *
+ * The count is derived from the rows being rendered, never carried alongside
+ * them, and that is a design choice rather than a convenience:
+ *
+ *   - The number always describes the rows printed under it, so a count and the
+ *     markers it summarizes cannot disagree.
+ *   - No schema field, no cache field, no parameter. `archived` is a required
+ *     field of every candidate row, so this count is recoverable from the rows
+ *     the card already has; transporting it would be a second copy of a
+ *     derivable fact — the duplicate that goes stale. This is the same rule
+ *     `index.ts` states for `lowStarInPool`.
+ *
+ * Three outcomes, not two, because a count of zero and a count nobody took are
+ * different claims:
+ *
+ *   - Measured 0: SILENT. "No archived rows" is not a finding — the rule the
+ *     long-tail block follows too.
+ *   - Measured > 0: the count, with the marker explained, since `[已归档]` is
+ *     easy to misread as "abandoned".
+ *   - Unmeasured (rows missing the field): SAY SO. Silence here would be read as
+ *     the zero above, which is exactly the confusion the long-tail precedent
+ *     (`lowStarInPool === null`) exists to prevent.
+ *
+ * Appended at the end of the module so that every `src/render.ts:NNN` citation in
+ * `.trellis/spec/` keeps pointing at the text it names. This module's helpers are
+ * already defined after their call sites (`noiseAdvice`, `callerNotes`,
+ * `suspiciousBlock`), and function declarations hoist, so the position costs
+ * nothing and the alternative — inserting in the middle — would have silently
+ * rotted ~28 spec references, none of which any test checks.
+ *
+ * @param rows - the rows actually being rendered, in the order they appear.
+ * @param scope - how to name them in the sentence, e.g. `本次候选里`.
+ * @returns one line naming the count, or `''` when there is nothing to report.
+ */
+function archivedNote(rows: readonly { archived?: boolean }[], scope: string): string {
+  // The measurement is `typeof archived === 'boolean'`, NOT truthiness: a row
+  // that never carried the field is UNKNOWN, and reading it as `false` would
+  // assert "this repository is not archived" about a fact nobody supplied. That
+  // is the same rule the long-tail population follows (`lowStarInPool === null`
+  // is "not reported", never zero) — and here it is the difference between a
+  // measured 0, which stays silent, and a missing measurement, which must say so
+  // rather than let its silence be read as that 0.
+  const known = rows.filter((row) => typeof row.archived === 'boolean')
+  const count = known.filter((row) => row.archived === true).length
+  if (count > 0) {
+    return (
+      `${scope} ${count} 行是归档仓库（已标 [已归档]）。归档不等于过时：本工具找的是前车之鉴，` +
+      '已完工的项目往往比半成品更有参考价值；请按实际相关性打分，不要仅因该标记就判为噪声。'
+    )
+  }
+  const missing = rows.length - known.length
+  if (missing > 0) {
+    return `${scope}无法统计归档数量：${missing} 行缺少 archived 字段（数据缺失，不等于没有归档仓库）。`
+  }
+  return ''
 }
