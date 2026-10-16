@@ -270,6 +270,6 @@ Both read `eval/runs/`, which **is not present in this repository**, so on a fre
 
 `test/baseline.test.mjs` redirects `DSH_HOME` to a temporary directory before importing anything that resolves it lazily, so a developer's real cache can never serve part of the replay.
 
-## Licence
+## License
 
 MIT. See [LICENSE](LICENSE).
