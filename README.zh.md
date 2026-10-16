@@ -77,4 +77,4 @@ npm run check:peers   # 从 registry 解析当前 DSH 宿主线
 
 ## 许可
 
-MIT，见 [LICENSE](LICENSE)。
+MIT， [LICENSE](LICENSE)。
