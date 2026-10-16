@@ -189,6 +189,19 @@ console.log('\n=== 9. the registered tool exposes what we think it does ===')
     return 'note' in item && !('note' in (rank.parameters.properties ?? {}))
   })(), JSON.stringify(Object.keys(rank.parameters.properties?.scores?.items?.properties ?? {})))
 
+  // m08552: in the one observed trial session the agent re-presented the card with
+  // the 简介 column dropped. The contract named the protected data (order,
+  // relevance, stars, score, owner, name, url) but not the description COLUMN, and
+  // it explicitly licensed "Paraphrasing a description is fine" — so an agent could
+  // drop the whole column and still be inside the letter of the rule. The
+  // description now names the column, and these assertions keep it named: without
+  // them the sentence can drift back to "paraphrasing is fine" and the same column
+  // silently disappears again.
+  const rankDesc = rank.description ?? ''
+  check('rank_candidates forbids dropping a column, not just a row', /dropping a row or a column/i.test(rankDesc), rankDesc.slice(0, 400))
+  check('rank_candidates requires the description column in a restated card', /must appear for every row/i.test(rankDesc))
+  check('rank_candidates no longer licenses paraphrasing the column away', !/Paraphrasing a description is fine/i.test(rankDesc))
+
   // P4: the files parameter's description used to say "Pass it only to override"
   // while the README documented the two-step flow as the recommended path — the
   // contradiction is what made agents never pass files (0/3 in the one observed
