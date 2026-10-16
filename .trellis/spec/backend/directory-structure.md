@@ -29,7 +29,7 @@ dsh-find-ideas/
 │   ├── cache.ts            #  9773 B — memory + JSON disk cache
 │   └── credentials.ts      #  6543 B — GITHUB_TOKEN write path (deliberately unregistered)
 ├── test/                   # 24 *.test.mjs files, run as plain node scripts
-├── scripts/                # check-peers.mjs, script-env.mjs — peer-range tooling
+├── scripts/                # check-peers.mjs, script-env.mjs, readme-sample.mjs
 ├── lib/                    # tsc output, gitignored — TESTS IMPORT FROM HERE, NOT src/
 ├── docs/                   # the architecture diagram: HTML, PNG, and its candidate
 ├── .trellis/               # this spec layer

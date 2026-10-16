@@ -16,7 +16,9 @@
     "test": "node test/run-all.test.mjs",
     "test:runner": "node --test \"test/**/*.test.mjs\"",
     "check:peers": "node scripts/check-peers.mjs",
-    "check": "npm run typecheck && npm run build"
+    "readme:sample": "node scripts/readme-sample.mjs",
+    "readme:check": "node scripts/readme-sample.mjs --check",
+    "check": "npm run typecheck && npm run build && npm run readme:check"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
