@@ -17,27 +17,28 @@
 ```
 dsh-find-ideas/
 ├── src/                    # the only directory tsc compiles (rootDir)
-│   ├── index.ts            # 93787 B — plugin entry; all three tool registrations
-│   ├── query.ts            # 74637 B — search planning + planning-degrade prose
+│   ├── index.ts            # 100264 B — plugin entry; all three tool registrations
+│   ├── query.ts            # 73232 B — search planning + planning-degrade prose
 │   ├── github.ts           # 61628 B — HTTP, retry, rate limit, pool selection
 │   ├── types.ts            # 45841 B — shared types + pure scoring/ranking maths
 │   ├── select.ts           # 43520 B — architecture-file selector (pure)
-│   ├── render.ts           # 38412 B — the card renderers (pure string builders)
+│   ├── render.ts           # 50754 B — the card renderers (pure string builders)
 │   ├── translate.ts        # 35478 B — idea -> English keywords, via an LLM
 │   ├── lexicon.ts          # 23955 B — CJK -> English seed table (pure data + lookup)
 │   ├── skeleton.ts         # 18988 B — signature scanning over file excerpts (pure)
 │   ├── cache.ts            #  9773 B — memory + JSON disk cache
 │   └── credentials.ts      #  6543 B — GITHUB_TOKEN write path (deliberately unregistered)
-├── test/                   # 23 *.test.mjs files, run as plain node scripts
+├── test/                   # 24 *.test.mjs files, run as plain node scripts
 ├── scripts/                # check-peers.mjs, script-env.mjs — peer-range tooling
 ├── lib/                    # tsc output, gitignored — TESTS IMPORT FROM HERE, NOT src/
+├── docs/                   # the architecture diagram: HTML, PNG, and its candidate
 ├── .trellis/               # this spec layer
-└── package.json · tsconfig.json · cordis.patch.yml · AGENTS.md · LICENSE
+└── package.json · tsconfig.json · cordis.patch.yml · AGENTS.md · README.md · LICENSE
 ```
 
 `lib/` is build output and is gitignored. Tests load it rather than `src/`; that indirection has a real failure mode documented in `quality-guidelines.md` §"Testing Requirements".
 
-There is no `README.md` in this repository, even though `package.json` lists one in `files`. Do not cite a README as a source of truth.
+`README.md` exists and is tracked, and it is the right place to start reading this project. It is not a normative source: when the README and the code disagree, the code and the test suite win. The README is written for a reader arriving from outside; this spec layer is the one the project's own agents are held to.
 
 ---
 
