@@ -1,5 +1,7 @@
 # dsh-find-ideas
 
+![license](https://img.shields.io/badge/license-MIT-blue) ![node](https://img.shields.io/badge/node-%3E%3D22-brightgreen) ![runtime deps](https://img.shields.io/badge/runtime%20deps-0-brightgreen)
+
 [English](README.md) | 中文
 
 **动手之前，先看看别人是不是已经做过了？**
