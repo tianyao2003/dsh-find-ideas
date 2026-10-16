@@ -201,6 +201,10 @@ console.log('\n=== 9. the registered tool exposes what we think it does ===')
   check('rank_candidates forbids dropping a column, not just a row', /dropping a row or a column/i.test(rankDesc), rankDesc.slice(0, 400))
   check('rank_candidates requires the description column in a restated card', /must appear for every row/i.test(rankDesc))
   check('rank_candidates no longer licenses paraphrasing the column away', !/Paraphrasing a description is fine/i.test(rankDesc))
+  // The column rule must not have been bought by dropping the older guarantee
+  // that a restated card's numbers stay traceable to the card. Both fit in the
+  // same three lines, and this asserts the second one survived.
+  check('rank_candidates still requires every number to stay traceable', /traceable to the card/i.test(rankDesc))
 
   // P4: the files parameter's description used to say "Pass it only to override"
   // while the README documented the two-step flow as the recommended path — the

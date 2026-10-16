@@ -1235,8 +1235,8 @@ export function apply(ctx: Context): void {
       'HARD LIMIT — you must NOT alter any key datum: the rank order, each row\'s relevance, stars_rating and ' +
       'score, and each repository\'s stars, owner, name and url must be reproduced exactly as the card gives ' +
       'them. Changing a number, reordering rows, dropping a row or a column, or inventing a rating is not. ' +
-      'A description may be paraphrased, but its column must appear for every row: a card restated without ' +
-      '简介 has lost a column, not shortened a table. ' +
+      'A description may be paraphrased, but its column must appear for every row, and every number you show ' +
+      'must stay traceable to the card: a restatement without 简介 has lost a column, not shortened a table. ' +
       'The card separates CODE-COMPUTED rows (order, stars_rating, score, all derived from your relevance) ' +
       'from CALLER NOTES (any free text you supply): a judgement in prose never enters the formula, so put ' +
       'your reasoning in `scores[].note` rather than beside a number. ' +
