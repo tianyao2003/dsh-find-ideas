@@ -4,7 +4,7 @@
 
 **动手之前，先看看别人是不是已经做过了？**
 
-用一句话描述你的idea，agent 会去 GitHub 上搜索相关的项目，基于相关性和 stars 排序加权打分排序返回给你。再读你选中的那些仓库——README、依赖清单、目录树、关键文件等，输出可供你借鉴的架构设计方案。
+用一句话描述你的idea，agent 会去 GitHub 上搜索相关的项目，基于相关性和 stars 加权打分排序后返回给你。再读你选中的那些仓库——README、依赖清单、目录树、关键文件等，输出可供你借鉴的架构设计方案。
 
 ## 安装
 
@@ -33,12 +33,14 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ## 使用
 
-安装后重启dsh，然后直接描述你的idea——agent 会自己调用3个内置的工具：
+安装后重启 dsh，然后直接描述你的 idea——agent 会自己调用 3 个内置工具：
 
 - 「我想做一个本地优先的 Markdown 笔记应用，帮我看一下 GitHub 上的项目。」
-- 「我想做一个 UI 增强的 DSH 插件， GitHub 上有哪些项目？」
+- 「我想做一个 UI 增强的 DSH 插件，GitHub 上有哪些项目？」
 
-内置工具是 `scout_projects` → `rank_candidates` → `inspect_projects`，三者彼此独立，0–10 的项目relevance分数由 agent 给出。工具负责计算、排序和读取，然后按照relevance × (1 + log10(max(star,10)+1)) / 2 进行排序。卡片中包含：项目、最近更新、relevance、stars、得分、语言、简介，7列结构化信息。
+`scout_projects` → `rank_candidates` → `inspect_projects` 三者彼此独立。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式为 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。卡片共 8 列：序号、项目、最近更新、relevance、stars、得分、语言、简介。
+
+工具输出为中文，没有语言开关。
 
 ## 工作方式
 
@@ -57,7 +59,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ### 网络请求与数据去向
 
-搜索查询与仓库路径发往 `api.github.com`；`inspect_projects` 读取公开仓库内容，不会上传你的本地代码。idea的检索打分等结果会在本地 `$DSH_HOME/cache/dsh-find-ideas/` 缓存 24 小时。
+搜索查询与仓库路径发往 `api.github.com`；`inspect_projects` 读取公开仓库内容，不会上传你的本地代码。唯一的另一处出口是宿主 LLM，且只在 idea 不含拉丁字母、调用方又没给拉丁 `keywords` 时用于翻译——纯英文 idea 不会被发往任何地方。检索结果与打分在本地 `$DSH_HOME/cache/dsh-find-ideas/` 缓存 24 小时。
 
 ## 兼容性
 

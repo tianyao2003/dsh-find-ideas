@@ -11,7 +11,11 @@
  * sample is not a cosmetic problem.
  *
  * So the samples are GENERATED from the shipped code and spliced between two
- * markers in each README:
+ * markers in each README. A README WITHOUT the markers has no sample to check
+ * and is reported as `skipped`, never as `current` — the maintainer's edit
+ * (m08551) removed the block from both READMEs, and a check that quietly passed
+ * on a README it never examined would be worse than no check at all. The
+ * generator is kept so that restoring the markers restores the guarantee:
  *
  *   - the ranked card comes from `renderRanked`, driven by a fixed three-repo
  *     pool, so the table, the declaration and the two counting lines are the
@@ -177,16 +181,15 @@ async function buildBlock(file) {
  * @param file - README file name, relative to the package root.
  * @param block - the sample block.
  * @param write - `false` to compare only.
- * @returns `current`, `updated` or `stale`.
+ * @returns `current`, `updated`, `stale`, or `skipped` when the README has no
+ *   markers and therefore carries no generated sample.
  */
 function splice(file, block, write) {
   const path = join(pkgRoot, file)
   const text = readFileSync(path, 'utf8')
   const from = text.indexOf(START)
   const to = text.indexOf(END)
-  if (from === -1 || to === -1 || to < from) {
-    throw new Error(`${file} has no ${START} … ${END} pair to fill.`)
-  }
+  if (from === -1 || to === -1 || to < from) return 'skipped'
   const head = text.slice(0, from + START.length)
   const tail = text.slice(to)
   const current = text.slice(from + START.length, to)
@@ -212,10 +215,14 @@ const check = process.argv.includes('--check')
 const files = Object.keys(REFUSAL_LEAD)
 
 let stale = 0
+let skipped = 0
 for (const file of files) {
-  const block = await buildBlock(file)
-  const outcome = splice(file, block, !check)
+  // A README with no markers is checked for nothing, so the block is not even
+  // generated: building it would only assert the generator still runs.
+  const hasMarkers = readFileSync(join(pkgRoot, file), 'utf8').includes(START)
+  const outcome = hasMarkers ? splice(file, await buildBlock(file), !check) : 'skipped'
   if (outcome === 'stale') stale++
+  if (outcome === 'skipped') skipped++
   console.log(`${file}: ${outcome}${outcome === 'stale' ? ' — run "npm run readme:sample"' : ''}`)
 }
 
@@ -223,4 +230,9 @@ if (check && stale > 0) {
   console.log(`\n${stale} README sample(s) no longer match the code.`)
   process.exit(1)
 }
-console.log(check ? '\nREADME samples are current.' : '\nREADME samples regenerated.')
+if (skipped > 0) {
+  console.log(`\n${skipped} README(s) carry no sample markers, so nothing was checked there.`)
+  console.log('README samples are current where they exist.')
+} else {
+  console.log(check ? '\nREADME samples are current.' : '\nREADME samples regenerated.')
+}
