@@ -327,7 +327,7 @@ export function explainEmpty(degraded: Degraded | null): string {
   if (degraded === null) {
     return (
       '本次检索成功，但 GitHub 没有返回匹配的仓库。\n' +
-      '  这通常不是故障，而是查询词太具体：GitHub 仓库搜索对名称、描述、README 做多词 AND 匹配，\n' +
+      '  这通常不是故障，而是查询词太具体：GitHub 仓库搜索对名称、描述、topics 做多词 AND 匹配，\n' +
       '  一句自然语言长句往往无法整体命中。请改用 3-6 个关键词重试（通过 keywords 参数传入），\n' +
       '  例如把「a local-first Markdown note-taking app with bidirectional links」压缩为\n' +
       '  「markdown note bidirectional」。'

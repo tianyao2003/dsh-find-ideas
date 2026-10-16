@@ -50,9 +50,9 @@ export const inject = ['tools']
  * What GitHub's repository search actually matches (B1, user m00793).
  *
  * Measured, and previously only inferable: the search endpoint matches a
- * repository's NAME and DESCRIPTION. It does not index README bodies and it does
- * not index code. So a project whose README says "translates web pages" but
- * whose description omits the word is unreachable by any query, however good.
+ * repository's NAME, DESCRIPTION and TOPICS — not README bodies, not code. Add
+ * `in:readme` to reach a README, but it widens rather than sharpens and does not
+ * guarantee exhaustiveness, so a project described only in its README is missed.
  *
  * The failure this prevents is a reasoning error, not a recall error: without
  * this sentence an agent reads an empty or noisy result set as "nothing like
@@ -66,11 +66,11 @@ export const inject = ['tools']
  * is present rather than trusting three hand-edited copies to stay in sync.
  */
 export const RETRIEVAL_SURFACE =
-  'RETRIEVAL SURFACE — GitHub repository search matches the repository NAME and DESCRIPTION only. ' +
-  'It does NOT index README bodies, and it does NOT index file contents. A project that describes ' +
-  'itself as this idea only inside its README or its code is unreachable by any query, however ' +
-  'precise. An empty or noisy result set therefore means "this query reached nothing", never ' +
-  '"nothing like this exists".'
+  'RETRIEVAL SURFACE — GitHub repository search matches the repository NAME, DESCRIPTION and TOPICS ' +
+  'only. It does NOT index README bodies or file contents, so a project described only in its README ' +
+  'is missed. Adding `in:readme` does reach README text, but it widens the net rather than sharpening ' +
+  'it and does not guarantee exhaustiveness. An empty or noisy result set therefore means "this query ' +
+  'reached nothing", never "nothing like this exists".'
 
 /**
  * Report what each query term matched on its own (B6, user m00929).

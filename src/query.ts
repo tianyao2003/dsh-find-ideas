@@ -239,7 +239,7 @@ export interface QueryStep {
 /**
  * Words too generic to narrow a repository search.
  *
- * GitHub's repository search AND-matches across name, description and README,
+ * GitHub's repository search AND-matches across name, description and topics,
  * so every extra word strictly shrinks the result set. These words appear in
  * almost every project description and therefore cost recall while adding
  * almost no discrimination.
@@ -1051,8 +1051,8 @@ export function describePlanFailure(error: unknown, keywords: string | undefined
   return (
     '检索计划构建失败，因此没有发起任何检索。\n' +
     `  原因：${reason}\n` +
-    '  这不代表没有相关项目。GitHub 仓库搜索只覆盖仓库的名称、描述与 topics。' +
-    '中文描述的项目与英文描述的项目是两个几乎不相交的总体。\n' +
+    '  这不代表没有相关项目。GitHub 仓库搜索只覆盖仓库的名称、描述与 topics，不覆盖 README 正文；' +
+    '只在 README 里自我描述的项目可用 in:readme 扩大覆盖（但不保证穷尽）。中文描述的项目与英文描述的项目是两个几乎不相交的总体。\n' +
     (hasHint
       ? '  你已提供 keywords，但计划仍未能构建——这是一个需要修复的缺陷，请把上面的原因一并反馈。'
       : '  请通过 keywords 参数补充 3-6 个英文检索词重试（例如把「一个本地优先的笔记应用」' +
@@ -1343,7 +1343,7 @@ export function explainThinResult(
   if (kind === 'narrow') {
     return (
       `本次仅返回 ${count} 个（请求 ${limit} 个）。这通常是查询词过窄，而非 GitHub 缺少相关项目：\n` +
-      '  GitHub 仓库搜索对名称、描述、README 做多词 AND 匹配，词越多命中越少。\n' +
+      '  GitHub 仓库搜索对名称、描述、topics 做多词 AND 匹配，词越多命中越少。\n' +
       '  可以换几个更宽泛的关键词（如去掉一个限定词）重试。'
     )
   }
@@ -1379,7 +1379,7 @@ export function describeReplayedThinness(kind: ThinKind): string {
   }
   return (
     '这条候选列表来自缓存，且当初只返回了少量结果。这通常是查询词过窄，而非 GitHub 缺少相关项目：\n' +
-    '  GitHub 仓库搜索对名称、描述、README 做多词 AND 匹配，词越多命中越少。\n' +
+    '  GitHub 仓库搜索对名称、描述、topics 做多词 AND 匹配，词越多命中越少。\n' +
     '  可以换几个更宽泛的关键词（如去掉一个限定词）重新检索。'
   )
 }
