@@ -191,9 +191,18 @@ function splice(file, block, write) {
   const tail = text.slice(to)
   const current = text.slice(from + START.length, to)
 
-  if (current.includes(PLACEHOLDER) || current !== `\n${block}\n`) {
+  // Compare with line endings normalised. `core.autocrlf=true` checks these
+  // files out as CRLF on Windows, and a byte comparison against the
+  // generator's LF block would then report every sample stale on a machine
+  // where nothing changed — a false alarm that trains the reader to ignore
+  // the check. The block is written back in whatever ending the file uses.
+  const eol = text.includes('\r\n') ? '\r\n' : '\n'
+  const normalised = current.replaceAll('\r\n', '\n')
+
+  if (normalised.includes(PLACEHOLDER) || normalised !== `\n${block}\n`) {
     if (!write) return 'stale'
-    writeFileSync(path, `${head}\n${block}\n${tail}`, 'utf8')
+    const spliced = `${head}\n${block}\n${tail}`.replaceAll('\r\n', '\n')
+    writeFileSync(path, spliced.replaceAll('\n', eol), 'utf8')
     return 'updated'
   }
   return 'current'
