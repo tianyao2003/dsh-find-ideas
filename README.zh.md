@@ -52,7 +52,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 - **`rank_candidates`** 用 `relevance × (1 + log10(max(stars, 10) + 1)) / 2` 加权公式给候选池打分。
 - **`inspect_projects`** 最多读 5 个仓库——README、依赖清单、目录树摘要和几个关键文件。
 
-### 卡片给出的保证
+### 可信度
 
 - **算出来的与传进来的分得清。** 每张卡都会声明哪些字段由代码派生、哪些由调用方传入。调用方文本会被裁剪、转义并标注 `[未验证]`，永不参与算术。
 - **「没测」永远不会渲染成零。** 被跳过的探测、只跑了一部分的探测、不带探测数据的缓存回放，各有各的措辞。
@@ -79,6 +79,6 @@ npm run check:peers   # 从 registry 解析当前 DSH 宿主线
 
 `test/` 下有 24 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身外的 23 个，其中两个（`baseline`、`stage2`）因 `eval/runs/` 夹具从未移植而跳过——所以本地完整跑一遍验证的是 **21 个文件**。跳过会列在 `skipped (fixture absent, NOT verified)` 标题下，绝不算作通过。
 
-## 许可
+## 许可证
 
 MIT， [LICENSE](LICENSE)。
