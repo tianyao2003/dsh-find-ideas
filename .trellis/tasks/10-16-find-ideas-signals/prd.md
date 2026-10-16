@@ -4,7 +4,7 @@
 
 把三处**管线内部已经知道、但从未说出口**的事实补进用户可见的输出：
 
-1. **R1 — 检索面的描述与实际不符。** 插件在三处告诉读者「README 正文检索不到」，而实测 `in:readme` 限定符**能**检索到 README 正文。这是一条可以被一次请求证伪的事实陈述，出现在三个工具描述与失败文案里。
+1. **R1 — 检索面的描述与实际不符，且错在两个相反的方向。** 实测（GitHub 官方文档 + 六个 token 的集合包含实验）确认：默认检索面是**名称、描述与 topics**，**不含 README 正文**；`in:readme` 能触达 README，但既不保证穷尽、也不比裸查询更准。据此源码里有两类错误陈述：**漏报**——`RETRIEVAL_SURFACE`（`src/index.ts:68-73`）说检索面「只有名称与描述」，漏了 topics，且断言 README 里的项目「任何查询都触达不了，无论多精确」，被 `in:readme` 直接证伪；**错报**——**四处**文案把 README 写进了**默认**检索面（`src/query.ts:242`、`:1346`、`:1382`、`src/render.ts:330`）。另需注意：`src/query.ts:1054` 的字段列表「名称、描述与 topics」**是正确的**（与官方文档一致），PRD 初稿把它列为错误项是误判。
 2. **R2 — 归档仓库的规模不可见。** `archived` 被采集、被逐行标记（`[已归档]`），但读者看不到「这一池里有几个是归档的」。标记本身还容易被误读为「废弃」。
 3. **R3 — 通道命中数被算出来又扔掉。** `selectPool` 的融合阶段记录了每个仓库被哪几条查询召回（`sources: Set<number>`），但它在 `.map(e => e.row)` 处被丢弃，渲染层零命中。
 
@@ -35,13 +35,58 @@
 
 限定符对检索面的切分（`dsh-plugin` 实测）：裸词 23,513 · `in:readme` 39,000 · `in:name,description` 8,239 · `in:topics` 19,659。
 
-### R1：三处陈述的现状与不一致
+### R1：默认检索面的决定性证据（官方文档 + 集合包含实验）
+
+**官方文档逐字**（`https://docs.github.com/en/search-github/searching-on-github/searching-for-repositories`）：
+
+> With the `in` qualifier you can restrict your search to the repository name, repository description, repository topics, contents of the README file, or any combination of these. **When you omit this qualifier, only the repository name, description, and topics are searched.**
+
+> Besides using `in:readme`, it's not possible to find repositories by searching for specific content within the repository.
+
+→ **默认面 = 名称 + 描述 + topics，不含 README 正文**；`in:readme` 是触达 README 的唯一途径。
+
+**集合包含实验**（`.scratch/probe-surface4.mjs`）：`in:readme` 把检索限制在 README 内，故若默认面也含 README，必有 `total("T in:readme") <= total("T")`；反向不等式即证伪。六个 token 全部证伪：
+
+| token | 裸查询 | `in:readme` | `in:name,description` | `in:topics` | 比值 |
+|---|---|---|---|---|---|
+| `open-source` | 449,208 | 13,353,563 | 399,318 | 75,371 | 29.7× |
+| `architecture` | 625,616 | 9,719,583 | 622,500 | 10,077 | 15.5× |
+| `dsh-plugin` | 23,524 | 39,022 | 8,243 | 19,671 | 1.7× |
+| `cordis` | 3,820 | 27,741 | 1,520 | 2,765 | 7.3× |
+| `prior-art` | 907 | 68,955 | 786 | 186 | 76.0× |
+| `find-ideas` | 3,087 | 1,276,329 | 3,088 | 0 | 413.5× |
+
+且 `裸查询 − in:name,description` 的超出量（49,890 / 3,116 / 15,281 / 2,300 / 121 / −1）全部 ≤ `in:topics`，与「topics 是第三个被检索字段」一致。
+
+**方法论教训（前两个探针失败的原因，勿重蹈）**：用「成员资格」判定检索面在本语料上**不可行**——`probe-topics.mjs` 的 `dsh-plugin` 命中可由 README 解释（脚本只看 name/desc 就打印 DECISIVE，是脚本 bug）；`probe-surface2.mjs` 的 `cordiverse` 裸查询 miss 被索引陈旧性污染（`in:readme` 也 miss）；`probe-surface3.mjs` 全部 inconclusive（百万级结果集里的一次 miss 什么也证明不了，稀有词又常常不在索引里）。**只有集合包含论证不受分页与索引陈旧性影响。**
+
+### R1：检索面陈述的现状（共 7 处，错在两类方向）
+
+**A 类 — 漏报（说少了）**
 
 | 位置 | 逐字内容 | 判定 |
 |---|---|---|
-| `src/index.ts:68-73` `RETRIEVAL_SURFACE` | `'GitHub repository search matches the repository NAME and DESCRIPTION only. It does NOT index README bodies, and it does NOT index file contents. A project that describes itself as this idea only inside its README or its code is unreachable by any query, however precise.'` | **两处不实**：①「只匹配名称与描述」漏了 topics（实测 topics 可命中，且插件自己的失败文案写的是「名称、描述与 topics」）；②「README 里的项目**任何**查询都触达不了，无论多精确」被 `in:readme` 直接证伪 |
-| `src/query.ts:1054` 失败文案 | `'  这不代表没有相关项目。GitHub 仓库搜索只覆盖仓库的名称、描述与 topics。'` | 前半句正确且被测试钉住；后半句同上，漏了 `in:readme` 这条补救路径 |
+| `src/index.ts:68-73` `RETRIEVAL_SURFACE` | `'GitHub repository search matches the repository NAME and DESCRIPTION only. It does NOT index README bodies, and it does NOT index file contents. A project that describes itself as this idea only inside its README or its code is unreachable by any query, however precise.'` | **两处不实**：①「只匹配名称与描述」漏了 topics（官方文档与实测均确认 topics 在默认面内）；②「README 里的项目**任何**查询都触达不了，无论多精确」被 `in:readme` 直接证伪——`in:readme` 就是一个查询 |
+| `src/index.ts:53-54` 其 doc 注释 | `'the search endpoint matches a repository's NAME and DESCRIPTION. It does not index README bodies and it does not index code.'` | 同源、同样漏 topics（`README bodies` 半句方向正确） |
+| `src/query.ts:1054` 失败文案 | `'  这不代表没有相关项目。GitHub 仓库搜索只覆盖仓库的名称、描述与 topics。'` | **字段列表正确**（与官方文档一致）；唯一缺口是没给出 `in:readme` 这条补救路径。PRD 初稿把它判为错误项，**是误判** |
+
+**B 类 — 错报（说多了）：把 README 写进了默认检索面。这四处 PRD 初稿完全没提，是 R1 的真正主体。**
+
+| 位置 | 逐字内容 | 判定 |
+|---|---|---|
+| `src/query.ts:242` `STOPWORDS` doc 注释 | `GitHub's repository search AND-matches across name, description and README,` | **错**——默认面不含 README |
+| `src/query.ts:1346`（`explainThinResult` 的 `narrow` 分支） | `'  GitHub 仓库搜索对名称、描述、README 做多词 AND 匹配，词越多命中越少。\n'` | **错**，同上 |
+| `src/query.ts:1382`（`describeReplayedThinness`） | 同上逐字 | **错**，同上 |
+| `src/render.ts:330`（`explainEmpty`） | `'  这通常不是故障，而是查询词太具体：GitHub 仓库搜索对名称、描述、README 做多词 AND 匹配，\n'` | **错**，同上 |
+
+**C 类 — 正确（不得改动）**
+
+| 位置 | 逐字内容 | 判定 |
+|---|---|---|
+| `src/query.ts:1054` 字段列表 | 见 A 类 | 正确（与官方文档一致） |
 | `src/index.ts:1256` `rank_candidates` 描述 | `'yourself (for example with the qualifiers `topic:`, `in:readme`, `stars:>` or `pushed:`), pass your '` | **正确**——同一份代码已经告诉 agent 有 `in:readme` |
+
+**测试侧约束（已实测）**：grep `名称、描述、README|README 做多词|对名称、描述|AND 匹配|多词 AND` 在 `test/*.mjs` 内**只有 1 处命中**——`test/source-integrity.test.mjs:164` 的 `['多词 AND 匹配', 'the Latin operator keeps its spaces']`，它钉的是「拉丁算子保留空格」，**不钉字段列表**。B 类四处把「名称、描述、README」改成「名称、描述、topics」不会挂它。`explainThinResult` / `describeReplayedThinness` / `explainEmpty` 的测试断言只钉 `/查询词过窄/`（`test/queries.test.mjs:628`、`:640`），该短语不在改动范围内。
 
 **`RETRIEVAL_SURFACE` 被逐字重复在三处工具描述里**（`src/index.ts:794`、`:1243`、`:1525`），文件头注释 `:64-66` 明写这是刻意设计：「Kept as one constant and repeated verbatim in all three tool descriptions so the boundary is stated wherever a result is read, and so a test can assert it is present rather than trusting three hand-edited copies to stay in sync.」→ 改一处即改三处，**这正是该常量的设计意图**。
 
@@ -77,12 +122,16 @@
 
 ## Requirements
 
-- **R1 — 修正检索面的不实陈述（最高优先）。** `RETRIEVAL_SURFACE`（`src/index.ts:68-73`）与失败文案（`src/query.ts:1054`）必须与实测一致：
-  - 承认 topics 也在检索面内；
-  - **删除**「README 里的项目任何查询都触达不了」这一断言，改为陈述 `in:readme` 这条通道的存在；
-  - 同时**不得反向过度断言**：必须写明 `in:readme` 扩大覆盖但不保证穷尽（`cordiverse` 反例），且其结果是更宽的网（13.35M vs 449k）而非更准的网；
-  - 保持 `RETRIEVAL_SURFACE` 作为**单一常量、三处逐字重复**的现有结构不变（`src/index.ts:64-66` 的注释即其设计理由）。
+- **R1 — 修正检索面的不实陈述（最高优先），两类方向都要修。**
+  - **R1a（A 类，漏报）**：`RETRIEVAL_SURFACE`（`src/index.ts:68-73`）与其 doc 注释（`src/index.ts:53-54`）必须与实测一致：
+    - 承认 topics 也在默认检索面内；
+    - **删除**「README 里的项目任何查询都触达不了，无论多精确」这一断言，改为陈述 `in:readme` 这条通道的存在；
+    - 同时**不得反向过度断言**：必须写明 `in:readme` 扩大覆盖但不保证穷尽（`cordiverse` 反例），且其结果是更宽的网（13.35M vs 449k）而非更准的网；
+    - 保持 `RETRIEVAL_SURFACE` 作为**单一常量、三处逐字重复**的现有结构不变（`src/index.ts:64-66` 的注释即其设计理由）。
+  - **R1b（B 类，错报——本任务真正的主体）**：**四处**把 README 写进默认检索面的文案必须改成与官方文档一致（默认面 = 名称 + 描述 + topics）：`src/query.ts:242`（`STOPWORDS` doc 注释）、`src/query.ts:1346`（`explainThinResult` 的 `narrow` 分支）、`src/query.ts:1382`（`describeReplayedThinness`）、`src/render.ts:330`（`explainEmpty`）。改法：把「名称、描述、README」改为「名称、描述、topics」；**不得**顺手加 `in:readme` 的说明（这四处讲的是「词越多命中越少」的机制，`in:readme` 与那句论断无关）。
+  - **R1c（C 类，正确，不得改动）**：`src/query.ts:1054` 的字段列表「名称、描述与 topics」与 `src/index.ts:1256` 的 `in:readme` 提示都**已经正确**，改动只允许是**追加**（在 `:1054` 补 `in:readme` 这条补救路径），不得删除或改写既有正确字段列表。
   - 失败文案的修改**不得删除** `test/plan-failure.test.mjs:337-352` 已断言的短语：`没有发起任何检索`、`tailReason`、`不代表没有相关项目`、`不相交`/`两个`、`keywords`、`local-first`、`请通过 keywords 参数补充`、`反馈`。
+  - B 类改动**不得删除** `test/queries.test.mjs:628`/`:640` 断言的 `/查询词过窄/`。
 - **R2 — 上浮归档仓库的规模。** 在既有的诚实性区块内报告「本次池子里有多少行是归档仓库」，措辞须与 `src/render.ts:741` 已有的「已归档标记容易被误读为噪声」一致。
   - **不剔除**归档仓库：本插件是「前车之鉴」工具，归档仓库常是**完工的作品**，剔除会丢掉最有参考价值的样本。
   - **不改得分公式**（`relevance × (1 + log10(max(stars,10)+1)) / 2` 是中心契约，`design.md §2.3` 与测试钉着）——**不得**给归档仓库降权。
@@ -98,19 +147,21 @@
 
 ## Acceptance Criteria
 
-- [ ] **AC1** `RETRIEVAL_SURFACE` 不再包含「README 里的项目任何查询都触达不了」这一断言，且包含 `in:readme`；三处工具描述仍逐字一致（新增断言：三处相等，而不是各自包含）。
-- [ ] **AC2** `RETRIEVAL_SURFACE` 承认 topics 在检索面内。
+- [ ] **AC1** `RETRIEVAL_SURFACE` 不再包含「README 里的项目任何查询都触达不了」这一断言，且包含 `in:readme`；三处工具描述仍逐字一致（新增断言：三处**相等**，而不是各自包含）。
+- [ ] **AC2** `RETRIEVAL_SURFACE` 承认 topics 在**默认**检索面内。
 - [ ] **AC3** `in:readme` 的表述带**双向**限定：既说明它扩大覆盖，也说明它不保证穷尽。**有反例测试**——断言文案包含「不保证」/「并非全部」一类限定词，防止将来被简化成「README 也能搜到」。
-- [ ] **AC4** `src/query.ts:1054` 的失败文案给出 `in:readme` 这条补救路径，且 `test/plan-failure.test.mjs` 现有断言全部继续通过（尤其 `不代表没有相关项目` 与「with a hint 不重复 keywords 建议」两条）。
-- [ ] **AC5** 归档计数出现在卡片上，且**未测量与 0 可区分**（两条断言：测量为 0 时与未测量时的文案不同）。
-- [ ] **AC6** 归档仓库**不被剔除、不被降权**：得分公式、排序、行数成员关系均有反例测试（构造一个 archived=true 的行，断言它仍在榜上且得分与 archived=false 的同参数行相同）。
-- [ ] **AC7** 通道命中数出现在卡片上；`scout_projects` 的输出能**原样**通过 `rank_candidates` 的入参校验（往返测试，不是分别校验两个 schema）。
-- [ ] **AC8** 通道命中数**缺失**时不渲染任何数字，且不渲染为 0（断言两种输入产出不同文案）。
-- [ ] **AC9** 通道命中数**不进入打分**：同参数下改 `channels_hit` 不改变 `score`、`rank` 与顺序。
-- [ ] **AC10** 表格仍是**恰好八列**：`test/render-table.test.mjs` 的四条列断言全部原样通过，无新增列。
-- [ ] **AC11** `test/ranking.test.mjs:177` 的参数名集合断言原样通过（未新增 `rank_candidates` 参数）。
-- [ ] **AC12** `.trellis/spec/` 的行号引用全部有效：`.scratch/verify-tree.mjs` 输出 `PAST EOF: 0`、`nonexistent file: 0`、`NEEDS ADJUDICATION: 0`。**若某文件的改动不可避免地位移了行号，必须在同一提交内更新受影响的 spec 引用。**
-- [ ] **AC13** 全量校验全绿：`npx tsc --noEmit`、`npm run check`、`node test/run-all.test.mjs`（21/23 passed, 2 skipped 为基线；末条 45 PASS / 0 FAIL 为基线）。**复核红灯必须直接跑 `node test/<file>`，不带 `--test`**——本项目测试自己打印 `FAIL`/`PASS`，`node --test` 的过滤会给出假阴性。
+- [ ] **AC4** `src/index.ts:53-54` 的 doc 注释与 `RETRIEVAL_SURFACE` 同步（不得只改常量、留下同源注释继续漏报 topics）。
+- [ ] **AC5** `src/query.ts:1054` 的失败文案**追加** `in:readme` 这条补救路径，既有正确字段列表「名称、描述与 topics」保留，且 `test/plan-failure.test.mjs` 现有断言全部继续通过（尤其 `不代表没有相关项目` 与「with a hint 不重复 keywords 建议」两条）。
+- [ ] **AC6** **B 类四处**不再把 README 写进**默认**检索面：`src/query.ts:242`、`src/query.ts:1346`、`src/query.ts:1382`、`src/render.ts:330` 一律改为「名称、描述、topics」；`test/queries.test.mjs:628`/`:640` 的 `/查询词过窄/` 断言继续通过；`test/source-integrity.test.mjs:164` 的 `多词 AND 匹配` 断言继续通过。
+- [ ] **AC7** 归档计数出现在卡片上，且**未测量与 0 可区分**（两条断言：测量为 0 时与未测量时的文案不同）。
+- [ ] **AC8** 归档仓库**不被剔除、不被降权**：得分公式、排序、行数成员关系均有反例测试（构造一个 archived=true 的行，断言它仍在榜上且得分与 archived=false 的同参数行相同）。
+- [ ] **AC9** 通道命中数出现在卡片上；`scout_projects` 的输出能**原样**通过 `rank_candidates` 的入参校验（往返测试，不是分别校验两个 schema）。
+- [ ] **AC10** 通道命中数**缺失**时不渲染任何数字，且不渲染为 0（断言两种输入产出不同文案）。
+- [ ] **AC11** 通道命中数**不进入打分**：同参数下改 `channels_hit` 不改变 `score`、`rank` 与顺序。
+- [ ] **AC12** 表格仍是**恰好八列**：`test/render-table.test.mjs` 的四条列断言全部原样通过，无新增列。
+- [ ] **AC13** `test/ranking.test.mjs:177` 的参数名集合断言原样通过（未新增 `rank_candidates` 参数）。
+- [ ] **AC14** `.trellis/spec/` 的行号引用全部有效：`.scratch/verify-tree.mjs` 输出 `PAST EOF: 0`、`nonexistent file: 0`、`NEEDS ADJUDICATION: 0`。**若某文件的改动不可避免地位移了行号，必须在同一提交内更新受影响的 spec 引用。**
+- [ ] **AC15** 全量校验全绿：`npx tsc --noEmit`、`npm run check`、`node test/run-all.test.mjs`（21/23 passed, 2 skipped 为基线；末条 45 PASS / 0 FAIL 为基线）。**复核红灯必须直接跑 `node test/<file>`，不带 `--test`**——本项目测试自己打印 `FAIL`/`PASS`，`node --test` 的过滤会给出假阴性。
 
 ## Out of Scope
 
@@ -134,9 +185,11 @@
 
 | 脚本 | 覆盖内容 |
 |---|---|
-| `.scratch/probe-surface.mjs` | 四个限定符（裸词 / `in:readme` / `in:name,description` / `in:topics`）对 `dsh-plugin` 的 `total_count` 与命中集合切分 |
-| `.scratch/probe-readme-surface.mjs` | 用 `deepseek-ai/deepseek-harness` 做 README-only 词的对照实验（`in:readme` 的覆盖增益与穷尽性反例），即 R1 的决定性证据 |
-| `.scratch/verify-tree.mjs` | 独立校验 `.trellis/spec/**/*.md` 里每一处行号引用是否落在符号范围内；AC12 用它 |
+| `.scratch/probe-surface4.mjs` | **决定性**：集合包含实验（六个 token × 四种查询形态），证伪「README 在默认检索面内」。不受分页与索引陈旧性影响 |
+| `.scratch/probe-readme-surface.mjs` | 用 `deepseek-ai/deepseek-harness` 做 README-only 词的对照实验：`in:readme` 的覆盖增益（三词全命中）与穷尽性反例（`cordiverse` 仍 miss） |
+| `.scratch/probe-surface.mjs` | 四个限定符（裸词 / `in:readme` / `in:name,description` / `in:topics`）对 `dsh-plugin` 的 `total_count` 切分 |
+| `.scratch/probe-topics.mjs`、`.scratch/probe-surface2.mjs`、`.scratch/probe-surface3.mjs` | **已证伪的三个探针，仅供追溯**：成员资格论证在本语料上不可行（见上方方法论教训）。它们的第一版结论是错的，不得引用 |
+| `.scratch/verify-tree.mjs` | 独立校验 `.trellis/spec/**/*.md` 里每一处行号引用是否落在符号范围内；AC14 用它 |
 
 ### 实现前必须重测的基线
 
