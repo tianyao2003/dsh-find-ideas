@@ -20,6 +20,17 @@ node_modules/
 # reports which rule matched).
 *报告.md
 
+# Archify run receipts under `docs/`: these record the machine that ran the
+# render — absolute paths under the user's home directory and the local node
+# binary — which is not information the repository should carry. The diagram
+# itself is tracked (`docs/dsh-find-ideas.html`, the PNG, and the candidate it
+# was built from); re-running `archify finalize` regenerates these receipts on
+# any machine, so nothing is lost by leaving them out.
+docs/*.finalize.json
+docs/*.finalize-summary.json
+docs/*.browser-check.json
+docs/*.delivery.json
+
 # Local editor / OS state.
 *.log
 .DS_Store

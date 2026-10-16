@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "dsh-find-ideas 架构",
+    "locale": "zh-CN",
+    "output": "docs/dsh-find-ideas.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/tianyao2003/dsh-find-ideas.git",
+      "provider": "github",
+      "revision": "a643b46483530e85a3cbc679df9930f07ee5b25d"
+    }
+  },
+  "components": [
+    { "id": "agent", "type": "external", "label": "调用方 Agent", "sublabel": "LLM 工具调用", "pos": [40, 40], "size": [130, 84] },
+
+    { "id": "apply", "type": "backend", "label": "插件入口", "sublabel": "apply(ctx)", "tag": "注册 3 个工具", "pos": [255, 160], "size": [160, 76],
+      "sources": [{ "path": "src/index.ts", "line": 781 }, { "path": "src/index.ts", "line": 46, "end_line": 47 }] },
+    { "id": "scout", "type": "backend", "label": "scout_projects", "sublabel": "检索候选仓库", "tag": "≤25s", "pos": [255, 320], "size": [160, 110],
+      "sources": [{ "path": "src/index.ts", "line": 782 }, { "path": "src/index.ts", "line": 1215 }] },
+    { "id": "rank", "type": "backend", "label": "rank_candidates", "sublabel": "打分与排序", "tag": "≤5s", "pos": [255, 560], "size": [160, 110],
+      "sources": [{ "path": "src/index.ts", "line": 1218 }, { "path": "src/index.ts", "line": 1493 }] },
+    { "id": "inspect", "type": "backend", "label": "inspect_projects", "sublabel": "深读仓库证据", "tag": "≤60s", "pos": [255, 780], "size": [160, 110],
+      "sources": [{ "path": "src/index.ts", "line": 1496 }, { "path": "src/index.ts", "line": 1881 }] },
+
+    { "id": "translate", "type": "backend", "label": "想法翻译", "sublabel": "translate.ts", "tag": "8s 超时", "pos": [485, 160], "size": [160, 76],
+      "sources": [{ "path": "src/translate.ts", "line": 657 }, { "path": "src/translate.ts", "line": 191 }] },
+    { "id": "credentials", "type": "security", "label": "凭据解析", "sublabel": "credentials.ts", "pos": [485, 266], "size": [160, 76],
+      "sources": [{ "path": "src/credentials.ts", "line": 63 }, { "path": "src/credentials.ts", "line": 32 }] },
+    { "id": "render", "type": "backend", "label": "渲染与诚实性", "sublabel": "render.ts", "pos": [485, 400], "size": [160, 76],
+      "sources": [{ "path": "src/render.ts", "line": 349 }, { "path": "src/render.ts", "line": 539 }, { "path": "src/render.ts", "line": 953 }] },
+    { "id": "github", "type": "backend", "label": "GitHub 传输", "sublabel": "github.ts", "tag": "唯一 fetch 出口", "pos": [485, 516], "size": [160, 76],
+      "sources": [{ "path": "src/github.ts", "line": 346 }, { "path": "src/github.ts", "line": 375 }] },
+    { "id": "cache", "type": "database", "label": "两层缓存", "sublabel": "cache.ts", "tag": "内存 5min · 磁盘 24h", "pos": [485, 640], "size": [160, 76],
+      "sources": [{ "path": "src/cache.ts", "line": 102 }, { "path": "src/cache.ts", "line": 186 }, { "path": "src/cache.ts", "line": 127 }] },
+
+    { "id": "query", "type": "backend", "label": "查询规划", "sublabel": "query.ts", "tag": "≤3 条查询", "pos": [715, 300], "size": [160, 76],
+      "sources": [{ "path": "src/query.ts", "line": 1019 }, { "path": "src/query.ts", "line": 464 }] },
+    { "id": "lexicon", "type": "backend", "label": "中英词表", "sublabel": "lexicon.ts", "tag": "97 条", "pos": [715, 430], "size": [160, 76],
+      "sources": [{ "path": "src/lexicon.ts", "line": 138, "end_line": 276 }, { "path": "src/lexicon.ts", "line": 386 }] },
+    { "id": "types", "type": "backend", "label": "打分与可疑检测", "sublabel": "types.ts", "pos": [715, 550], "size": [160, 76],
+      "sources": [{ "path": "src/types.ts", "line": 146 }, { "path": "src/types.ts", "line": 755 }, { "path": "src/types.ts", "line": 474 }] },
+    { "id": "select", "type": "backend", "label": "文件选择器", "sublabel": "select.ts", "tag": "v2", "pos": [715, 680], "size": [160, 76],
+      "sources": [{ "path": "src/select.ts", "line": 321 }, { "path": "src/select.ts", "line": 305 }] },
+    { "id": "skeleton", "type": "backend", "label": "骨架扫描", "sublabel": "skeleton.ts", "tag": "v1", "pos": [715, 840], "size": [160, 76],
+      "sources": [{ "path": "src/skeleton.ts", "line": 377 }, { "path": "src/skeleton.ts", "line": 148 }] },
+
+    { "id": "host_tools", "type": "external", "label": "工具注册表", "sublabel": "ctx.tools", "pos": [255, 30], "size": [160, 70],
+      "sources": [{ "path": "src/index.ts", "line": 782 }, { "path": "src/index.ts", "line": 1218 }, { "path": "src/index.ts", "line": 1496 }] },
+    { "id": "host_llm", "type": "cloud", "label": "宿主 LLM", "sublabel": "ctx.get('llm')", "pos": [485, 30], "size": [160, 70],
+      "sources": [{ "path": "src/index.ts", "line": 993, "end_line": 996 }] },
+    { "id": "host_credentials", "type": "security", "label": "凭据服务", "sublabel": "ctx.get('credentials')", "pos": [715, 30], "size": [160, 70],
+      "sources": [{ "path": "src/index.ts", "line": 375, "end_line": 379 }] },
+
+    { "id": "github_api", "type": "cloud", "label": "api.github.com", "sublabel": "search · readme · tree · contents", "pos": [945, 516], "size": [160, 76],
+      "sources": [{ "path": "src/github.ts", "line": 346 }] },
+    { "id": "disk", "type": "database", "label": "磁盘缓存", "sublabel": "~/.dsh/cache/dsh-find-ideas", "pos": [945, 640], "size": [160, 76],
+      "sources": [{ "path": "src/cache.ts", "line": 127, "end_line": 128 }] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "DSH 宿主 · ctx 服务", "wraps": ["host_tools", "host_llm", "host_credentials"] },
+    { "kind": "region", "label": "dsh-find-ideas 插件", "wraps": ["apply", "scout", "rank", "inspect", "translate", "credentials", "render", "github", "cache", "query", "lexicon", "types", "select", "skeleton"] }
+  ],
+  "connections": [
+    { "id": "agent-scout", "from": "agent", "to": "scout", "label": "① 检索", "variant": "emphasis" },
+    { "id": "agent-rank", "from": "agent", "to": "rank", "label": "② 排序", "variant": "emphasis" },
+    { "id": "agent-inspect", "from": "agent", "to": "inspect", "label": "③ 精读", "variant": "emphasis" },
+
+    { "id": "register-tools", "from": "apply", "to": "host_tools", "label": "注册 ×3" },
+    { "id": "translate-llm", "from": "translate", "to": "host_llm", "label": "翻译想法" },
+    { "id": "resolve-token", "from": "credentials", "to": "host_credentials", "label": "取令牌" },
+
+    { "id": "scout-translate", "from": "scout", "to": "translate", "label": "翻译" },
+    { "id": "scout-query", "from": "scout", "to": "query", "label": "规划查询" },
+    { "id": "scout-credentials", "from": "scout", "to": "credentials", "label": "取令牌" },
+    { "id": "scout-render", "from": "scout", "to": "render", "label": "候选列表" },
+    { "id": "scout-github", "from": "scout", "to": "github", "label": "搜索仓库" },
+    { "id": "scout-cache", "from": "scout", "to": "cache", "label": "缓存检索" },
+
+    { "id": "lexicon-query", "from": "lexicon", "to": "query", "label": "英文种子" },
+
+    { "id": "rank-types", "from": "rank", "to": "types", "label": "打分排序" },
+    { "id": "rank-render", "from": "rank", "to": "render", "label": "排名卡" },
+
+    { "id": "inspect-select", "from": "inspect", "to": "select", "label": "选文件" },
+    { "id": "inspect-skeleton", "from": "inspect", "to": "skeleton", "label": "扫描签名" },
+    { "id": "inspect-credentials", "from": "inspect", "to": "credentials", "label": "取令牌" },
+    { "id": "inspect-render", "from": "inspect", "to": "render", "label": "骨架报告" },
+    { "id": "inspect-github", "from": "inspect", "to": "github", "label": "读证据" },
+    { "id": "inspect-cache", "from": "inspect", "to": "cache", "label": "缓存证据" },
+
+    { "id": "github-api", "from": "github", "to": "github_api", "label": "REST + 令牌" },
+    { "id": "cache-disk", "from": "cache", "to": "disk", "label": "落盘 JSON" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "工具面", "items": [
+      "apply(ctx) 注册 scout_projects / rank_candidates / inspect_projects",
+      "scout_projects：想法 → 查询规划 → 合并搜索，25s 超时",
+      "rank_candidates：代码算分排序 + 四类可疑检测，5s 超时",
+      "inspect_projects：README / tree / 文件骨架，60s 超时（读取预算 45s）"
+    ] },
+    { "dot": "emerald", "title": "共享底座", "items": [
+      "query.ts 规划 ≤3 条查询、≤6 个词；lexicon.ts 97 条中英词表",
+      "cache.ts 两层：内存 5min、磁盘 24h；任何失败都返回 undefined",
+      "github.ts 是唯一 fetch 出口，打 api.github.com",
+      "credentials.ts 经宿主凭据服务解析 GITHUB_TOKEN；宿主服务缺失即降级"
+    ] },
+    { "dot": "amber", "title": "诚实性保证", "items": [
+      "输出分【代码计算区】/【调用方说明区】，并标注三类来源",
+      "长尾按 low_star_in_pool / low_star_in_kept 两次计数",
+      "「未测量」不渲染成「测得 0」；失败是值 {reason, detail} 而非异常",
+      "第三方文本用防伪围栏；链接仅允许 github.com 与 raw.githubusercontent.com"
+    ] }
+  ]
+}

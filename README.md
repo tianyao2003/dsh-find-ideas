@@ -67,6 +67,21 @@ Without `files`, `src/select.ts` picks the files automatically — root README, 
 
 The signature scanner is explicitly a **file-head local declaration scanner**, not an architecture extractor: it reads only the first `EXCERPT_WINDOW_CHARS` (1200) characters of a file (`src/skeleton.ts:39`), so class and function bodies normally fall outside the window. It never returns an empty array — `hits[0]` is always a file-level fact record built by `buildFact` with `name: ''` (`src/skeleton.ts:333`) and `startLine: 0` (`src/skeleton.ts:335`), pushed before any declaration is considered (`src/skeleton.ts:377-381`) — and it reports `supported` / `truncated` / `excerptChars` precisely so that a caller can tell "no declarations found in this window" from "this extension is not in the scanner's language coverage at all" (`src/skeleton.ts:9-24`, `src/skeleton.ts:369-376`).
 
+## Architecture
+
+![dsh-find-ideas architecture](docs/dsh-find-ideas-architecture.png)
+
+The diagram is a *reading* of the code, not a measurement of it. It was generated with [archify](https://github.com/tt-a1i/archify) from `docs/dsh-find-ideas.candidate.json`, and every box and arrow is a claim about a file under `src/`. Where the diagram and the source disagree, **the source wins** — the diagram is a narrative aid, and the contract this repository actually enforces is the code plus the test suite.
+
+What it is saying, at a glance:
+
+- **Two regions.** Everything inside the `dsh-find-ideas 插件` box is this package. The `DSH 宿主 · ctx 服务` band is the host it runs inside: the tool registry it registers into, and the two services it reads through `ctx.get()`. `inject` names only `tools` (`src/index.ts:47`); the LLM and credential services are optional lookups, which is why a missing LLM degrades translation rather than failing the call.
+- **Three entry points, driven in order.** The caller walks `scout_projects` → `rank_candidates` → `inspect_projects`. Each is a separate registration (`src/index.ts:782`, `src/index.ts:1218`, `src/index.ts:1496`) with its own timeout.
+- **One network exit.** `GitHub 传输` is the only module that calls `fetch` (`src/github.ts:375`), and `api.github.com` is the only host it talks to. The two-layer cache (`src/cache.ts`) is consulted before that exit, so a repeated lookup never leaves the process.
+- **Pure cores.** `打分与可疑检测`, `渲染与诚实性`, `查询规划`, `中英词表`, `文件选择器` and `骨架扫描` are pure functions of their inputs — no I/O, no clock — which is what makes the scoring and the card formatting testable without a network.
+
+`docs/dsh-find-ideas.html` is the interactive version of the same diagram. It is self-contained: it fetches no external script, stylesheet or font, so it renders offline. Before being committed it was rendered in a real browser at four viewports, and `docs/dsh-find-ideas.candidate.json` is the machine-readable input the HTML was built from — so the diagram is regenerated rather than hand-edited, and a wrong box is fixed at its source.
+
 ## Installation
 
 The package is loaded into a DSH profile as a bundle patch. `package.json` declares
