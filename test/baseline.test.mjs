@@ -52,11 +52,11 @@ const runDir = join(pkgRoot, 'eval', 'runs', 'baseline-2026-10-10T07-22-48-244Z'
 //
 // This used to say the fixtures were missing because "eval/runs/ is gitignored
 // by design". That was true of the PREDECESSOR repository, whose .gitignore
-// does ignore `eval/runs/`, and it is false here: this .gitignore has 16 lines
-// and does not mention `eval` at all. The skip was correct either way, but a
-// reason copied from another repository is not a reason, and it would send a
-// reader looking for an ignore rule that does not exist instead of at the real
-// gap — the fixtures were never ported.
+// does ignore `eval/runs/`, and it is false here: this .gitignore does not
+// mention `eval` at all. The skip was correct either way, but a reason copied
+// from another repository is not a reason, and it would send a reader looking
+// for an ignore rule that does not exist instead of at the real gap — the
+// fixtures were never ported.
 //
 // Exiting non-zero here would report "the pipeline is broken" when the truth is
 // "the evidence is not in this repository". That is a false alarm, and a test

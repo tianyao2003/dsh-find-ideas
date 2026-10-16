@@ -10,6 +10,16 @@ node_modules/
 # `.scratch/` is a one-off measurement, not an input to the build.
 .scratch/
 
+# Trial-run reports: an agent driving this plugin against one idea writes a long
+# Markdown report beside the code. That is an output of USING the plugin, not an
+# input to it — the plugin itself never writes inside the workspace (its only
+# write is the cache file under `$DSH_HOME/cache/dsh-find-ideas`, see
+# `src/cache.ts`). Kept out of the repository so a trial run cannot end up in a
+# commit, in the published package, or on GitHub. Narrow or widen this rule if a
+# report ever needs to be committed deliberately (`git check-ignore -v <file>`
+# reports which rule matched).
+*报告.md
+
 # Local editor / OS state.
 *.log
 .DS_Store

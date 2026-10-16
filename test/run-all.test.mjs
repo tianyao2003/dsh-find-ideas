@@ -9,7 +9,7 @@
 // SKIPPED IS NOT PASSED
 // ---------------------
 // Two files (baseline, stage2) replay FROZEN eval runs, and `eval/runs/` is
-// gitignored by design — so on a fresh clone they cannot run and they skip
+// not in this repository — so on a fresh clone they cannot run and they skip
 // themselves rather than throwing ENOENT. Counting a skip as a pass would let
 // this line print "8/8 passed" on a machine where the two evidence-integrity
 // suites never executed, which is exactly the kind of claim this repository
