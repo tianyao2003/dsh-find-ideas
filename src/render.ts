@@ -379,7 +379,7 @@ export function renderCandidates(
   lines.push('─'.repeat(60))
   for (const [i, c] of candidates.entries()) {
     const language = c.language.trim().length > 0 ? formatMetaCell(c.language) : '未知语言'
-    const bits = [formatStars(c.stars), language].filter(part => part.length > 0)
+    const bits = [formatMetaCell(c.pushed_at), formatStars(c.stars), language].filter(part => part.length > 0)
     lines.push(` ${String(i + 1).padStart(2)}. ${escapeUntrusted(c.full_name)}    ${bits.join(' · ')}${c.archived ? '  [已归档]' : ''}`)
     if (c.description.length > 0) lines.push(`     ${escapeUntrusted(clipDescription(c.description))}`)
     // Bare text, not a table cell: an unescaped `](` here is read as a live

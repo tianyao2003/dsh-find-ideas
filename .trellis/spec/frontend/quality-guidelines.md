@@ -96,7 +96,9 @@ numbers.
 
 ### 6. Rendering `undefined`, or a URL that is not the canonical one
 
-`pushed_at` absent renders `—` (`EMPTY_CELL`, `src/render.ts:28`), never `undefined`.
+`pushed_at` absent renders `—` (`EMPTY_CELL`, `src/render.ts:28`), never `undefined` — in the
+ranked table and in the flat candidate list alike (`src/render.ts:382`), which is why both go
+through the one `formatMetaCell` rather than each spelling its own placeholder.
 `canonicalUrl` (`src/render.ts:645`) must not lowercase `full_name`: GitHub paths are
 case-sensitive, and a lowercased `FuRongJun-1999/dsh-memory` returns 404.
 

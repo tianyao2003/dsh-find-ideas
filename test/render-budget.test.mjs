@@ -134,5 +134,57 @@ const card = renderRanked('个人工作台网页项目', ranked, [], [], [])
 check('the ranked card is also bounded', Buffer.byteLength(card, 'utf8') < 4000, `${Buffer.byteLength(card, 'utf8')} B`)
 check('the ranked card marks the clipped rows', /描述过长/.test(card))
 
+console.log('\n--- the flat list carries the last-updated value ---')
+{
+  // `pushed_at` was fetched and required for every candidate, and the table
+  // spends a whole column on it, but the flat list dropped it: the first thing
+  // a caller reads named no date at all. It now rides the metadata bits beside
+  // stars and language — one more untrusted field on a line that is bare text,
+  // so the escaping is asserted here too, not assumed from the table.
+  const listOf = (extra) => renderCandidates('probe idea', [repo('owner/repo', 12300, 'a plain description', extra)], null, false, 0)
+
+  const dated = listOf({})
+  check('the last-updated value is rendered on the candidate line',
+    dated.includes('2026-01-01T00:00:00Z'), dated)
+  check('it rides the same line as stars and language, in that order',
+    /\d+\.\s+owner\/repo\s+2026-01-01T00:00:00Z · 12\.3k · TypeScript/.test(dated), dated)
+
+  const empty = listOf({ pushed_at: '' })
+  check('an empty pushed_at renders the placeholder, not a blank',
+    empty.includes('— · 12.3k'), empty)
+  check('an empty pushed_at never renders undefined or null',
+    !empty.includes('undefined') && !empty.includes('null'), empty)
+
+  const missing = listOf({ pushed_at: undefined })
+  check('an undefined pushed_at renders the placeholder too',
+    missing.includes('— · 12.3k'), missing)
+
+  const hostile = listOf({ pushed_at: 'x|y\n[click](https://evil.example.com/x)' })
+  // Count the numbered entry lines, not every line mentioning the repo: the
+  // url line below the entry contains `owner/repo` too, so a naive
+  // `includes('owner/repo')` count reports 2 for a card that is entirely fine.
+  const entryLines = (text) => text.split('\n').filter((line) => /^\s+\d+\.\s/.test(line))
+  check('a hostile pushed_at cannot split the candidate line',
+    entryLines(hostile).length === 1, `${entryLines(hostile).length} entry lines :: ${hostile}`)
+  check('a hostile pushed_at cannot forge a live link',
+    !/(?<!\\)\]\(http/.test(hostile), hostile)
+  check('and a hostile pushed_at is still readable rather than deleted',
+    hostile.includes('x\\|y \\[click\\](https://evil.example.com/x)'), hostile)
+
+  const long = listOf({ pushed_at: 'z'.repeat(300) })
+  check('an over-long pushed_at is clipped rather than allowed to spend the line budget',
+    long.includes('过长，已截断') && long.split('\n').every((l) => Buffer.byteLength(l, 'utf8') < 1024), long)
+
+  // The field is free to render, but it is not free in bytes. The 25-candidate
+  // pool above is the same one the budget limits were measured on, so the new
+  // field is re-measured against those limits rather than assumed to fit.
+  check('every candidate in the pool render now carries its date',
+    pool.every((c) => rendered.includes(c.pushed_at)), 'at least one pushed_at is missing from the pool render')
+  check('the 25-candidate pool still renders under 15 KB with the new field',
+    bytes < 15000, `${bytes} B`)
+  check('the pool ratio still clears 40x with the new field',
+    rawBytes / bytes > 40, `${rawBytes} -> ${bytes} B (${(rawBytes / bytes).toFixed(0)}x)`)
+}
+
 console.log(`\n${pass} PASS / ${fail} FAIL`)
 process.exit(fail === 0 ? 0 : 1)

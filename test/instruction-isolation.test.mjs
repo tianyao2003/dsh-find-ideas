@@ -458,6 +458,17 @@ try {
 
     check('an empty language still renders as 未知语言 rather than a blank cell',
       listCard({ language: '' }).includes('未知语言'), listCard({ language: '' }))
+
+    // `pushed_at` is the third raw value on that same line. It was fetched and
+    // required all along but never displayed here; now that it is, it is one
+    // more attacker-controlled string reaching bare text.
+    const dateAttack = listCard({ pushed_at: 'x|y\n[click](https://evil.example.com/x)' })
+    check('a link forged inside pushed_at is not a live link in the list card',
+      forged(dateAttack).length === 0, `${forged(dateAttack).join(' ')} :: ${dateAttack}`)
+    check('and a hostile pushed_at cannot start a second entry line',
+      dateAttack.split('\n').filter((line) => /^\s+\d+\.\s/.test(line)).length === 1, dateAttack)
+    check('an empty pushed_at says which fact is missing rather than rendering blank',
+      listCard({ pushed_at: '' }).includes('\u2014 · 10 · TypeScript'), listCard({ pushed_at: '' }))
   }
 
   // =========================================================================
