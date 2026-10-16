@@ -38,8 +38,6 @@ The agent walks the three tools in order: `scout_projects` builds a candidate po
 - **`rank_candidates`** scores the pool with `relevance × (1 + log10(max(stars, 10) + 1)) / 2`. Relevance is the caller's 0–10 judgement; the score, the rating and the order are computed in code and reproducible from the formula.
 - **`inspect_projects`** reads up to 5 repositories — README, manifest, tree summary and a few key files — and scans each file head for declarations. It never returns an empty result: a file whose extension the scanner does not cover says so.
 
-The diagram is a *reading* of the code, not a measurement of it. Where it disagrees with `src/`, the source wins. `docs/dsh-find-ideas.html` is the interactive version and `docs/dsh-find-ideas.candidate.json` is the input it was generated from, so the diagram is regenerated rather than hand-edited.
-
 ### What the cards guarantee
 
 - **Computed vs. supplied.** Every ranked card carries a `【代码计算区】` declaration and, when the caller sent free text, a separate `【调用方说明区】`. Caller notes are clipped, escaped, labelled `[未验证]`, and never enter the arithmetic.
