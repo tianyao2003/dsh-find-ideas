@@ -1,51 +1,199 @@
 # Database Guidelines
 
-> Database patterns and conventions for this project.
+> Persistence patterns and conventions for this project.
 
 ---
 
 ## Overview
 
-<!--
-Document your project's database conventions here.
+**There is no database.** No ORM, no SQL, no query builder, no migrations, no schema DDL, no transactions, and no database driver. `package.json` declares zero runtime dependencies.
 
-Questions to answer:
-- What ORM/query library do you use?
-- How are migrations managed?
-- What are the naming conventions for tables/columns?
-- How do you handle transactions?
--->
+What this project persists is a **JSON disk cache** in `src/cache.ts` (246 lines). It is the only storage of any kind, and it is deliberately weaker than a database in every dimension: it is optional, lossy, best-effort, and allowed to fail at any moment. That weakness is the design.
 
-(To be filled by the team)
+> "Every failure (missing file, malformed JSON, version drift, expiry) returns `undefined` — the caller refetches. **A cache must never be able to fail a call.**" — `src/cache.ts:152-157`
+
+Anything you would normally look for in this file (indexes, constraints, connection pooling, transaction isolation, migration ordering) does not exist here. The sections below document the persistence surface that does.
 
 ---
 
 ## Query Patterns
 
-<!-- How should queries be written? Batch operations? -->
+### The two layers
 
-(To be filled by the team)
+| Layer | Type | TTL | Site |
+|-------|------|-----|------|
+| In-process | `Map<string, CacheEntry<unknown>>` (`src/cache.ts:102`) | `MEMORY_TTL_MS = 5 * 60 * 1000` (`:26`) | `src/cache.ts:193-196` |
+| On-disk | one JSON file per key under `$DSH_HOME/cache/dsh-find-ideas/` | `DISK_TTL_MS = 24 * 60 * 60 * 1000` (`:29`) | `src/cache.ts:198-209` |
+
+A third TTL exists for one caller: `SOURCE_TTL_MS = 10 * 60 * 1000` (`src/cache.ts:53`), passed explicitly by `inspect_projects`.
+
+### Read path
+
+```ts
+// src/cache.ts:163-166 — value only
+export async function cacheGet<T>(key: string, ttlMs: number = DISK_TTL_MS): Promise<T | undefined>
+
+// src/cache.ts:186-190 — value plus the age of the evidence
+export async function cacheGetWithMeta<T>(
+  key: string,
+  ttlMs: number = DISK_TTL_MS,
+  snapshot?: string,
+): Promise<CacheHit<T> | undefined>
+```
+
+`cacheGetWithMeta` checks memory first, with the effective TTL capped at the memory TTL:
+
+```ts
+// src/cache.ts:194
+if (hit !== undefined && matches(hit.snapshot) && Date.now() - hit.at < Math.min(MEMORY_TTL_MS, ttlMs)) {
+```
+
+then falls through to disk, where **every** rejection is a plain `undefined`:
+
+```ts
+// src/cache.ts:199-209
+const parsed = JSON.parse(await readFile(cachePathFor(key), 'utf8')) as DiskEnvelope<T>
+if (parsed?.version !== CACHE_VERSION) return undefined
+if (!matches(parsed.snapshot)) return undefined
+const at = Date.parse(parsed.fetchedAt) || 0
+const ageMs = Date.now() - at
+if (ageMs >= ttlMs) return undefined
+memory.set(key, { at, data: parsed.data, ... })
+return { data: parsed.data, fetchedAt: parsed.fetchedAt, ageMs }
+} catch {
+  return undefined
+}
+```
+
+Note `Date.parse(parsed.fetchedAt) || 0`: an unparseable timestamp becomes `0`, which makes `ageMs` enormous and the entry expire. A corrupt timestamp fails closed.
+
+### Write path
+
+```ts
+// src/cache.ts:224-241 (abridged)
+export async function cacheSet<T>(key: string, data: T, snapshot?: string): Promise<void> {
+  memory.set(key, { at: Date.now(), data, ...(snapshot !== undefined ? { snapshot } : {}) })
+  try {
+    await mkdir(cacheDir(), { recursive: true })
+    const temp = `${path}.tmp-${process.pid}`
+    await writeFile(temp, JSON.stringify(envelope), 'utf8')
+    await rename(temp, path)
+  } catch {
+    // Cache writes are best-effort; the next call simply refetches.
+  }
+}
+```
+
+Two conventions worth copying if this ever becomes a real store:
+
+1. **Atomic write.** Temp file named with the pid, then `rename`. A crash mid-write cannot leave half-written JSON that would poison later reads.
+2. **Swallowed failure.** An unwritable directory degrades to memory-only rather than failing the tool call.
+
+### Key naming
+
+Keys are **not** table names. They are strings built by the caller and hashed into filenames:
+
+```ts
+// src/types.ts:1023-1031
+export function searchCacheKeyFor(idea, keywords, limit, authenticated = false, plan = SEARCH_PLAN_VERSION): CacheKey {
+  return `${cacheKeyFor(idea)}|kw:${kw}|n:${limit}|auth:${authenticated ? 1 : 0}|p:${plan}`
+}
+```
+
+`cachePathFor` (`src/cache.ts:141-150`) turns that into a filename: a slug (non-alphanumerics collapsed to `-`, trimmed, `.slice(0, 48)`) plus a djb2 hash over UTF-16 code units rendered in base 36.
+
+```
+${slug || 'idea'}-${hash.toString(36)}.json
+```
+
+The hash is not decoration: "Ideas are arbitrary user text, so the key is hashed rather than embedded — otherwise a long idea or one containing `..` or path separators would escape the cache directory or exceed filename limits" (`src/cache.ts:131-140`).
+
+`DSH_HOME` resolution (`src/cache.ts:118-124`) mirrors the host convention: `$DSH_HOME` when set and non-blank (blank counts as unset), else `~/.dsh`, with `~`, `~/` and `~\` expanded.
 
 ---
 
 ## Migrations
 
-<!-- How to create and run migrations -->
+There is no migration system. The single mechanism is a version constant that **invalidates** rather than upgrades:
 
-(To be filled by the team)
+```ts
+// src/cache.ts:23
+const CACHE_VERSION = 2
+```
+
+It is module-private — not exported, not settable, not readable from outside. The only migration story is "old entries are ignored and refetched".
+
+### The rule
+
+> **A new REQUIRED field in the cached shape needs a `CACHE_VERSION` bump. An optional field does not.**
+
+The reasoning is at `src/cache.ts:62-77`, and it is worth reading in full before touching the envelope:
+
+- A new **required** field is dangerous because an entry written before the field existed reads back with it `undefined`, and "any `!== expected` test would then pass for every stale entry".
+- An optional field does not have that shape. The dangerous direction is "old entry, new reader": the new reader passes a `snapshot` and the old entry has none, so it is rejected and refetched. The harmless direction — "stamped entry, old reader" — cannot happen, because the reader is the code being changed.
+- Conclusion: "So stale entries cost one re-fetch, never a wrong answer, and the whole cache does not need to be thrown away for one field."
+
+### The bump that happened, and why it was load-bearing
+
+Version 1 -> 2, because `CachedSearch` gained a `thin` field:
+
+> "The bump is load-bearing, not bookkeeping. Without it an entry written by version 1 is read back with `thin === undefined`, and the replay path's `hit.thin !== null` test would be TRUE for every one of them — relabelling every clean cached search as a short one. Ignoring the old entries costs one re-fetch per distinct idea; reading them costs a wrong answer that looks right, which is the trade this constant exists to make." — `src/cache.ts:12-22`
+
+**This is the pattern to follow.** A version bump here is not "clear the cache"; it is the difference between a cheap re-fetch and a plausible wrong answer.
+
+### Producer stamps (`snapshot`)
+
+A second, finer invalidation axis exists alongside the version: an optional `snapshot` string recording **which producer** wrote the entry.
+
+```ts
+// src/cache.ts:78-83
+interface DiskEnvelope<T> {
+  version: number
+  fetchedAt: string
+  snapshot?: string
+  data: T
+}
+```
+
+The rule (`src/cache.ts:186-191`): when a caller passes a `snapshot`, an entry stamped with anything else — **including an entry written before stamping existed** — is treated as a miss.
+
+> "a cached inspection produced by an older scanner answers a different question than the one being asked, and silently replaying it would attribute the old scanner's silence to the new one. Re-fetching is the honest outcome." — `src/cache.ts:174-179`
+
+The stamps in use are the producer version constants: `SELECTOR_VERSION` (`src/select.ts:305`) and `SCANNER_VERSION` (`src/skeleton.ts:148`), combined at `src/index.ts:1713` and `:1866` as `` `sel:${SELECTOR_VERSION}:scan:${SCANNER_VERSION}` ``.
+
+There is a third version constant that is **not** a cache version and must not be confused with one: `SEARCH_PLAN_VERSION = 7` (`src/types.ts:987`) versions the *search strategy*, and it participates in the cache **key** (`src/types.ts:1023-1031`), not the envelope. `CACHE_VERSION` versions the on-disk *shape*. Bump the wrong one and you either fail to invalidate or you throw away a day of quota for nothing.
 
 ---
 
 ## Naming Conventions
 
-<!-- Table names, column names, index names -->
+| Thing | Convention | Example |
+|-------|-----------|---------|
+| Cache directory | `join(dshHome(), 'cache', '<package-name>')` | `~/.dsh/cache/dsh-find-ideas/` (`src/cache.ts:127-129`) |
+| Cache file | `<slug>-<base36 hash>.json` | `local-first-note-app-1a2b3c.json` (`src/cache.ts:141-150`) |
+| Cache key | pipe-delimited `k:v` segments | `…|kw:…|n:20|auth:0|p:7` (`src/types.ts:1023-1031`) |
+| Envelope fields | `camelCase` | `version`, `fetchedAt`, `snapshot`, `data` (`src/cache.ts:78-83`) |
+| Timestamps | ISO 8601 **string** on disk, epoch **number** in memory | `fetchedAt: string` vs `CacheEntry.at: number` |
+| Version constants | `SCREAMING_SNAKE_CASE`, suffixed `_VERSION` | `CACHE_VERSION`, `SELECTOR_VERSION`, `SCANNER_VERSION`, `SEARCH_PLAN_VERSION` |
+| TTL constants | `SCREAMING_SNAKE_CASE`, suffixed `_TTL_MS`, expressed as arithmetic | `MEMORY_TTL_MS = 5 * 60 * 1000` |
+| Temp file | `<path>.tmp-<pid>` | `src/cache.ts:229` |
 
-(To be filled by the team)
+Note the deliberate asymmetry in timestamp representation: the in-memory entry stores `at` as a number because it is compared arithmetically on every read, while the disk envelope stores an ISO string because a human may open the file. `cacheGetWithMeta` converts between them.
 
 ---
 
 ## Common Mistakes
 
-<!-- Database-related mistakes your team has made -->
-
-(To be filled by the team)
+| Mistake | Why it is wrong | Where |
+|---------|----------------|-------|
+| Adding a required field without bumping `CACHE_VERSION` | Stale entries read it back as `undefined`; `!== expected` tests then pass for every one of them | `src/cache.ts:12-22`, `:62-77` |
+| Bumping `CACHE_VERSION` for an optional field | Throws away a day of saved quota for a change that is already safe | `src/cache.ts:65-76` |
+| Confusing `CACHE_VERSION` with `SEARCH_PLAN_VERSION` | One versions the disk shape, the other the search strategy and the cache *key* | `src/cache.ts:23` vs `src/types.ts:987` |
+| Recomputing a stored number from the rows instead of reading it back | The cached path once recomputed `tail_included` as `candidates.filter(c => c.stars <= TAIL_STAR_CEILING).length` — a different question — so the same search reported one number cold and another on replay | `src/index.ts:857-864` |
+| Letting a cache failure fail the call | A cache is an optimisation; the correct degradation is a refetch | `src/cache.ts:152-157` |
+| Writing the disk file in place | A crash mid-write leaves half-written JSON that poisons every later read | `src/cache.ts:212-218` |
+| Storing a source read under the 24h default | File *contents* change whenever the project ships; a day-old copy silently describes last week's code | `src/cache.ts:31-52` |
+| Presenting a cached observation as a live one | A replay must be able to say how old its evidence is — hence `cacheGetWithMeta` and `CacheHit.ageMs` | `src/cache.ts:85-100`, `:168-179` |
+| Replaying an entry produced by an older scanner | It answers a different question; the silence of the old scanner would be attributed to the new one | `src/cache.ts:174-179` |
+| Embedding user text directly in a filename | A long idea, or one containing `..` or a path separator, escapes the cache directory or exceeds filename limits | `src/cache.ts:131-140` |
+| Assuming the cache directory exists | It is created on write with `recursive: true`, and its absence is not an error | `src/cache.ts:227` |
