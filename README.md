@@ -4,7 +4,7 @@
 
 English | [中文](README.zh.md)
 
-**Before you build it, find out whether someone already has.**
+**Before building an idea, find out whether someone already has.**
 
 Describe your idea in one sentence. The agent searches GitHub for related projects, ranks them by relevance weighted with stars, and returns the result. It then reads the repositories you pick — README, dependency manifest, directory tree, key files — and writes up an architecture you can borrow from.
 
