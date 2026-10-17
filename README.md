@@ -7,6 +7,7 @@ English | [中文](README.zh.md)
 **Before you build it, check whether it already exists.**
 
 Describe your idea in one sentence. The agent searches GitHub for similar projects, ranks them by relevance weighted with stars, and hands back a card. Pick a few repositories from the card and it reads their README, dependency manifest, directory tree and key files, then writes up an architecture you can borrow from.
+![Uploading image.png…]()
 
 ## Install
 
