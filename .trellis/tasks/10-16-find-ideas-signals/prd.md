@@ -147,21 +147,36 @@
 
 ## Acceptance Criteria
 
-- [ ] **AC1** `RETRIEVAL_SURFACE` 不再包含「README 里的项目任何查询都触达不了」这一断言，且包含 `in:readme`；三处工具描述仍逐字一致（新增断言：三处**相等**，而不是各自包含）。
-- [ ] **AC2** `RETRIEVAL_SURFACE` 承认 topics 在**默认**检索面内。
-- [ ] **AC3** `in:readme` 的表述带**双向**限定：既说明它扩大覆盖，也说明它不保证穷尽。**有反例测试**——断言文案包含「不保证」/「并非全部」一类限定词，防止将来被简化成「README 也能搜到」。
-- [ ] **AC4** `src/index.ts:53-54` 的 doc 注释与 `RETRIEVAL_SURFACE` 同步（不得只改常量、留下同源注释继续漏报 topics）。
-- [ ] **AC5** `src/query.ts:1054` 的失败文案**追加** `in:readme` 这条补救路径，既有正确字段列表「名称、描述与 topics」保留，且 `test/plan-failure.test.mjs` 现有断言全部继续通过（尤其 `不代表没有相关项目` 与「with a hint 不重复 keywords 建议」两条）。
-- [ ] **AC6** **B 类四处**不再把 README 写进**默认**检索面：`src/query.ts:242`、`src/query.ts:1346`、`src/query.ts:1382`、`src/render.ts:330` 一律改为「名称、描述、topics」；`test/queries.test.mjs:628`/`:640` 的 `/查询词过窄/` 断言继续通过；`test/source-integrity.test.mjs:164` 的 `多词 AND 匹配` 断言继续通过。
-- [ ] **AC7** 归档计数出现在卡片上，且**未测量与 0 可区分**（两条断言：测量为 0 时与未测量时的文案不同）。
-- [ ] **AC8** 归档仓库**不被剔除、不被降权**：得分公式、排序、行数成员关系均有反例测试（构造一个 archived=true 的行，断言它仍在榜上且得分与 archived=false 的同参数行相同）。
-- [ ] **AC9** 通道命中数出现在卡片上；`scout_projects` 的输出能**原样**通过 `rank_candidates` 的入参校验（往返测试，不是分别校验两个 schema）。
-- [ ] **AC10** 通道命中数**缺失**时不渲染任何数字，且不渲染为 0（断言两种输入产出不同文案）。
-- [ ] **AC11** 通道命中数**不进入打分**：同参数下改 `channels_hit` 不改变 `score`、`rank` 与顺序。
-- [ ] **AC12** 表格仍是**恰好八列**：`test/render-table.test.mjs` 的四条列断言全部原样通过，无新增列。
-- [ ] **AC13** `test/ranking.test.mjs:177` 的参数名集合断言原样通过（未新增 `rank_candidates` 参数）。
-- [ ] **AC14** `.trellis/spec/` 的行号引用全部有效：`.scratch/verify-tree.mjs` 输出 `PAST EOF: 0`、`nonexistent file: 0`、`NEEDS ADJUDICATION: 0`。**若某文件的改动不可避免地位移了行号，必须在同一提交内更新受影响的 spec 引用。**
-- [ ] **AC15** 全量校验全绿：`npx tsc --noEmit`、`npm run check`、`node test/run-all.test.mjs`（21/23 passed, 2 skipped 为基线；末条 45 PASS / 0 FAIL 为基线）。**复核红灯必须直接跑 `node test/<file>`，不带 `--test`**——本项目测试自己打印 `FAIL`/`PASS`，`node --test` 的过滤会给出假阴性。
+- [x] **AC1** `RETRIEVAL_SURFACE` 不再包含「README 里的项目任何查询都触达不了」这一断言，且包含 `in:readme`；三处工具描述仍逐字一致（新增断言：三处**相等**，而不是各自包含）。
+  - 证据：`test/retrieval-surface.test.mjs`（三处描述断言**逐字相等**，不是各自包含）
+- [x] **AC2** `RETRIEVAL_SURFACE` 承认 topics 在**默认**检索面内。
+  - 证据：同上，`topics` 在默认检索面内
+- [x] **AC3** `in:readme` 的表述带**双向**限定：既说明它扩大覆盖，也说明它不保证穷尽。**有反例测试**——断言文案包含「不保证」/「并非全部」一类限定词，防止将来被简化成「README 也能搜到」。
+  - 证据：同上，反例测试断言「不保证」类限定词存在
+- [x] **AC4** `src/index.ts:53-54` 的 doc 注释与 `RETRIEVAL_SURFACE` 同步（不得只改常量、留下同源注释继续漏报 topics）。
+  - 证据：`src/index.ts:53-54` 的 doc 注释与 `RETRIEVAL_SURFACE` 同源
+- [x] **AC5** `src/query.ts:1054` 的失败文案**追加** `in:readme` 这条补救路径，既有正确字段列表「名称、描述与 topics」保留，且 `test/plan-failure.test.mjs` 现有断言全部继续通过（尤其 `不代表没有相关项目` 与「with a hint 不重复 keywords 建议」两条）。
+  - 证据：`test/plan-failure.test.mjs` 原样通过；文案追加 `in:readme` 补救路径
+- [x] **AC6** **B 类四处**不再把 README 写进**默认**检索面：`src/query.ts:242`、`src/query.ts:1346`、`src/query.ts:1382`、`src/render.ts:330` 一律改为「名称、描述、topics」；`test/queries.test.mjs:628`/`:640` 的 `/查询词过窄/` 断言继续通过；`test/source-integrity.test.mjs:164` 的 `多词 AND 匹配` 断言继续通过。
+  - 证据：`test/queries.test.mjs:628`/`:640`、`test/source-integrity.test.mjs:164` 原样通过
+- [x] **AC7** 归档计数出现在卡片上，且**未测量与 0 可区分**（两条断言：测量为 0 时与未测量时的文案不同）。
+  - 证据：`test/archived-visibility.test.mjs` §R2.3（未测量 vs 测量为 0 文案不同）
+- [x] **AC8** 归档仓库**不被剔除、不被降权**：得分公式、排序、行数成员关系均有反例测试（构造一个 archived=true 的行，断言它仍在榜上且得分与 archived=false 的同参数行相同）。
+  - 证据：`test/archived-visibility.test.mjs` §R2.5（得分与成员关系均不变）
+- [x] **AC9** 通道命中数出现在卡片上；`scout_projects` 的输出能**原样**通过 `rank_candidates` 的入参校验（往返测试，不是分别校验两个 schema）。
+  - 证据：`test/channel-visibility.test.mjs` §R3.6：生产者输出原样喂给消费者，用**主机自己的** `validateJsonSchemaValue`（`@deepseek-ai/dsh-tools`）判定，不是手写校验器
+- [x] **AC10** 通道命中数**缺失**时不渲染任何数字，且不渲染为 0（断言两种输入产出不同文案）。
+  - 证据：`test/channel-visibility.test.mjs` §R3.3（两种输入文案不同）
+- [x] **AC11** 通道命中数**不进入打分**：同参数下改 `channels_hit` 不改变 `score`、`rank` 与顺序。
+  - 证据：`test/channel-visibility.test.mjs` §R3.5（score / rank / 顺序三者均不变）
+- [x] **AC12** 表格仍是**恰好八列**：`test/render-table.test.mjs` 的四条列断言全部原样通过，无新增列。
+  - 证据：`test/render-table.test.mjs` 四条列断言原样通过；`test/channel-visibility.test.mjs` §R3.4 另断言八列
+- [x] **AC13** `test/ranking.test.mjs:177` 的参数名集合断言原样通过（未新增 `rank_candidates` 参数）。
+  - 证据：`test/ranking.test.mjs:177` 原样通过；`test/channel-visibility.test.mjs` §R3.7 另断言一次
+- [x] **AC14** `.trellis/spec/` 的行号引用全部有效：`.scratch/verify-tree.mjs` 输出 `PAST EOF: 0`、`nonexistent file: 0`、`NEEDS ADJUDICATION: 0`。**若某文件的改动不可避免地位移了行号，必须在同一提交内更新受影响的 spec 引用。**
+  - 证据：`.scratch/verify-tree.mjs` → `PAST EOF: 0` / `nonexistent file: 0` / `NEEDS ADJUDICATION: 0`。**R3 不可避免地位移了行号**：三处 schema 站点在 `src/index.ts` 深处、两处 interface 在 `src/types.ts` 深处，`src/github.ts` 与 `src/render.ts` 已排成净零位移。174 处引用在**同一提交** `fdc1c7d` 内机械重编号，并逐条证明指向同一段文本（范围引用只允许按 diff 实际插入的行数扩张）。`.scratch/cite-guard.mjs check` → 539/539 文本一致
+- [x] **AC15** 全量校验全绿：`npx tsc --noEmit`、`npm run check`、`node test/run-all.test.mjs`（21/23 passed, 2 skipped 为基线；末条 45 PASS / 0 FAIL 为基线）。**复核红灯必须直接跑 `node test/<file>`，不带 `--test`**——本项目测试自己打印 `FAIL`/`PASS`，`node --test` 的过滤会给出假阴性。
+  - 证据：`npx tsc --noEmit` 绿、`npm run check` 绿、`node test/run-all.test.mjs` → **24/26 passed, 2 skipped**（基线 21/23 加上本任务新增的三个测试文件；2 个 skip 仍是 `baseline`/`stage2` 的冻结 eval 夹具缺失，与本任务无关）。末条 45 PASS / 0 FAIL 未变
 
 ## Out of Scope
 
