@@ -10,7 +10,6 @@ Describe your idea in one sentence. The agent searches GitHub for similar projec
 
 <img width="2502" height="1462" alt="image" src="https://github.com/user-attachments/assets/e17fcf47-6aa1-45ef-830f-dc3885121908" />
 
-
 ## Install
 
 ```sh
