@@ -66,14 +66,16 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ## 兼容性
 
-需要 Node ≥ 22。DSH 插件 API 使用预发布版本号，而一个 range 分支跨不过小版本号，所以 `@deepseek-ai/dsh-tools` 的 peer range 按小版本逐条列出要支持的版本（每个小版本一条）；`npm run check:peers` 会从 npm registry 查出当前 DSH 宿主实际安装的 `dsh-tools` 版本，一旦 range 不接受它就报错。
+需要 Node ≥ 22。DSH 插件 API 使用预发布版本号，而一个 range 分支跨不过小版本号，所以 `@deepseek-ai/dsh-tools` 的 peer range 按小版本逐条列出要支持的版本（每个小版本一条）；`npm run check:peers` 会从 npm registry 查出当前 DSH 宿主实际安装的 `dsh-tools` 版本，一旦 range 不接受它就报错。每个插件版本各自支持哪些 DSH 版本，见下面「版本」一节。
 
 ## 版本
 
-| 版本 | 更新 |
-| --- | --- |
-| 0.2.0（当前） | 卡片标出每行被几个查询命中、榜上有多少行是归档仓库，并把「复述时八列必须全部保留」写进卡片本身。 |
-| 0.1.0 | 首个可用版本：`scout_projects` → `rank_candidates` → `inspect_projects` 三工具链路，以及把「算出来的」和「传进来的」分开的规则。 |
+| 版本 | 更新 | 适配的 DSH 版本 |
+| --- | --- | --- |
+| 0.2.0（当前） | 卡片标出每行被几个查询命中、榜上有多少行是归档仓库，并把「复述时八列必须全部保留」写进卡片本身。 | `0.1.0-rc.2` 到 `0.2.1-rc.1` |
+| 0.1.0 | 首个可用版本：`scout_projects` → `rank_candidates` → `inspect_projects` 三工具链路，以及把「算出来的」和「传进来的」分开的规则。 | `0.1.0-rc.2` 到 `0.2.0-rc.2` |
+
+「适配」是逐版本算出来的：取每个 DSH 版本实际安装的 `dsh-tools` 版本，看 `package.json` 里的 peer range 接不接受它。0.2.0 比 0.1.0 多一条 0.2.1 线，因此多覆盖 6 个 0.2.1 版本（一直到当前 `next` 装的 `0.2.1-rc.1`）；两者都不接受最早的三个 `0.0.1` 版本。截至 2026-10-17，npm 上共发布过 35 个 DSH 版本，0.2.0 接受其中 32 个，0.1.0 接受 26 个。DSH 再出新的小版本线时，range 需要补一条，`npm run check:peers` 在补上之前会失败。
 
 ## 开发
 

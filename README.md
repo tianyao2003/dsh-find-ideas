@@ -67,14 +67,16 @@ Search queries and repository paths go to `api.github.com`; `inspect_projects` o
 
 ## Compatibility
 
-Requires Node ≥ 22. DSH plugin APIs are prerelease-versioned, and one range branch cannot reach across a minor version, so the `@deepseek-ai/dsh-tools` peer range names the versions it supports one minor line at a time (one entry per line); `npm run check:peers` resolves the `dsh-tools` version the current DSH host actually installs from the npm registry and fails when the range does not accept it.
+Requires Node ≥ 22. DSH plugin APIs are prerelease-versioned, and one range branch cannot reach across a minor version, so the `@deepseek-ai/dsh-tools` peer range names the versions it supports one minor line at a time (one entry per line); `npm run check:peers` resolves the `dsh-tools` version the current DSH host actually installs from the npm registry and fails when the range does not accept it. The Version section below lists which DSH versions each plugin release supports.
 
 ## Version
 
-| Version | Update |
-| --- | --- |
-| 0.2.0 (current) | The card states how many query channels found each row and how many rows on the board are archived, and writes the "keep all eight columns when restating" rule into the card itself. |
-| 0.1.0 | First usable version: the `scout_projects` → `rank_candidates` → `inspect_projects` chain, and the rule that keeps computed fields apart from caller-supplied ones. |
+| Version | Update | DSH versions supported |
+| --- | --- | --- |
+| 0.2.0 (current) | The card states how many query channels found each row and how many rows on the board are archived, and writes the "keep all eight columns when restating" rule into the card itself. | `0.1.0-rc.2` through `0.2.1-rc.1` |
+| 0.1.0 | First usable version: the `scout_projects` → `rank_candidates` → `inspect_projects` chain, and the rule that keeps computed fields apart from caller-supplied ones. | `0.1.0-rc.2` through `0.2.0-rc.2` |
+
+"Supported" is computed one DSH release at a time: take the `dsh-tools` version that release actually installs and ask whether the peer range in `package.json` accepts it. 0.2.0 has one more range branch, for the 0.2.1 line, so it covers six more DSH versions, up to `0.2.1-rc.1` — the one `next` installs today; neither accepts the three earliest `0.0.1` builds. As of 2026-10-17 the registry held 35 published DSH versions: 0.2.0 accepts 32 of them and 0.1.0 accepts 26. A new DSH minor line needs a new range branch, and `npm run check:peers` keeps failing until it is added.
 
 ## Development
 
