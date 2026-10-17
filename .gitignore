@@ -35,3 +35,6 @@ docs/*.delivery.json
 *.log
 .DS_Store
 Thumbs.db
+
+# Tarballs produced by `npm pack` while checking what would be published.
+*.tgz
