@@ -42,8 +42,6 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 `scout_projects` → `rank_candidates` → `inspect_projects` 三个工具彼此独立，不共享状态。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。排序卡片固定八列：序号、项目、最近更新、relevance、stars、得分、语言、简介。
 
-**工具输出是中文，没有语言开关。**
-
 ## 工作方式
 
 ![架构图](docs/dsh-find-ideas-architecture.png)
