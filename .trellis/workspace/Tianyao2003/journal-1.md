@@ -95,3 +95,47 @@ Built the find-ideas-signals task end to end after analysing a comparable projec
 ### Next Steps
 
 - Push the local commits once the user approves; nothing has been pushed since 92a7967
+
+
+## Session 3: dsh-find-ideas 0.2.0: scrub the history, sync the READMEs, repoint every recorded SHA
+<!-- trellis-session: v=2 fp=b1f2dd202e321bff -->
+
+**Date**: 2026-10-17
+**Task**: dsh-find-ideas 0.2.0: scrub the history, sync the READMEs, repoint every recorded SHA
+**Branch**: `master`
+
+### Summary
+
+Prepared the repository for its first public push. Rewrote all 40 commits with git filter-repo so every author email is longtianyao2003@126.com (the 29 commits that carried a phone-number address are gone) and the 14 local absolute paths in five archived task files are neutralised; a 1.2 MB bundle plus the backup/pre-rewrite branch keep the old history recoverable locally. Because the rewrite changed every SHA, all 88 SHAs recorded in tracked files were repointed 1:1 (40/40 matched by author date, commit date and subject). Bumped the version to 0.2.0 and synced both READMEs with the shipped code: the install snippet no longer calls the repository private, the test counts now say 27/26/24, and two new sections document the version line and how to contribute.
+
+### Main Changes
+
+- Rewrite all 40 commits with git filter-repo: one author email everywhere, 14 local absolute paths in the archived v0.1 task files replaced
+- Repoint 88 recorded commit SHAs across 7 files through the old-to-new map, with a residue post-condition
+- Bump the version to 0.2.0 and record the 0.2.0 and 0.1.0 lines in both READMEs
+- Add a contributing section and drop the private-repository wording from both READMEs
+- Correct the test counts in both READMEs from 24/23/21 to 27/26/24
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `421bb55` | fix(render): state the restatement rule on the card, not only in the tool description |
+| `da5874b` | chore(history): repoint every recorded commit SHA after the identity rewrite |
+| `bb24684` | chore(release): bump the version to 0.2.0 |
+| `009767c` | docs(readme): document the 0.2.0 version line and how to contribute |
+
+### Testing
+
+- [OK] [OK] npx tsc -p tsconfig.json --noEmit exits 0, and npm run check is green
+- [OK] [OK] node test/run-all.test.mjs: 24 of 26 test files passed, 2 skipped (frozen eval fixtures absent, unrelated to this work)
+- [OK] [OK] cite-guard: 539 of 539 cited text unchanged, 0 moved, 0 retargeted; verify-tree: 513 citations, 0 past EOF, 0 needing adjudication
+- [OK] [OK] post-rewrite scan of the rewritten history: 0 occurrences of the old phone number, 0 of the old working-directory path, and the only remaining user-home hits are the <user> placeholders
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- Force-push master, then flip the repository to public once the user confirms
