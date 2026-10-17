@@ -14,14 +14,17 @@
 ## 安装
 
 ```sh
-# 从 GitHub 安装
+# 从 npm 安装（推荐）
+dsh plugin --profile web add dsh-find-ideas
+
+# 或从 GitHub 安装
 dsh plugin --profile web add github:tianyao2003/dsh-find-ideas
 
 # 或从本地目录安装
 dsh plugin --profile web add /path/to/dsh-find-ideas
 ```
 
-未发布到 npm。
+已发布到 npm，包名 `dsh-find-ideas`。从 GitHub 装会在安装时跑一次构建，需要 pnpm 放行构建脚本；从 npm 装拿到的是编译好的产物，没有这一步。
 
 ### 配置 GitHub token（推荐）
 
