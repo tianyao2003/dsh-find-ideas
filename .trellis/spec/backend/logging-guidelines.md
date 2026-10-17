@@ -29,7 +29,7 @@ The functional equivalents, and where each one lives:
 | `debug` | the rationale comments in the source | every module header |
 | `info` | the card body — counts, rows, table, header line | `src/render.ts:349`, `:539`, `:953` |
 | `warn` | a `degraded` note on the card | `src/query.ts:1232`, `src/github.ts:933` |
-| `error` | `Degraded { reason, detail }` in the output | `src/types.ts:63`, 10 reasons in `src/index.ts` |
+| `error` | `Degraded { reason, detail }` in the output | `src/types.ts:72`, 10 reasons in `src/index.ts` |
 
 The `describe*` / `explain*` helper families are the message constructors: `describe*` names a cause, `explain*` writes what the reader should do about it. See `error-handling.md` for the full table.
 
@@ -42,7 +42,7 @@ Not applicable in the conventional sense — but the card *is* structured, and t
 The machine-readable half of every diagnostic travels in the tool's output schema, not in prose:
 
 ```ts
-// src/types.ts:63-68
+// src/types.ts:72-77
 export interface Degraded {
   reason: string   // a controlled vocabulary — see error-handling.md
   detail: string   // the human-readable sentence
@@ -67,15 +67,15 @@ Everything a reader needs, onto the card. The events this project considers repo
 | The term probe was skipped or partial | `probe_note` on the card | `src/github.ts:933`, `:977` |
 | The idea's terms were not in the lexicon | `describeLexiconMiss` | `src/query.ts:1160` |
 | The plan could not be built | `describePlanFailure` | `src/query.ts:1048` |
-| Quota is exhausted or near | `rate_limited` / `quota_exceeded` plus `tokenRemedy()` | `src/index.ts:1202`, `:1767`, `src/query.ts:133` |
+| Quota is exhausted or near | `rate_limited` / `quota_exceeded` plus `tokenRemedy()` | `src/index.ts:1207`, `:1767`, `src/query.ts:133` |
 | A proxy is configured but invisible to Node's fetch | `proxyHint` | `src/github.ts:195` |
 | A transport failure | `describeFailure` — the full `cause` chain | `src/github.ts:174` |
 | A cached row came from a thin or incomplete fetch | `describeReplayedThinness` / `describeReplayedIncompleteness` | `src/query.ts:1372`, `:1399` |
-| A repository could not be read | a row with `ok: false` and a populated `error` | `src/index.ts:1843` |
+| A repository could not be read | a row with `ok: false` and a populated `error` | `src/index.ts:1855` |
 
 Two rules govern *how* these are written:
 
-1. **Empty must be distinguishable from unchecked.** `probe_note: ''` means the probes ran and their counts are in `query_terms`; every other case carries a sentence, "because printing nothing reads as 'the terms were checked and are fine' — a claim about GitHub that the code is not entitled to make when the truth is a budget fact" (`src/index.ts:900-908`).
+1. **Empty must be distinguishable from unchecked.** `probe_note: ''` means the probes ran and their counts are in `query_terms`; every other case carries a sentence, "because printing nothing reads as 'the terms were checked and are fine' — a claim about GitHub that the code is not entitled to make when the truth is a budget fact" (`src/index.ts:905-913`).
 2. **Report the fact, not the inference.** A failed channel is reported as a channel that did not run, never as a claim about the rows that came back (`src/query.ts:1251-1257`).
 
 ---

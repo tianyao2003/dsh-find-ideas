@@ -10,7 +10,7 @@ The governing rule: **an error never reaches the caller as an exception.** It is
 
 There is no HTTP API, so there is no status-code surface. The error surface is:
 
-1. `Degraded { reason, detail }` (`src/types.ts:63-68`) in the tool's output, and
+1. `Degraded { reason, detail }` (`src/types.ts:72-77`) in the tool's output, and
 2. the `describe*` / `explain*` prose helpers that write the human-readable half.
 
 The reason for this shape is recorded in `src/github.ts:1-17`: a rate limit carries `limit` / `remaining` / `resetAt` "so the caller can degrade instead of failing". A tool call that throws is a tool call that produced nothing; a tool call that degrades still tells the model what happened and what to do next.
@@ -52,29 +52,29 @@ Only one of the five is a subclass (`GitHubSearchRateLimited`, `:423`, described
 ### `Degraded`
 
 ```ts
-// src/types.ts:63-68
+// src/types.ts:72-77
 export interface Degraded {
   reason: string
   detail: string
 }
 ```
 
-`reason` is a `string`, **not** a union. The constraint is mechanical: `rank_candidates`'s `output.schema` is what `defineTool` uses to infer the `execute` return type, and the schema language has no unions. The same constraint produces `Suspicion.kind: string` (`src/types.ts:333-359`) and the empty-string sentinel on `Suspicion.against` instead of an optional field.
+`reason` is a `string`, **not** a union. The constraint is mechanical: `rank_candidates`'s `output.schema` is what `defineTool` uses to infer the `execute` return type, and the schema language has no unions. The same constraint produces `Suspicion.kind: string` (`src/types.ts:350-376`) and the empty-string sentinel on `Suspicion.against` instead of an optional field.
 
 **Complete `reason` vocabulary in use** (grep `reason:` in `src/index.ts`):
 
 | `reason` | Emitted at | Meaning |
 |----------|-----------|---------|
-| `plan_failed` | `src/index.ts:1008`, `:1043` | no query was sent; includes the Han-without-Latin refusal |
-| `partial` | `src/index.ts:358`, `:1086`, `:1169`, `:1871` | some queries/repos succeeded, some did not |
-| `thin_result` | `src/index.ts:1088`, `:1183` | the result set is smaller than GitHub implied |
-| `rate_limited` | `src/index.ts:1202`, `:1832` | GitHub refused; quota or IP-level limit |
-| `search_failed` | `src/index.ts:1208` | the search request itself failed |
-| `too_many_repos` | `src/index.ts:1654` | more than `MAX_INSPECT_REPOS` (5) requested |
-| `no_repos` | `src/index.ts:1659` | empty `repos` array |
-| `quota_exceeded` | `src/index.ts:1767`, `:1776` | the per-call request budget would be breached |
-| `time_budget_exceeded` | `src/index.ts:1808` | the wall-clock share of the host timeout would be breached |
-| `inspect_failed` | `src/index.ts:1843` | reading a repository failed |
+| `plan_failed` | `src/index.ts:1013`, `:1048` | no query was sent; includes the Han-without-Latin refusal |
+| `partial` | `src/index.ts:358`, `:1091`, `:1174`, `:1883` | some queries/repos succeeded, some did not |
+| `thin_result` | `src/index.ts:1093`, `:1188` | the result set is smaller than GitHub implied |
+| `rate_limited` | `src/index.ts:1207`, `:1844` | GitHub refused; quota or IP-level limit |
+| `search_failed` | `src/index.ts:1213` | the search request itself failed |
+| `too_many_repos` | `src/index.ts:1666` | more than `MAX_INSPECT_REPOS` (5) requested |
+| `no_repos` | `src/index.ts:1671` | empty `repos` array |
+| `quota_exceeded` | `src/index.ts:1779`, `:1788` | the per-call request budget would be breached |
+| `time_budget_exceeded` | `src/index.ts:1820` | the wall-clock share of the host timeout would be breached |
+| `inspect_failed` | `src/index.ts:1855` | reading a repository failed |
 
 `rank_candidates` has **no** `Degraded` path at all — it is pure and local, so it can always produce a card.
 
@@ -105,9 +105,9 @@ The network tools wrap each stage and substitute a degraded value rather than ab
 
 ### Check the budget *before* the work, not after
 
-`src/index.ts:1808` refuses with `time_budget_exceeded` when the planned work would exceed `TIME_BUDGET_SHARE = 0.75` (`src/index.ts:225`) of the host timeout. The rationale is at `src/index.ts:213-224`: a call planning to finish exactly at the limit has no room for the one slow request that always happens, and "a refusal costs the caller a retry with a smaller batch; an overrun costs them the whole call". This is why `INSPECT_TIMEOUT_MS = 60000` (`src/index.ts:211`) is duplicated as a constant instead of read from the registration — the budget check (`:1681`, `:1682`) runs before the registration is reachable.
+`src/index.ts:1820` refuses with `time_budget_exceeded` when the planned work would exceed `TIME_BUDGET_SHARE = 0.75` (`src/index.ts:225`) of the host timeout. The rationale is at `src/index.ts:213-224`: a call planning to finish exactly at the limit has no room for the one slow request that always happens, and "a refusal costs the caller a retry with a smaller batch; an overrun costs them the whole call". This is why `INSPECT_TIMEOUT_MS = 60000` (`src/index.ts:211`) is duplicated as a constant instead of read from the registration — the budget check (`:1693`, `:1694`) runs before the registration is reachable.
 
-> **This pair is pinned, not review-enforced.** `src/index.ts:206-209` states why the ceiling is exported: so S9 can assert the registered `timeoutMs` IS this constant and that the constant is the 60000ms the host enforces. S9 does both — `test/queries.test.mjs:782-784` asserts `inspect.timeoutMs === index.INSPECT_TIMEOUT_MS`, `:785-787` asserts `index.INSPECT_TIMEOUT_MS === 60000`, and `:791-792` asserts `TIME_BUDGET_SHARE` lies strictly inside `(0, 1)`. A drift between `:211` and `:1881` therefore fails the suite. (An earlier revision of this note said the opposite — that the comment claimed a guard which did not exist. That was accurate at the time: S9 then asserted only `typeof inspect.timeoutMs === 'number'`, and no test named `INSPECT_TIMEOUT_MS`. The assertion has since been added.)
+> **This pair is pinned, not review-enforced.** `src/index.ts:206-209` states why the ceiling is exported: so S9 can assert the registered `timeoutMs` IS this constant and that the constant is the 60000ms the host enforces. S9 does both — `test/queries.test.mjs:782-784` asserts `inspect.timeoutMs === index.INSPECT_TIMEOUT_MS`, `:785-787` asserts `index.INSPECT_TIMEOUT_MS === 60000`, and `:791-792` asserts `TIME_BUDGET_SHARE` lies strictly inside `(0, 1)`. A drift between `:211` and `:1893` therefore fails the suite. (An earlier revision of this note said the opposite — that the comment claimed a guard which did not exist. That was accurate at the time: S9 then asserted only `typeof inspect.timeoutMs === 'number'`, and no test named `INSPECT_TIMEOUT_MS`. The assertion has since been added.)
 
 ### Never re-parse a message to recover a fact
 
@@ -115,7 +115,7 @@ The network tools wrap each stage and substitute a degraded value rather than ab
 
 ### Distinguish "measured zero" from "not measured"
 
-`TERM_TOTAL_UNKNOWN = -1` (`src/types.ts:240`) exists because `null` is not available in that schema position, and `0` already means something else ("the term matched nothing on its own"). `termReport` (`src/index.ts:123`) leaves an unmeasured term `selective` rather than asserting anything about it — "the tool does not know, so it does not assert" (`src/index.ts:142-144`).
+`TERM_TOTAL_UNKNOWN = -1` (`src/types.ts:257`) exists because `null` is not available in that schema position, and `0` already means something else ("the term matched nothing on its own"). `termReport` (`src/index.ts:123`) leaves an unmeasured term `selective` rather than asserting anything about it — "the tool does not know, so it does not assert" (`src/index.ts:142-144`).
 
 ### A failed channel is a statement about the channel, never about the rows
 
@@ -141,7 +141,7 @@ Two rules govern that surface:
 | Parsing a failure message to recover a fact | Rewording the message silently disables the logic; no test can catch it because both halves still "work" | `src/github.ts:21-33` |
 | Claiming rows are all high-star because a channel failed | A failed channel proves the lane did not run, not what the surviving lanes returned | `src/query.ts:1251-1257` |
 | Rendering a bare "no results" | A genuine miss, an exhausted quota and a network failure become indistinguishable; the model guesses "rate limited" and abandons the tool | `src/render.ts:315-325` |
-| Treating an absent measurement as `0` | `0` is a measurement ("matched nothing"); absence is not | `src/types.ts:240`, `src/render.ts:357-364` |
+| Treating an absent measurement as `0` | `0` is a measurement ("matched nothing"); absence is not | `src/types.ts:257`, `src/render.ts:357-364` |
 | Letting a missing optional host service throw at module load | "A plugin whose module throws on load takes the whole host down with it, which is a steep price for a missing optional token" | `src/index.ts:153-160` |
 | Reporting a cached fetch's failure as a current one | `describeReplayedIncompleteness` (`src/query.ts:1387-1405`) prints only the weaker, still-true fact: these rows are a subset of what was asked for | `src/query.ts:1387-1405` |
 | Retrying a caller-cancelled request | The retry budget is one per call and shared with the rate-limit path; an aborted request is never retried | `src/github.ts:1-17` |

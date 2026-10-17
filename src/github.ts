@@ -1084,6 +1084,27 @@ interface FusedEntry {
 }
 
 /**
+ * Project a fused entry to the row the pool returns, carrying its channel count.
+ *
+ * This is the ONLY moment the count exists. `sources` lives on the fused entry,
+ * and the projection to plain rows — which every caller downstream sees — is
+ * exactly what used to discard it: the number was computed, used to attribute
+ * tail seats, and then dropped on the same line that produced the card's rows.
+ *
+ * A row that two or three independent queries returned is stronger evidence than
+ * one only a single query saw, and nothing in the rendered card let a reader tell
+ * them apart. Attaching the count here means it survives into the cache and the
+ * card, and it is attached on BOTH `selectPool` return paths rather than only the
+ * stage-3 one, because a pool with no reserved seats is still a fused pool.
+ *
+ * @param entry - a fused row together with the channel indices that ranked it.
+ * @returns the row, with `channels_hit` set to the number of those channels.
+ */
+function withChannelCount(entry: FusedEntry): RepoCandidate {
+  return { ...entry.row, channels_hit: entry.sources.size }
+}
+
+/**
  * Build the final candidate pool from the per-query result channels.
  *
  * ## Why this is not a plain star sort
@@ -1236,7 +1257,7 @@ export function selectPool(
   // the seats stages 1-2 paid for were discarded whenever stage 3 did not fire.
   const byStars = (a: RepoCandidate, b: RepoCandidate): number => b.stars - a.stars
   const truncate = (entries: typeof ordered): RepoCandidate[] =>
-    entries.slice(0, size).map((e) => e.row).sort(byStars)
+    entries.slice(0, size).map(withChannelCount).sort(byStars)
 
   // The pool-side count of §7.6 (see `lowStarInPool` above). The definition is
   // shared with the ranking layer through `countLowStar` rather than restated
@@ -1321,7 +1342,7 @@ export function selectPool(
   // room for them: `size - tail.length` entries from the fusion, then the tail.
   // Both are already selected by the time `byStars` runs, so presentation cannot
   // change membership.
-  const selected = [...head.slice(0, size - tail.length), ...tail].map((e) => e.row).sort(byStars)
+  const selected = [...head.slice(0, size - tail.length), ...tail].map(withChannelCount).sort(byStars)
   return {
     candidates: selected,
     tailIncluded: tail.length,

@@ -52,4 +52,4 @@ Not applicable in the component sense. For the mistakes that actually occur when
 
 - `quality-guidelines.md` §"Forbidden Patterns" — including "reconstructing a URL from `full_name`" and "reporting an unmeasured value as `0`";
 - `src/render.ts:30-46` — the 668,409-byte description incident that produced `MAX_DESCRIPTION_CHARS`;
-- `src/index.ts:1352-1359` — the `note` field that was accepted as input and read by the renderer but never declared in the output schema, so it was dropped in between.
+- `src/index.ts:1364-1371` — the `note` field that was accepted as input and read by the renderer but never declared in the output schema, so it was dropped in between.

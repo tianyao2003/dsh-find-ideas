@@ -62,19 +62,19 @@ Three shapes look like they should be unions or optionals and are not. All three
 
 | Shape | Declaration | Why |
 |-------|------------|-----|
-| `Degraded.reason` | `string` (`src/types.ts:63-68`) | the reason vocabulary cannot be a union in a schema position |
-| `Suspicion.kind` | `string` (`src/types.ts:333-359`) | same |
+| `Degraded.reason` | `string` (`src/types.ts:72-77`) | the reason vocabulary cannot be a union in a schema position |
+| `Suspicion.kind` | `string` (`src/types.ts:350-376`) | same |
 | `Suspicion.against` | `string`, empty-string sentinel rather than `?` | same |
-| `RankedCandidate.note` | `note?: string` (`src/types.ts:174-222`) | this one *is* optional in the schema (`src/index.ts:1360`), deliberately: a score with no stated reason is a real case |
+| `RankedCandidate.note` | `note?: string` (`src/types.ts:183-239`) | this one *is* optional in the schema (`src/index.ts:1372`), deliberately: a score with no stated reason is a real case |
 
 Do not "improve" the first three into unions without first checking whether `output.schema` can express the change.
 
 ### Sentinels instead of absence
 
-The schema language has no `null` in a number position, so an unmeasured term total travels as `TERM_TOTAL_UNKNOWN = -1` (`src/types.ts:240`) and is converted back at the render boundary:
+The schema language has no `null` in a number position, so an unmeasured term total travels as `TERM_TOTAL_UNKNOWN = -1` (`src/types.ts:257`) and is converted back at the render boundary:
 
 ```ts
-// src/index.ts:939-946
+// src/index.ts:944-951
 value.query_terms.map((entry) => ({
   term: entry.term,
   total: entry.total < 0 ? null : entry.total,
@@ -92,12 +92,12 @@ There is **no runtime validation library** — no Zod, no Yup, no io-ts, no `ajv
 
 ### Boundary 1: the tool schema
 
-The host validates every call against the tool's `parameters` and every result against `output.schema`. This is the real runtime gate, and it is written by hand as plain JSON-schema-shaped objects (`src/index.ts:795-825`, `:827-929`, `:1244-1320`, `:1322-1418`, `:1527-1564`, `:1566-1607`).
+The host validates every call against the tool's `parameters` and every result against `output.schema`. This is the real runtime gate, and it is written by hand as plain JSON-schema-shaped objects (`src/index.ts:795-825`, `:827-934`, `:1249-1328`, `:1330-1430`, `:1539-1576`, `:1578-1619`).
 
 Two conventions make that schema trustworthy:
 
-- **`additionalProperties: false` on every output-schema root and every nested object** — 13 sites (`src/index.ts:829`, `:838`, `:888`, `:919`, `:1262`, `:1283`, `:1324`, `:1333`, `:1376`, `:1395`, `:1568`, `:1579`, `:1598`). An undeclared field is rejected rather than silently dropped.
-- **A field must be declared in the schema *and* passed through `render`.** Declaring it in one place only is the real `note` defect: it was accepted as input and read by the renderer but never declared in the output schema, so it was dropped in between and the caller-note block could never be non-empty (`src/index.ts:1352-1359`).
+- **`additionalProperties: false` on every output-schema root and every nested object** — 13 sites (`src/index.ts:829`, `:838`, `:893`, `:924`, `:1267`, `:1291`, `:1332`, `:1341`, `:1388`, `:1407`, `:1580`, `:1591`, `:1610`). An undeclared field is rejected rather than silently dropped.
+- **A field must be declared in the schema *and* passed through `render`.** Declaring it in one place only is the real `note` defect: it was accepted as input and read by the renderer but never declared in the output schema, so it was dropped in between and the caller-note block could never be non-empty (`src/index.ts:1364-1371`).
 
 Parameter validation that the code performs itself, rather than trusting the caller:
 
@@ -127,9 +127,9 @@ A schema-shaped value arriving as `unknown`-ish, or a generic cache read, is the
 
 | Site | Cast |
 |------|------|
-| `src/index.ts:1442`, `:1445` | `args.candidates as RepoCandidate[]`, `args.scores as RelevanceInput[]` |
-| `src/index.ts:1454-1456` | the same, passed to the three detectors |
-| `src/index.ts:946`, `:1612` | render-boundary coercions: `as TermReport[]`, `as Inspection[]` |
+| `src/index.ts:1454`, `:1457` | `args.candidates as RepoCandidate[]`, `args.scores as RelevanceInput[]` |
+| `src/index.ts:1466-1468` | the same, passed to the three detectors |
+| `src/index.ts:951`, `:1624` | render-boundary coercions: `as TermReport[]`, `as Inspection[]` |
 | `src/cache.ts:195`, `:199` | `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>` |
 | `src/credentials.ts:66` | `get.call(ctx, 'credentials') as CredentialService \| undefined` |
 | `src/github.ts:437` | `item.owner as Record<string, unknown> \| undefined` |

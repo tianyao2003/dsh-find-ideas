@@ -27,7 +27,7 @@ There is no linter and no formatter config. `npm run check` is `typecheck && bui
 | `node --test` / `npm run test:runner` | The runner spawns one child per file with piped stdio; in this project's sandbox that has been refused, producing **false negatives**. | `test/run-all.test.mjs` header; `test/skeleton.test.mjs` header states the rule in-source |
 | Asserting on a value you must re-type whenever the guarded thing improves | "An assertion you must edit whenever the thing it guards improves is not a guard." | `test/stage2.test.mjs:82-83` |
 | Letting a missing optional host service throw at module load | A plugin that throws on load takes the whole host down — a steep price for a missing optional token. Reach optional services with `ctx.get`, never by declaring them in `inject`. | `src/index.ts:153-160` |
-| Reconstructing a GitHub URL from `full_name` | The owner path segment is case-sensitive; a lowercase rebuild 404s. | `src/types.ts:174-222` (`html_url`), `src/index.ts:1349-1351` |
+| Reconstructing a GitHub URL from `full_name` | The owner path segment is case-sensitive; a lowercase rebuild 404s. | `src/types.ts:183-239` (`html_url`), `src/index.ts:1361-1363` |
 | A second definition of one fact | "One fact with two definitions disagrees with itself eventually." | `src/select.ts:11-21` (`MANIFEST_RE`); `src/github.ts:70-79` (`countLowStar`) |
 | Enums, parameter properties, namespaces | `erasableSyntaxOnly: true` — TypeScript syntax must be erasable. | `tsconfig.json:18` |
 | Importing without the `.ts` extension | `allowImportingTsExtensions` + `rewriteRelativeImportExtensions` are on; every intra-project import is written `from './types.ts'`. | `tsconfig.json:19-20`; `tsc` |
@@ -54,8 +54,8 @@ Every non-obvious constant, rule and extraction carries a doc comment naming the
 
 | Invariant | Where |
 |-----------|-------|
-| An unmeasured term is `TERM_TOTAL_UNKNOWN` (`-1`), labelled unmeasured, distinct from a measured `0` | `src/types.ts:240`, `src/index.ts:136`, `:142-144` |
-| Pool low-star count and kept low-star count are **two** numbers; their difference is the measurement | `src/github.ts:70-79`, `src/index.ts:866-878`, `:1403-1410` |
+| An unmeasured term is `TERM_TOTAL_UNKNOWN` (`-1`), labelled unmeasured, distinct from a measured `0` | `src/types.ts:257`, `src/index.ts:136`, `:142-144` |
+| Pool low-star count and kept low-star count are **two** numbers; their difference is the measurement | `src/github.ts:70-79`, `src/index.ts:871-883`, `:1415-1422` |
 | A failed channel means coverage unknown, never "the rows are all high-star" | `src/query.ts:1251-1257` |
 | `null` for an unreported pool population, never a defaulted `0` | `src/render.ts:357-364` |
 | A cached fetch's failure is not reported as a current one | `src/query.ts:1387-1405` |
@@ -65,8 +65,8 @@ Every non-obvious constant, rule and extraction carries a doc comment naming the
 
 `strict: true` and `noUncheckedIndexedAccess: true`. Indexed access is guarded everywhere; there are no non-null assertions on array access. `as` casts are confined to the boundaries where a schema-shaped value meets a typed one:
 
-- `src/index.ts:1442`, `:1445`, `:1454-1456` — `args.candidates as RepoCandidate[]`, `args.scores as RelevanceInput[]`
-- `src/index.ts:946`, `:1612` — the render-boundary coercions (`as TermReport[]`, `as Inspection[]`)
+- `src/index.ts:1454`, `:1457`, `:1466-1468` — `args.candidates as RepoCandidate[]`, `args.scores as RelevanceInput[]`
+- `src/index.ts:951`, `:1624` — the render-boundary coercions (`as TermReport[]`, `as Inspection[]`)
 - `src/cache.ts:195`, `:199` — `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>`
 - `src/credentials.ts:66` — `get.call(ctx, 'credentials') as CredentialService | undefined`
 - `src/github.ts:437` — `item.owner as Record<string, unknown> | undefined`

@@ -847,6 +847,11 @@ export function apply(ctx: Context): void {
                 pushed_at: { type: 'string', required: true },
                 archived: { type: 'boolean', required: true },
                 topics: { type: 'array', required: true, items: { type: 'string' } },
+                // R3: how many query channels returned this row, when the pool
+                // builder counted it. Optional on purpose: a caller-supplied pool
+                // never went through `selectPool`, and an unmeasured row must not
+                // read as a measured 1.
+                channels_hit: { type: 'integer' },
               },
             },
           },
@@ -1271,6 +1276,9 @@ export function apply(ctx: Context): void {
             pushed_at: { type: 'string', required: true },
             archived: { type: 'boolean', required: true },
             topics: { type: 'array', required: true, items: { type: 'string' } },
+            // R3: the same optional field `scout_projects` returns. Absent means
+            // "not counted", never 1.
+            channels_hit: { type: 'integer' },
           },
         },
       },
@@ -1343,6 +1351,10 @@ export function apply(ctx: Context): void {
                 pushed_at: { type: 'string', required: true },
                 archived: { type: 'boolean', required: true },
                 topics: { type: 'array', required: true, items: { type: 'string' } },
+                // R3: the count travels to the card so the renderer can mark the
+                // rows several queries agreed on. Optional: a caller-assembled
+                // pool carries no count.
+                channels_hit: { type: 'integer' },
                 relevance: { type: 'number', required: true },
                 stars_rating: { type: 'number', required: true },
                 score: { type: 'number', required: true },

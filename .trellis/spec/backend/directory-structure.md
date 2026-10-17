@@ -76,7 +76,7 @@ Because it is the leaf, **a constant cannot live in `types.ts` if computing or j
 
 ### Composition roots and reachability
 
-- `apply(ctx: Context): void` at `src/index.ts:781` is the plugin entry. The three tools are registered inside it (`src/index.ts:782`, `:1218`, `:1496`) and are **not** module exports, so no test can import a tool definition directly — tests call `apply()` with a stub `ctx.tools.register` and capture what it receives.
+- `apply(ctx: Context): void` at `src/index.ts:781` is the plugin entry. The three tools are registered inside it (`src/index.ts:782`, `:1223`, `:1508`) and are **not** module exports, so no test can import a tool definition directly — tests call `apply()` with a stub `ctx.tools.register` and capture what it receives.
 - `src/credentials.ts` exports a complete, tested function (`configureGitHubToken`, `src/credentials.ts:84`) that `apply()` deliberately does **not** register. The module header (`src/credentials.ts:1-29`) states why: a registered tool appears in every agent's tool list and may be called unprompted, and nothing in the plugin can fence a tool to "only when the user asked". Exposure is left as a deliberate act. `test/credentials.test.mjs` group C4 pins the non-registration ("it is NOT registered as a tool").
 
 ### Where logic goes
@@ -101,13 +101,13 @@ Single lowercase word, no separators: `cache.ts`, `github.ts`, `lexicon.ts`, `qu
 
 | Shape | Convention | Examples |
 |-------|-----------|----------|
-| Types/interfaces | `PascalCase`, no `I` prefix | `RepoCandidate` `src/types.ts:10`, `Degraded` `src/types.ts:63`, `NoiseReport` `src/types.ts:259` |
+| Types/interfaces | `PascalCase`, no `I` prefix | `RepoCandidate` `src/types.ts:10`, `Degraded` `src/types.ts:72`, `NoiseReport` `src/types.ts:276` |
 | Constants | `SCREAMING_SNAKE_CASE` | `MAX_LIMIT` `src/index.ts:168`, `CACHE_VERSION` `src/cache.ts:23`, `RRF_K` `src/github.ts:634` |
-| Version constants | `*_VERSION` | `SEARCH_PLAN_VERSION` `src/types.ts:987`, `SELECTOR_VERSION` `src/select.ts:305`, `SCANNER_VERSION` `src/skeleton.ts:148` |
+| Version constants | `*_VERSION` | `SEARCH_PLAN_VERSION` `src/types.ts:1008`, `SELECTOR_VERSION` `src/select.ts:305`, `SCANNER_VERSION` `src/skeleton.ts:148` |
 | Card renderers | `render*` | `renderCandidates` `src/render.ts:349`, `renderRanked` `src/render.ts:539`, `renderInspections` `src/render.ts:953` |
 | Degrade-prose helpers | `describe*` | `describeFailure` `src/github.ts:174`, `describePartialFailure` `src/query.ts:1232`, `describeProbeOutcome` `src/github.ts:933` |
 | User-facing explanations | `explain*` | `explainEmpty` `src/render.ts:326`, `explainThinResult` `src/query.ts:1329` |
-| Suspicion detectors | `find*` | `findSuspicious` `src/types.ts:474`, `findScoreGaps` `src/types.ts:583`, `findDoubleSided` `src/types.ts:647`, `findNoteEchoes` `src/types.ts:721` |
+| Suspicion detectors | `find*` | `findSuspicious` `src/types.ts:491`, `findScoreGaps` `src/types.ts:600`, `findDoubleSided` `src/types.ts:664`, `findNoteEchoes` `src/types.ts:738` |
 | Pure predicates | `is*` / `*Failed` | `isDeclarationHit` `src/skeleton.ts:94`, `isTailReachable` `src/query.ts:995`, `translationFailed` `src/translate.ts:288` |
 | Private module helpers | `camelCase`, **not exported** | `cacheDir` `src/cache.ts:127`, `cachePathFor` `src/cache.ts:141`, `rateLimitInfo` `src/github.ts:215` |
 

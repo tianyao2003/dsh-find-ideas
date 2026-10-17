@@ -10,7 +10,7 @@
 
 Everything the caller sees is the **Markdown card** produced by `src/render.ts`. That card is this project's API response, its log, and its UI at once. Two rules follow from that and dominate the rest of this directory:
 
-- **Errors never reach the caller as exceptions.** They are converted into `Degraded { reason, detail }` (`src/types.ts:63`) or into `describe*` / `explain*` prose. See [Error Handling](./error-handling.md).
+- **Errors never reach the caller as exceptions.** They are converted into `Degraded { reason, detail }` (`src/types.ts:72`) or into `describe*` / `explain*` prose. See [Error Handling](./error-handling.md).
 - **There is no logger.** Everything a reader needs is printed onto the card; a diagnostic that is not rendered does not exist. See [Logging Guidelines](./logging-guidelines.md).
 
 The central quality invariant is that **the card must not claim more than the code measured** — an unmeasured term is not a zero, and a failed retrieval channel means coverage is unknown rather than "the rows are all high-star". See [Quality Guidelines](./quality-guidelines.md).
@@ -26,9 +26,9 @@ Read these before writing backend code. Each one is a rule that has already been
 - [ ] **Read [Tool Contracts](./tool-contracts.md) before changing anything a caller can see.** A parameter key, an output-schema key or a rendered sentence is a published contract; the schema is the only thing standing between the model and the numbers.
 - [ ] **Do not add a runtime dependency.** `package.json` `dependencies` is `{}` and stays `{}`. Everything is Node built-ins plus `tsc`. If a task seems to need a library, the answer is a bounded heuristic in `src/`, not a dependency.
 - [ ] **Check whether the fact you are about to store is derivable.** A stored copy of a derivable fact goes stale; the project recomputes instead. `low_star_in_pool` is recomputed on both the cold and cached paths for exactly this reason, while `tail_included` cannot be derived from the rows and therefore *is* stored. Decide which kind yours is before adding a field.
-- [ ] **Confirm the failure path returns a value.** Nothing in the pipeline may throw to the caller. A new failure becomes a `Degraded { reason, detail }` (`src/types.ts:63`) plus a `describe*` sentence on the card.
+- [ ] **Confirm the failure path returns a value.** Nothing in the pipeline may throw to the caller. A new failure becomes a `Degraded { reason, detail }` (`src/types.ts:72`) plus a `describe*` sentence on the card.
 - [ ] **If you are adding a diagnostic string, write its test in the same change.** Every honesty claim on the card is pinned by a test that asserts the forbidden phrasing is *absent* (`test/diagnostics-honesty.test.mjs`, `test/evidence-chain.test.mjs`, `test/declaration-honesty.test.mjs`). A new sentence with no test is an unpinned claim.
-- [ ] **Adding a parameter key is a breaking change.** `test/ranking.test.mjs:177` pins `rank_candidates`' parameter key set exactly; a new key fails that test, and that is the intended signal, not an obstacle to route around.
+- [ ] **Adding a parameter key is a breaking change.** `test/ranking.test.mjs:186` pins `rank_candidates`' parameter key set exactly; a new key fails that test, and that is the intended signal, not an obstacle to route around.
 - [ ] **Before touching a constant, find out whether it is already defined elsewhere.** A value that must stay in step with another is defined once and referenced — see `INSPECT_TIMEOUT_MS` (`src/index.ts:211`) and `TIME_BUDGET_SHARE` (`src/index.ts:225`), where the registration refers to the identifier rather than repeating the literal.
 
 ---
@@ -95,7 +95,7 @@ Two traps worth stating because both have already produced a false result here:
 
 - [ ] **Every new assertion has been seen to fail.** A test that passes on the first run has not been shown to test anything. Break the code deliberately, watch the test go red, restore it.
 - [ ] **No honesty rule regressed.** `diagnostics-honesty`, `evidence-chain` and `declaration-honesty` assert that specific *false* phrasings do **not** appear. If you changed a card sentence, re-run all three.
-- [ ] **Unknown is still unknown.** An unmeasured value is `未测` / `null` / `TERM_TOTAL_UNKNOWN` (`src/types.ts:240`), never a defaulted `0`. A measured zero is reported as `0（solo 无命中）`, which is a different claim.
+- [ ] **Unknown is still unknown.** An unmeasured value is `未测` / `null` / `TERM_TOTAL_UNKNOWN` (`src/types.ts:257`), never a defaulted `0`. A measured zero is reported as `0（solo 无命中）`, which is a different claim.
 - [ ] **No absolute claim about coverage.** A failed retrieval channel means coverage is unknown — never that the results "only contain high-star projects".
 - [ ] **The card's numbers come from the code.** No renderer reorders rows or invents a rating; the order and the numbers come from `rankCandidates`.
 - [ ] **Nothing throws to the caller.** Grep the new path for `throw`; the only acceptable one is a pure guard wrapped by a `try`/`catch` that converts it (see `src/query.ts:1019`).

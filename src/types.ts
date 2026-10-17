@@ -28,6 +28,15 @@ export interface RepoCandidate {
   archived: boolean
   /** Topics declared by the repository. */
   topics: string[]
+  /**
+   * How many query channels returned this row, when the pool builder counted it.
+   *
+   * Absent means NOBODY COUNTED — a caller-assembled pool never went through
+   * `selectPool`, and `rank_candidates` accepts exactly such a pool. It is not
+   * zero: a row in a pool was returned by at least one channel, so a measured
+   * value is always >= 1. Never an input to the score.
+   */
+  channels_hit?: number
 }
 
 /** One LLM-inspected candidate, scored for relevance to the user's idea. */
@@ -219,6 +228,14 @@ export interface RankedCandidate {
    * fetched `html_url` — never a reconstruction — is what the card renders.
    */
   html_url: string
+  /**
+   * How many query channels returned this row (R3); see {@link RepoCandidate}.
+   *
+   * Optional for the same reason it is optional there: a caller-supplied pool
+   * carries no count. Copied through `rankCandidates` unchanged, and never read
+   * by the formula.
+   */
+  channels_hit?: number
 }
 
 /**
@@ -797,6 +814,10 @@ export function rankCandidates(
       pushed_at: candidate.pushed_at,
       archived: candidate.archived,
       topics: candidate.topics,
+      // R3: the count travels with the row. Conditional rather than a plain
+      // copy so an uncounted row does not carry an explicit `undefined` into
+      // the output the host validates.
+      ...(candidate.channels_hit === undefined ? {} : { channels_hit: candidate.channels_hit }),
       relevance,
       stars_rating: ratingFromRelevance(relevance),
       score: finalScore(relevance, candidate.stars),

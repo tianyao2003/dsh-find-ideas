@@ -295,8 +295,8 @@ function rankedRow(row: RankedCandidate): string {
   // closes that early. The brackets this template writes itself are the only
   // unescaped ones left in the cell, which is what keeps the link working.
   const project = target.length > 0
-    ? `[${escapeUntrusted(row.full_name)}](${target})${archived}`
-    : `${escapeUntrusted(row.full_name)}（链接未通过白名单）${archived}`
+    ? `[${escapeUntrusted(row.full_name)}](${target})${archived}${channelMarker(row.channels_hit)}`
+    : `${escapeUntrusted(row.full_name)}（链接未通过白名单）${archived}${channelMarker(row.channels_hit)}`
   // An empty language keeps its old wording rather than the placeholder: it
   // states WHICH fact is missing, which the placeholder alone does not.
   const language = row.language.trim().length > 0 ? formatMetaCell(row.language) : '未知语言'
@@ -380,7 +380,7 @@ export function renderCandidates(
   for (const [i, c] of candidates.entries()) {
     const language = c.language.trim().length > 0 ? formatMetaCell(c.language) : '未知语言'
     const bits = [formatMetaCell(c.pushed_at), formatStars(c.stars), language].filter(part => part.length > 0)
-    lines.push(` ${String(i + 1).padStart(2)}. ${escapeUntrusted(c.full_name)}    ${bits.join(' · ')}${c.archived ? '  [已归档]' : ''}`)
+    lines.push(` ${String(i + 1).padStart(2)}. ${escapeUntrusted(c.full_name)}    ${bits.join(' · ')}${c.archived ? '  [已归档]' : ''}${channelMarker(c.channels_hit)}`)
     if (c.description.length > 0) lines.push(`     ${escapeUntrusted(clipDescription(c.description))}`)
     // Bare text, not a table cell: an unescaped `](` here is read as a live
     // link, and "it is only plain text" is not a distinction the reader makes.
@@ -417,7 +417,7 @@ export function renderCandidates(
   // R2: the per-row marker says WHICH rows are archived, never HOW MANY, so the
   // archived share of a pool stayed invisible however large it grew.
   const archivedHere = archivedNote(candidates, '本次候选里')
-  if (archivedHere.length > 0) lines.push(archivedHere)
+  lines.push(...(archivedHere.length > 0 ? [archivedHere] : []), ...channelNotes(candidates, '本次候选里'))
   if (degraded !== null) {
     lines.push('')
     lines.push(`⚠️ 降级提示：${escapeUntrusted(degraded.detail)}`)
@@ -592,7 +592,7 @@ export function renderRanked(
   if (unknown.length > 0) lines.push(`⚠️ ${unknown.length} 个 full_name 未匹配到候选，已忽略：${unknown.slice(0, 5).join(', ')}`)
 
   const archivedRanked = archivedNote(ranked, '本榜')
-  lines.push('', noiseAdvice(noise), ...(archivedRanked.length > 0 ? ['', archivedRanked] : []))
+  lines.push('', noiseAdvice(noise), ...(archivedRanked.length > 0 ? ['', archivedRanked] : []), ...channelNotes(ranked, '本榜'))
 
   const notes = callerNotes(ranked)
   if (notes.length > 0) {
@@ -1100,4 +1100,61 @@ function archivedNote(rows: readonly { archived?: boolean }[], scope: string): s
     return `${scope}无法统计归档数量：${missing} 行缺少 archived 字段（数据缺失，不等于没有归档仓库）。`
   }
   return ''
+}
+
+/**
+ * The per-row marker for the query-channel count (R3), or `''` when unmeasured.
+ *
+ * `selectPool` fuses several query channels and already knew, for every row, how
+ * many of them returned it. That number attributed the reserved long-tail seats
+ * and was then discarded on the same line that produced the card's rows, so a
+ * row three independent queries agreed on looked exactly like a row a single
+ * query had surfaced.
+ *
+ * Three states, following `archivedNote`:
+ *
+ *   - Measured: the count, so the cell states the fact.
+ *   - Unmeasured (the field is absent): NOTHING. A pool the caller assembled
+ *     itself never went through `selectPool` and has no count to show, and
+ *     printing `1` there would invent a measurement.
+ *   - Zero: printed as zero. A row that reached a pool was returned by some
+ *     channel, so this cannot come from `selectPool`; if a caller reports it,
+ *     the card repeats it rather than rounding it up.
+ *
+ * @param hit - the row's `channels_hit`, or `undefined` when nobody counted.
+ * @returns the marker including its leading space, or `''`.
+ */
+function channelMarker(hit: number | undefined): string {
+  return typeof hit === 'number' ? ` [${hit} 个查询命中]` : ''
+}
+
+/**
+ * How many rows several queries agreed on, as a card note (R3).
+ *
+ * The per-row marker says WHICH rows were corroborated and by how many queries;
+ * this says HOW MANY were, which is the number that tells a reader whether the
+ * queries were redundant or complementary. Same division of labour as
+ * `archivedNote` against the `[已归档]` marker.
+ *
+ * Returned as lines rather than a string so both call sites can splice it into
+ * the `lines.push(...)` they already have: a new statement would move every
+ * `src/render.ts:NNN` citation below it, and this module's helpers are already
+ * defined after their call sites.
+ *
+ * @param rows - the rows being rendered.
+ * @param scope - how to name them, e.g. `本榜`.
+ * @returns `[]` when no row carries a count, else a blank line and the note.
+ */
+function channelNotes(rows: readonly { channels_hit?: number }[], scope: string): string[] {
+  const counted = rows.filter((row) => typeof row.channels_hit === 'number')
+  if (counted.length === 0) return []
+  const multi = counted.filter((row) => (row.channels_hit ?? 0) >= 2).length
+  const missing = rows.length - counted.length
+  const gap = missing > 0 ? `另有 ${missing} 行未测量查询命中数（数据缺失，不等于 1 个查询命中）。` : ''
+  return [
+    '',
+    multi > 0
+      ? `${scope}有 ${multi} 行由 2 个以上查询同时命中（多查询一致，是更强的相关信号）。${gap}`
+      : `${scope}没有任何一行由 2 个以上查询同时命中。${gap}`,
+  ]
 }

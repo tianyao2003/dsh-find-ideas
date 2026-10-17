@@ -94,7 +94,7 @@ Two conventions worth copying if this ever becomes a real store:
 Keys are **not** table names. They are strings built by the caller and hashed into filenames:
 
 ```ts
-// src/types.ts:1023-1031
+// src/types.ts:1044-1052
 export function searchCacheKeyFor(idea, keywords, limit, authenticated = false, plan = SEARCH_PLAN_VERSION): CacheKey {
   return `${cacheKeyFor(idea)}|kw:${kw}|n:${limit}|auth:${authenticated ? 1 : 0}|p:${plan}`
 }
@@ -159,9 +159,9 @@ The rule (`src/cache.ts:186-191`): when a caller passes a `snapshot`, an entry s
 
 > "a cached inspection produced by an older scanner answers a different question than the one being asked, and silently replaying it would attribute the old scanner's silence to the new one. Re-fetching is the honest outcome." — `src/cache.ts:174-179`
 
-The stamps in use are the producer version constants: `SELECTOR_VERSION` (`src/select.ts:305`) and `SCANNER_VERSION` (`src/skeleton.ts:148`), combined at `src/index.ts:1713` and `:1866` as `` `sel:${SELECTOR_VERSION}:scan:${SCANNER_VERSION}` ``.
+The stamps in use are the producer version constants: `SELECTOR_VERSION` (`src/select.ts:305`) and `SCANNER_VERSION` (`src/skeleton.ts:148`), combined at `src/index.ts:1725` and `:1878` as `` `sel:${SELECTOR_VERSION}:scan:${SCANNER_VERSION}` ``.
 
-There is a third version constant that is **not** a cache version and must not be confused with one: `SEARCH_PLAN_VERSION = 7` (`src/types.ts:987`) versions the *search strategy*, and it participates in the cache **key** (`src/types.ts:1023-1031`), not the envelope. `CACHE_VERSION` versions the on-disk *shape*. Bump the wrong one and you either fail to invalidate or you throw away a day of quota for nothing.
+There is a third version constant that is **not** a cache version and must not be confused with one: `SEARCH_PLAN_VERSION = 7` (`src/types.ts:1008`) versions the *search strategy*, and it participates in the cache **key** (`src/types.ts:1044-1052`), not the envelope. `CACHE_VERSION` versions the on-disk *shape*. Bump the wrong one and you either fail to invalidate or you throw away a day of quota for nothing.
 
 ---
 
@@ -171,7 +171,7 @@ There is a third version constant that is **not** a cache version and must not b
 |-------|-----------|---------|
 | Cache directory | `join(dshHome(), 'cache', '<package-name>')` | `~/.dsh/cache/dsh-find-ideas/` (`src/cache.ts:127-129`) |
 | Cache file | `<slug>-<base36 hash>.json` | `local-first-note-app-1a2b3c.json` (`src/cache.ts:141-150`) |
-| Cache key | pipe-delimited `k:v` segments | `…|kw:…|n:20|auth:0|p:7` (`src/types.ts:1023-1031`) |
+| Cache key | pipe-delimited `k:v` segments | `…|kw:…|n:20|auth:0|p:7` (`src/types.ts:1044-1052`) |
 | Envelope fields | `camelCase` | `version`, `fetchedAt`, `snapshot`, `data` (`src/cache.ts:78-83`) |
 | Timestamps | ISO 8601 **string** on disk, epoch **number** in memory | `fetchedAt: string` vs `CacheEntry.at: number` |
 | Version constants | `SCREAMING_SNAKE_CASE`, suffixed `_VERSION` | `CACHE_VERSION`, `SELECTOR_VERSION`, `SCANNER_VERSION`, `SEARCH_PLAN_VERSION` |
@@ -188,8 +188,8 @@ Note the deliberate asymmetry in timestamp representation: the in-memory entry s
 |---------|----------------|-------|
 | Adding a required field without bumping `CACHE_VERSION` | Stale entries read it back as `undefined`; `!== expected` tests then pass for every one of them | `src/cache.ts:12-22`, `:62-77` |
 | Bumping `CACHE_VERSION` for an optional field | Throws away a day of saved quota for a change that is already safe | `src/cache.ts:65-76` |
-| Confusing `CACHE_VERSION` with `SEARCH_PLAN_VERSION` | One versions the disk shape, the other the search strategy and the cache *key* | `src/cache.ts:23` vs `src/types.ts:987` |
-| Recomputing a stored number from the rows instead of reading it back | The cached path once recomputed `tail_included` as `candidates.filter(c => c.stars <= TAIL_STAR_CEILING).length` — a different question — so the same search reported one number cold and another on replay | `src/index.ts:857-864` |
+| Confusing `CACHE_VERSION` with `SEARCH_PLAN_VERSION` | One versions the disk shape, the other the search strategy and the cache *key* | `src/cache.ts:23` vs `src/types.ts:1008` |
+| Recomputing a stored number from the rows instead of reading it back | The cached path once recomputed `tail_included` as `candidates.filter(c => c.stars <= TAIL_STAR_CEILING).length` — a different question — so the same search reported one number cold and another on replay | `src/index.ts:862-869` |
 | Letting a cache failure fail the call | A cache is an optimisation; the correct degradation is a refetch | `src/cache.ts:152-157` |
 | Writing the disk file in place | A crash mid-write leaves half-written JSON that poisons every later read | `src/cache.ts:212-218` |
 | Storing a source read under the 24h default | File *contents* change whenever the project ships; a day-old copy silently describes last week's code | `src/cache.ts:31-52` |

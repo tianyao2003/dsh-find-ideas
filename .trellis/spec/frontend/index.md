@@ -66,7 +66,7 @@ They import types and two constants and nothing else — no I/O, no network, no 
 
 > "The one hard rule encoded here: whatever these functions emit, the ORDER and the NUMBERS come from `rankCandidates`, never from the model." — `src/render.ts:1-14`
 
-This is the project's central defence against a model narrating its own ranking. The tool descriptions enforce it from the other side: `rank_candidates`' description states "HARD LIMIT — you must NOT alter any key datum: the rank order, each row's relevance, stars_rating and …" (`src/index.ts:1235`), and the parameter key set is pinned by `test/ranking.test.mjs:177` so no `stars` or `stars_rating` parameter can ever be added for the model to set.
+This is the project's central defence against a model narrating its own ranking. The tool descriptions enforce it from the other side: `rank_candidates`' description states "HARD LIMIT — you must NOT alter any key datum: the rank order, each row's relevance, stars_rating and …" (`src/index.ts:1240`), and the parameter key set is pinned by `test/ranking.test.mjs:177` so no `stars` or `stars_rating` parameter can ever be added for the model to set.
 
 ### Layout conventions
 
@@ -89,7 +89,7 @@ The renderer is where a claim either becomes visible or is lost. Four rules are 
 | An empty card distinguishes a genuine miss, an exhausted quota and a network failure | `src/render.ts:315-346` |
 | An unreported pool population is `null`, never a defaulted `0` | `src/render.ts:357-364` |
 | A probe that did not run must say so, even on an empty card | `src/render.ts:367-373` |
-| An unmeasured term is labelled unmeasured, distinct from a measured zero | `src/render.ts:480-484`, `src/index.ts:939-946` |
+| An unmeasured term is labelled unmeasured, distinct from a measured zero | `src/render.ts:480-484`, `src/index.ts:944-951` |
 
 The first is worth quoting, because it is the reason the module has an `explain*` family at all: "A bare 'no results' was actively misleading: a genuine miss, an exhausted quota, and a network failure all rendered identically, so the calling agent had to guess at the cause (in practice it guessed 'rate limited' and gave up on the tool entirely)."
 
