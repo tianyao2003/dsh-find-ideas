@@ -260,7 +260,7 @@ console.log('\n=== T7. the surrounding structure still stands ===')
 // WHY THIS IS ON THE CARD AND NOT ONLY IN THE TOOL DESCRIPTION
 // -----------------------------------------------------------
 // `rank_candidates`' description already forbade dropping a column (commit
-// 825423f), and it still happened: the one observed trial session rendered a
+// e34ce4a), and it still happened: the one observed trial session rendered a
 // correct eight-column card and the agent re-presented it with 简介 deleted and
 // `relevance` translated to 「相关性」. Two things made that possible.
 //
@@ -268,7 +268,7 @@ console.log('\n=== T7. the surrounding structure still stands ===')
 //      on every call. A rule that only lives in the description competes with the
 //      table itself for the agent's attention, and the table wins.
 //   2. The description rule was unreachable for a whole day: the host process had
-//      been started before 825423f landed, and a plugin's `defineTool` payload is
+//      been started before e34ce4a landed, and a plugin's `defineTool` payload is
 //      built at load time. Every model call after the fix still carried the old
 //      text. That failure mode is invisible from inside the plugin — the disk copy
 //      was correct the whole time — so the card cannot assume the description

@@ -22,8 +22,8 @@ Built and shipped the dsh-find-ideas DSH plugin (three tools: scout_projects, ra
 
 | Hash | Message |
 |------|---------|
-| `c30f2d4` | chore: keep trial-run reports out of the repository |
-| `acd33c1` | feat: show the last-updated timestamp in the flat candidate list |
+| `0bd14d0` | chore: keep trial-run reports out of the repository |
+| `e57593a` | feat: show the last-updated timestamp in the flat candidate list |
 
 ### Status
 
@@ -54,24 +54,24 @@ Built the find-ideas-signals task end to end after analysing a comparable projec
 
 | Hash | Message |
 |------|---------|
-| `86214e3` | Fix spelling of 'Licence' to 'License' |
-| `abc7c70` | docs: add the architecture diagram to the README |
-| `1c6d81f` | docs(spec): correct the stale facts in the directory-structure spec |
-| `8614ed4` | docs: rewrite the README for a shorter, structured read |
-| `366c7ae` | Update README.zh.md |
-| `8546c3b` | Update README.md |
-| `6cd742a` | docs: rewrite the README around what a reader needs to do |
-| `34f734d` | chore: generate the README samples from the shipped code |
-| `45194c8` | fix: compare README samples independently of line endings |
-| `e1e0497` | Update README.zh.md |
-| `9a833d0` | Update README.zh.md |
-| `9cf0c70` | Update README.zh.md |
-| `3d4da82` | Update README.zh.md |
-| `825423f` | fix: stop a restated card from losing the description column |
-| `8c950fa` | fix: keep the traceability guarantee alongside the column rule |
-| `73f91a3` | docs: sync the READMEs with the maintainer's Chinese edit |
-| `b7ca636` | docs: add static badges to the READMEs |
-| `a496ef5` | ci: run the check and the test suite on Node 22 and 24 |
+| `96dbc8d` | Fix spelling of 'Licence' to 'License' |
+| `7d5495c` | docs: add the architecture diagram to the README |
+| `1d406ed` | docs(spec): correct the stale facts in the directory-structure spec |
+| `ba72aff` | docs: rewrite the README for a shorter, structured read |
+| `85bdc88` | Update README.zh.md |
+| `608a77e` | Update README.md |
+| `1474128` | docs: rewrite the README around what a reader needs to do |
+| `2704b14` | chore: generate the README samples from the shipped code |
+| `943559a` | fix: compare README samples independently of line endings |
+| `831f4a1` | Update README.zh.md |
+| `d5448ff` | Update README.zh.md |
+| `6e3ab68` | Update README.zh.md |
+| `0a834a6` | Update README.zh.md |
+| `e34ce4a` | fix: stop a restated card from losing the description column |
+| `5bacd81` | fix: keep the traceability guarantee alongside the column rule |
+| `749f23e` | docs: sync the READMEs with the maintainer's Chinese edit |
+| `5c99277` | docs: add static badges to the READMEs |
+| `92a7967` | ci: run the check and the test suite on Node 22 and 24 |
 | `43cb874` | chore(task): archive 00-bootstrap-guidelines |
 | `8b5541c` | chore(task): add the find-ideas-signals task and its PRD |
 | `efac686` | docs(task): correct the PRD's R1 after the surface measurement refuted half of it |
@@ -94,4 +94,4 @@ Built the find-ideas-signals task end to end after analysing a comparable projec
 
 ### Next Steps
 
-- Push the local commits once the user approves; nothing has been pushed since a496ef5
+- Push the local commits once the user approves; nothing has been pushed since 92a7967

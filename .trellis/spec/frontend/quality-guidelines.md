@@ -61,13 +61,13 @@ tolerance cannot silently become a hole.
 
 > 复述本卡时，每一行与每一列都必须保留（共八列，含「简介」列）：删掉一行或一列是丢失信息，不是缩短表格。
 
-**Why:** `rank_candidates`' description already forbade dropping a column (commit `825423f`),
+**Why:** `rank_candidates`' description already forbade dropping a column (commit `e34ce4a`),
 and the column still disappeared in the one observed trial session. The card was correct —
 eight columns including 简介 — and the agent re-presented it with 简介 deleted and `relevance`
 translated to 「相关性」. Two things made that possible. A tool description is read once, at
 planning time, while the card is read again on every call, so a rule that lives only in the
 description competes with the table it describes and loses. Worse, the description rule was
-unreachable for a whole day: the host process predated `825423f`, and a plugin's `defineTool`
+unreachable for a whole day: the host process predated `e34ce4a`, and a plugin's `defineTool`
 payload is built at load time, so every model call still carried the old text even though the
 disk copy was correct the whole time. The card cannot assume the description arrived.
 

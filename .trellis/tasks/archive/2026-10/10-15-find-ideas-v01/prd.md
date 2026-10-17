@@ -13,7 +13,7 @@
 ### 本仓库（dsh-find-ideas）当前状态
 
 - `D:\workspace\dsh-find-ideas` 顶层只有 `.agents/`、`.dsh/`、`.git/`、`.trellis/`、`.gitattributes`、`AGENTS.md`。**没有 package.json、没有 src、没有 README**——代码尚未开始，是绿地。
-- git 仓库存在，1 个 commit `b6e2c72 chore: trellis init (dsh platform, developer Tianyao2003)`，**无 remote**，当前分支 `master`。
+- git 仓库存在，1 个 commit `9114fad chore: trellis init (dsh platform, developer Tianyao2003)`，**无 remote**，当前分支 `master`。
 - Trellis 已装好并可用：`.trellis/`（scripts/spec/workflow.md/config.yaml）、`.agents/skills/trellis-*/`、`.dsh/skills/trellis-*/`。
 - DSH 在 `.trellis/workflow.md` 里被归入 `[codex-inline, Kilo, Antigravity, Devin, DeepSeek Harness]` 组：**inline 工作流**，不分派 implement/check 子代理，Phase 1.3（配置上下文）跳过，因此 `implement.jsonl` / `check.jsonl` 的 ready gate **不适用**；Phase 1.2 的研究在主线做完并写入 `{TASK_DIR}/research/`。
 

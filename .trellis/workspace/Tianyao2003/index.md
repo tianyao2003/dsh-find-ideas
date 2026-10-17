@@ -29,8 +29,8 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
-| 2 | 2026-10-17 | dsh-find-ideas: surface the retrieval signals the pipeline already computes | `86214e3`, `abc7c70`, `1c6d81f`, `8614ed4`, `366c7ae`, `8546c3b`, `6cd742a`, `34f734d`, `45194c8`, `e1e0497`, `9a833d0`, `9cf0c70`, `3d4da82`, `825423f`, `8c950fa`, `73f91a3`, `b7ca636`, `a496ef5`, `43cb874`, `8b5541c`, `efac686`, `65e0f5c`, `cdc0d3e`, `fdc1c7d`, `8a90bac` | `master` |
-| 1 | 2026-10-16 | dsh-find-ideas v0.1: prior-art plugin shipped, then a last-updated column added to the flat list | `c30f2d4`, `acd33c1` | `master` |
+| 2 | 2026-10-17 | dsh-find-ideas: surface the retrieval signals the pipeline already computes | `96dbc8d`, `7d5495c`, `1d406ed`, `ba72aff`, `85bdc88`, `608a77e`, `1474128`, `2704b14`, `943559a`, `831f4a1`, `d5448ff`, `6e3ab68`, `0a834a6`, `e34ce4a`, `5bacd81`, `749f23e`, `5c99277`, `92a7967`, `43cb874`, `8b5541c`, `efac686`, `65e0f5c`, `cdc0d3e`, `fdc1c7d`, `8a90bac` | `master` |
+| 1 | 2026-10-16 | dsh-find-ideas v0.1: prior-art plugin shipped, then a last-updated column added to the flat list | `0bd14d0`, `e57593a` | `master` |
 <!-- @@@/auto:session-history -->
 
 ---
