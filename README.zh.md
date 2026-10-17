@@ -94,11 +94,12 @@ npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
 
 ## 贡献
 
-欢迎 star，也欢迎参与贡献：issue 和 pull request 都欢迎。
+问题和 pull request 都欢迎。
 
-- **报问题 / 提需求**：开 issue，写清你输入的想法、期望看到的结果和实际结果（工具输出是中文，直接把卡片贴上来就行）。
-- **贡献流程**：fork → 从 `master` 切出分支 → 改代码并补测试 → 跑 `npm run check && npm test` 全绿 → 提 pull request。
-- **PR 约定**：一次只做一件事；改动卡片文案时，同时更新 `.trellis/spec/` 里的契约说明和对应测试；提交信息用 `feat:` / `fix:` / `docs:` 前缀。
+- **报问题 / 提需求**：开 issue，写清你输入的想法、期望的结果和实际结果。工具输出是中文，把返回的排序卡片原文贴上来即可。
+- **改代码**：fork → 从 `master` 切分支 → 改代码并补测试 → `npm run check && npm test` 全绿 → 提 pull request。CI 在 Node 22 和 24 上跑的也是这两条命令。
+- **一次只做一件事**：一个 PR 解决一个问题；提交信息用 `feat:` / `fix:` / `docs:` / `chore:` 等前缀。
+- **改卡片上的文字**：表头和卡片里的提示语由测试逐字断言（见 `test/render-table.test.mjs`），改文字要连测试一起改；`.trellis/spec/` 下是本项目的开发约定（由 Trellis 生成、随仓库提交），相关章节也要同步更新。
 
 ## 许可证
 
