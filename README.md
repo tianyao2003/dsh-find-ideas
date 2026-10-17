@@ -42,8 +42,6 @@ Restart dsh after installing, then describe your idea — the agent calls the th
 
 `scout_projects` → `rank_candidates` → `inspect_projects` are independent and share no state. The 0–10 relevance is the agent's judgement; the tools only search, compute, sort and read, and never judge semantic similarity. The ranking formula is `relevance × (1 + log10(max(stars, 10) + 1)) / 2`. A ranked card always has eight columns: rank, project, last updated, relevance, stars, score, language, description.
 
-**Tool output is written in Chinese** — there is no locale switch.
-
 ## How it works
 
 ![architecture](docs/dsh-find-ideas-architecture.png)
