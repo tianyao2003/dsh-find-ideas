@@ -139,3 +139,43 @@ Prepared the repository for its first public push. Rewrote all 40 commits with g
 ### Next Steps
 
 - Force-push master, then flip the repository to public once the user confirms
+
+
+## Session 4: dsh-find-ideas 0.2.0: scrub the second path leak, repoint the last dead SHAs, force-push
+<!-- trellis-session: v=2 fp=d1e42a10672045e9 -->
+
+**Date**: 2026-10-17
+**Task**: dsh-find-ideas 0.2.0: scrub the second path leak, repoint the last dead SHAs, force-push
+**Branch**: `master`
+
+### Summary
+
+Removed the last real machine paths from the rewritten history and repointed the seven commit SHAs that still named pre-rewrite commits, then force-pushed the finished 0.2.0 history to GitHub.
+
+### Main Changes
+
+- Ran git filter-repo a second time over master to replace the last real working-directory path, which a post-push scan found in the journal rather than in the source tree
+- Mapped the seven remaining stale SHAs (fdc1c7d, 43cb874, 8b5541c, efac686, 65e0f5c, cdc0d3e, 8a90bac) to their current equivalents by author date and subject, and rewrote the 15 occurrences across the archived signals PRD, index.md and journal-1.md
+- Force-pushed the rewritten history with --force-with-lease; origin/master is now 4fafc11, 45 commits, and its tree matches the local tree exactly
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d1b8ff5` | chore: record journal |
+| `4fafc11` | chore(history): repoint the last stale SHAs after the second rewrite |
+
+### Testing
+
+- [OK] npx tsc -p tsconfig.json --noEmit exits 0; the build exits 0
+- [OK] node test/run-all.test.mjs: 24 of 26 test files passed, 2 skipped (frozen eval fixtures absent, unrelated to this work)
+- [OK] cite-guard: 539 of 539 cited text unchanged; verify-tree: 513 citations, 0 past EOF, 0 needing adjudication
+- [OK] history scan over 45 commits and 268 blobs: 0 occurrences of the real home path, the real workspace path, the old phone number or the old mail domain; the 11 remaining user-home hits are all <user> placeholders
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- Flip the repository to public from the GitHub web UI (Settings > Danger Zone > Change visibility); the CLI has no gh binary and no token with administration scope
