@@ -11,7 +11,7 @@
 ## 安装
 
 ```sh
-# 从 GitHub 安装（私有仓库，需要 git 凭据）
+# 从 GitHub 安装
 dsh plugin --profile web add github:tianyao2003/dsh-find-ideas
 
 # 或从本地目录安装
@@ -58,6 +58,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 - **「没测」永远不会渲染成零。** 被跳过的探测、只跑了一部分的探测、不带探测数据的缓存回放，各有各的措辞。
 - **第三方文本是不可信数据。** 仓库摘录被围栏包住并转义，使 README 里的一行无法冒充卡片结构；链接目标只允许 `github.com` 与 `raw.githubusercontent.com` 白名单。
 - **失败以返回值给出。** 工具不会抛异常：每条失败都返回可据以行动的 `reason` 与 `detail`，部分结果会说明为什么是部分的。
+- **复述不能丢列。** 卡片自己写明：转述它时八列必须全部保留，删掉一行或一列是丢失信息，不是缩短表格。
 
 ### 网络请求与数据去向
 
@@ -66,6 +67,13 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 ## 兼容性
 
 需要 Node ≥ 22。DSH 插件 API 使用预发布版本号，因此声明的 `@deepseek-ai/dsh-tools` range 覆盖到 `0.2.0-rc.1` 为止的每一条已发布宿主线；`npm run check:peers` 会从 registry 解析当前宿主线，一旦覆盖不到就直接失败。
+
+## 版本
+
+| 版本 | 更新 |
+| --- | --- |
+| 0.2.0（当前） | 卡片标出每行由几个查询命中、候选池里被归档项目的占比，并把「转述时八列必须全部保留」写进卡片本身。 |
+| 0.1.0 | 首个可用版本：`scout_projects` → `rank_candidates` → `inspect_projects` 三工具链路，以及卡片区分「算出来的」与「传进来的」的诚实性规则。 |
 
 ## 开发
 
@@ -77,7 +85,15 @@ npm run typecheck     # tsc --noEmit
 npm run check:peers   # 从 registry 解析当前 DSH 宿主线
 ```
 
-`test/` 下有 24 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身外的 23 个，其中两个（`baseline`、`stage2`）因 `eval/runs/` 夹具从未移植而跳过——所以本地完整跑一遍验证的是 **21 个文件**。跳过会列在 `skipped (fixture absent, NOT verified)` 标题下，绝不算作通过。
+`test/` 下有 27 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身外的 26 个，其中两个（`baseline`、`stage2`）因 `eval/runs/` 夹具从未移植而跳过——所以本地完整跑一遍验证的是 **24 个文件**。跳过会列在 `skipped (fixture absent, NOT verified)` 标题下，绝不算作通过。
+
+## 贡献
+
+欢迎 star，也欢迎参与贡献：issue 和 pull request 都欢迎。
+
+- **报问题 / 提需求**：开 issue，写清你输入的 idea、期望看到的结果和实际结果（工具输出是中文，直接贴卡片即可）。
+- **贡献流程**：fork → 从 `master` 切出分支 → 改代码并补测试 → 跑 `npm run build && npm run check && npm test` 全绿 → 提 pull request。
+- **PR 约定**：一次只做一件事；改动卡片文案时，同时更新 `.trellis/spec/` 里的契约说明和对应测试；提交信息用 `feat:` / `fix:` / `docs:` 前缀。
 
 ## 许可证
 
