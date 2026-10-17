@@ -4,9 +4,9 @@
 
 [English](README.md) | 中文
 
-**动手“造轮子”之前，先看看别人是不是已经做过了？**
+**动手造轮子之前，先看看有没有人已经做过。**
 
-用一句话描述你的idea，agent 会去 GitHub 上搜索相关的项目，基于相关性和 stars 加权打分排序后返回给你。再读你选中的那些仓库——README、依赖清单、目录树、关键文件等，输出可供借鉴的架构设计方案。
+用一句话描述你的想法，agent 会去 GitHub 上搜索同类项目，按「相关性 × star 加权」打分排序后返回一张卡片。你从卡片里挑几个仓库，它再去读这些仓库的 README、依赖清单、目录树和关键文件，整理出一份可以借鉴的架构方案。
 
 ## 安装
 
@@ -22,79 +22,79 @@ dsh plugin --profile web add /path/to/dsh-find-ideas
 
 ### 配置 GitHub token（推荐）
 
-GitHub 未认证时限制为**每公网 IP 每分钟 10 次**搜索请求，且同一出口 IP 背后的所有人共享这份额度。配置 token 后提升到**每分钟 30 次**，按账号计算。
+GitHub 对未认证的搜索请求限制为**每个公网 IP 每分钟 10 次**，而且同一个出口 IP 背后的所有人共用这份额度。配置 token 后提升到**每分钟 30 次**，按账号计算。
 
-插件通过 DSH 的凭据存储解析 `GITHUB_TOKEN` 引用。在启动 DSH 的环境里设置它：
+插件通过 DSH 的凭据存储读取 `GITHUB_TOKEN`。在启动 DSH 的环境里设置它：
 
 ```sh
 export GITHUB_TOKEN=ghp_...          # bash
 $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 ```
 
-没有 token 也能正常使用，但 `inspect_projects` 会拒绝估算超过 10 次请求的匿名批次。
+没有 token 也能用，只是 `inspect_projects` 会拒绝预计超过 10 次请求的匿名批次。
 
 ## 使用
 
-安装后重启 dsh，然后直接描述你的 idea——agent 会自己调用 3 个内置工具：
+安装后重启 dsh，然后直接说出你的想法，agent 会自己调用三个内置工具：
 
 - 「我想做一个本地优先的 Markdown 笔记应用，帮我看一下 GitHub 上的项目。」
 - 「我想做一个 UI 增强的 DSH 插件，GitHub 上有哪些项目？」
 
-`scout_projects` → `rank_candidates` → `inspect_projects` 三者彼此独立。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式为 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。卡片共 8 列：序号、项目、最近更新、relevance、stars、得分、语言、简介。
+`scout_projects` → `rank_candidates` → `inspect_projects` 三个工具彼此独立，不共享状态。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。排序卡片固定八列：序号、项目、最近更新、relevance、stars、得分、语言、简介。
 
-工具输出为中文，没有语言开关。
+**工具输出是中文，没有语言开关。**
 
 ## 工作方式
 
-![dsh-find-ideas 架构](docs/dsh-find-ideas-architecture.png)
+![架构图](docs/dsh-find-ideas-architecture.png)
 
-- **`scout_projects`** 把想法转成多条 GitHub 搜索查询，返回按 star 排序的候选池——刻意**不**按相关性排序。非英文想法会先翻译成英文检索词；做不到时（中文想法 + 调用方没给拉丁 `keywords` + 无可用 LLM）返回 `plan_failed`。
-- **`rank_candidates`** 用 `relevance × (1 + log10(max(stars, 10) + 1)) / 2` 加权公式给候选池打分。
-- **`inspect_projects`** 最多读 5 个仓库——README、依赖清单、目录树摘要和几个关键文件。
+- **`scout_projects`**：把想法拆成多条 GitHub 搜索查询，返回按 star 排序的候选池，刻意**不**按相关性排序。想法里不含拉丁字母时，会先翻译成英文检索词；如果做不到（调用方没给拉丁字母的 `keywords`、又没有可用的 LLM），就返回 `plan_failed`。
+- **`rank_candidates`**：用 `relevance × (1 + log10(max(stars, 10) + 1)) / 2` 给候选池打分并生成卡片。
+- **`inspect_projects`**：最多读 5 个仓库，包括 README、依赖清单、目录树摘要和几个关键文件。
 
-### 可信度
+### 卡片给出的保证
 
-- **算出来的与传进来的分得清。** 每张卡都会声明哪些字段由代码派生、哪些由调用方传入。调用方文本会被裁剪、转义并标注 `[未验证]`，永不参与算术。
-- **「没测」永远不会渲染成零。** 被跳过的探测、只跑了一部分的探测、不带探测数据的缓存回放，各有各的措辞。
-- **第三方文本是不可信数据。** 仓库摘录被围栏包住并转义，使 README 里的一行无法冒充卡片结构；链接目标只允许 `github.com` 与 `raw.githubusercontent.com` 白名单。
-- **失败以返回值给出。** 工具不会抛异常：每条失败都返回可据以行动的 `reason` 与 `detail`，部分结果会说明为什么是部分的。
-- **复述不能丢列。** 卡片自己写明：转述它时八列必须全部保留，删掉一行或一列是丢失信息，不是缩短表格。
+- **算出来的和传进来的分开。** 排序卡会声明哪些字段由代码算出、哪些由调用方（也就是调用工具的那个 agent）传入。调用方给的文字会被截断、转义并标上 `[未验证]`，永远不参与算术。
+- **没测到的数量不会写成 0。** 查询词没单独测过，显示「未知（未测得）」；归档字段缺失，明说「数据缺失」；候选池总数没测过时，只报保留槽位的数量，不编造池子里的总数。
+- **第三方文本一律当作数据。** 仓库摘录用代码块包住并转义，README 里的一行无法冒充卡片结构；能作为链接输出的，只有 `github.com` 和 `raw.githubusercontent.com`。
+- **失败也走返回值。** 工具不抛异常：每次失败都返回可以据以行动的 `reason` 和 `detail`，结果不完整时会说明为什么不完整。
+- **复述不能丢列。** 卡片自己写着：复述它时八列必须全部保留，删掉一行或一列是丢信息，不是把表格缩短。
 
-### 网络请求与数据去向
+### 数据去向
 
-搜索查询与仓库路径发往 `api.github.com`；`inspect_projects` 读取公开仓库内容，不会上传你的本地代码。唯一的另一处出口是宿主 LLM，且只在 idea 不含拉丁字母、调用方又没给拉丁 `keywords` 时用于翻译——纯英文 idea 不会被发往任何地方。检索结果与打分在本地 `$DSH_HOME/cache/dsh-find-ideas/` 缓存 24 小时。
+搜索查询和仓库路径会发到 `api.github.com`；`inspect_projects` 只读取 GitHub 上的仓库内容，不会上传你本地的代码。另一处出口是运行插件的 DSH 所用的模型，只有在想法不含拉丁字母、调用方又没给拉丁字母的 `keywords` 时，才用来翻译——纯英文的想法不会为了翻译而发给模型。搜索结果缓存 24 小时，源码读取结果缓存 10 分钟，都在本地 `$DSH_HOME/cache/dsh-find-ideas/`。
 
 ## 兼容性
 
-需要 Node ≥ 22。DSH 插件 API 使用预发布版本号，因此声明的 `@deepseek-ai/dsh-tools` range 覆盖到 `0.2.0-rc.1` 为止的每一条已发布宿主线；`npm run check:peers` 会从 registry 解析当前宿主线，一旦覆盖不到就直接失败。
+需要 Node ≥ 22。DSH 插件 API 使用预发布版本号，所以 `@deepseek-ai/dsh-tools` 的 peer range 逐条列出要支持的版本（最后一条是 `^0.2.0-rc.1`）；`npm run check:peers` 会从 npm registry 查出当前 DSH 宿主实际安装的 `dsh-tools` 版本，一旦 range 不接受它就报错。
 
 ## 版本
 
 | 版本 | 更新 |
 | --- | --- |
-| 0.2.0（当前） | 卡片标出每行由几个查询命中、候选池里被归档项目的占比，并把「转述时八列必须全部保留」写进卡片本身。 |
-| 0.1.0 | 首个可用版本：`scout_projects` → `rank_candidates` → `inspect_projects` 三工具链路，以及卡片区分「算出来的」与「传进来的」的诚实性规则。 |
+| 0.2.0（当前） | 卡片标出每行被几个查询命中、榜上有多少行是归档仓库，并把「复述时八列必须全部保留」写进卡片本身。 |
+| 0.1.0 | 首个可用版本：`scout_projects` → `rank_candidates` → `inspect_projects` 三工具链路，以及把「算出来的」和「传进来的」分开的规则。 |
 
 ## 开发
 
 ```sh
 npm install
-npm run build         # tsc -> lib/ ；必须在 npm test 之前跑——测试 import 的是 lib/
+npm run build         # tsc -> lib/ ；必须先跑，测试 import 的是 lib/
 npm test              # node test/run-all.test.mjs
 npm run typecheck     # tsc --noEmit
-npm run check:peers   # 从 registry 解析当前 DSH 宿主线
+npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
 ```
 
-`test/` 下有 27 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身外的 26 个，其中两个（`baseline`、`stage2`）因 `eval/runs/` 夹具从未移植而跳过——所以本地完整跑一遍验证的是 **24 个文件**。跳过会列在 `skipped (fixture absent, NOT verified)` 标题下，绝不算作通过。
+`test/` 下有 27 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身之外的 26 个，其中两个（`baseline`、`stage2`）因为 `eval/runs/` 的录制夹具从未移植过来而跳过——所以本地完整跑一遍，验证的是 **24 个文件**。跳过的会列在 `skipped (fixture absent, NOT verified)` 下面，绝不算作通过。
 
 ## 贡献
 
 欢迎 star，也欢迎参与贡献：issue 和 pull request 都欢迎。
 
-- **报问题 / 提需求**：开 issue，写清你输入的 idea、期望看到的结果和实际结果（工具输出是中文，直接贴卡片即可）。
-- **贡献流程**：fork → 从 `master` 切出分支 → 改代码并补测试 → 跑 `npm run build && npm run check && npm test` 全绿 → 提 pull request。
+- **报问题 / 提需求**：开 issue，写清你输入的想法、期望看到的结果和实际结果（工具输出是中文，直接把卡片贴上来就行）。
+- **贡献流程**：fork → 从 `master` 切出分支 → 改代码并补测试 → 跑 `npm run check && npm test` 全绿 → 提 pull request。
 - **PR 约定**：一次只做一件事；改动卡片文案时，同时更新 `.trellis/spec/` 里的契约说明和对应测试；提交信息用 `feat:` / `fix:` / `docs:` 前缀。
 
 ## 许可证
 
-MIT， [LICENSE](LICENSE)。
+MIT，见 [LICENSE](LICENSE)。
