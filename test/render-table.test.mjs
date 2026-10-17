@@ -255,6 +255,63 @@ console.log('\n=== T7. the surrounding structure still stands ===')
 }
 
 // ---------------------------------------------------------------------------
+// T7b. The card now tells the model what it may NOT do to the table.
+//
+// WHY THIS IS ON THE CARD AND NOT ONLY IN THE TOOL DESCRIPTION
+// -----------------------------------------------------------
+// `rank_candidates`' description already forbade dropping a column (commit
+// 825423f), and it still happened: the one observed trial session rendered a
+// correct eight-column card and the agent re-presented it with 简介 deleted and
+// `relevance` translated to 「相关性」. Two things made that possible.
+//
+//   1. A tool description is read once, at planning time; the card is read again
+//      on every call. A rule that only lives in the description competes with the
+//      table itself for the agent's attention, and the table wins.
+//   2. The description rule was unreachable for a whole day: the host process had
+//      been started before 825423f landed, and a plugin's `defineTool` payload is
+//      built at load time. Every model call after the fix still carried the old
+//      text. That failure mode is invisible from inside the plugin — the disk copy
+//      was correct the whole time — so the card cannot assume the description
+//      arrived.
+//
+// The sentence below is therefore a RULE, not a measurement: it makes no claim
+// about what the code computed, so it is compatible with the honesty rules in
+// T6. It must not be worded as a claim about the data, and it must not be folded
+// into the safe sentence — `test/declaration-honesty.test.mjs` strips that
+// sentence by exact match, and concatenating would leave a fragment behind.
+{
+  const RESTATE_RULE =
+    '复述本卡时，每一行与每一列都必须保留（共八列，含「简介」列）：删掉一行或一列是丢失信息，不是缩短表格。'
+  const SAFE = '排序与星级均由代码按公式计算，不可由模型指定。'
+
+  check('the card states the restatement rule', card.includes(RESTATE_RULE), card.split('\n').find((l) => l.includes('复述本卡')) ?? '(absent)')
+  check('the rule names the column count and the 简介 column', /八列/.test(RESTATE_RULE) && RESTATE_RULE.includes('简介'), '')
+  check('the rule names both losses: a row AND a column', RESTATE_RULE.includes('一行') && RESTATE_RULE.includes('一列'), '')
+  check('the rule follows the table it protects', card.indexOf(RESTATE_RULE) > card.indexOf('| 1 |'), '')
+
+  // Separate lines, deliberately. `declaration-honesty` cuts the safe sentence out
+  // of the card by exact match before scanning for the banned family; if the two
+  // were one line the cut would leave the second half behind as a fragment.
+  const cardLines = card.split('\n')
+  check('the safe sentence still occupies its own line', cardLines.includes(SAFE), '')
+  check('the rule occupies its own line', cardLines.includes(RESTATE_RULE), '')
+  check('the two are adjacent and rule-last', cardLines[cardLines.indexOf(SAFE) + 1] === RESTATE_RULE, String(cardLines.indexOf(SAFE)))
+
+  // The empty branch has no table, so it must not pretend to protect one. It
+  // carries the three-class declaration instead (asserted in T6), and neither the
+  // safe sentence nor this rule — both are statements about a table.
+  const emptyBranch = renderRanked('x', [], [], [], [])
+  check('the empty branch does not carry the rule', !emptyBranch.includes(RESTATE_RULE), '')
+  check('the empty branch does not carry the safe sentence either', !emptyBranch.includes(SAFE), emptyBranch.split('\n').find((l) => l.includes('排序与星级')) ?? '')
+
+  // Mutation guard: the assertion above must be able to fail. Proven in this same
+  // file by rendering a card from a mutated copy — see the note in
+  // `.trellis/spec/frontend/quality-guidelines.md`, "Mutation-test a new honesty
+  // assertion". The mutation that matters is deleting the sentence from
+  // `lib/render.js`; the recorded result is FAIL on the first check.
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n=== T8. renderSkeleton: zero declarations is not "no declarations" ===')
 {
   // A copyright header and an import block — the window a real file head gives.

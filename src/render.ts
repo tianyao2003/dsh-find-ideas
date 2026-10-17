@@ -584,7 +584,7 @@ export function renderRanked(
   lines.push(RANKED_TABLE_DIVIDER)
   for (const row of ranked) lines.push(rankedRow(row))
   lines.push('─'.repeat(62))
-  lines.push('排序与星级均由代码按公式计算，不可由模型指定。')
+  lines.push('排序与星级均由代码按公式计算，不可由模型指定。', '复述本卡时，每一行与每一列都必须保留（共八列，含「简介」列）：删掉一行或一列是丢失信息，不是缩短表格。')
   if (dropped.length > 0) lines.push(`已排除 ${dropped.length} 个 relevance=0 的噪声项目。`)
   if (belowThreshold.length > 0) {
     lines.push(`已排除 ${belowThreshold.length} 个 relevance<${MIN_RELEVANCE} 的弱相关项目（多为宽查询带入的高 star 无关仓库）。`)

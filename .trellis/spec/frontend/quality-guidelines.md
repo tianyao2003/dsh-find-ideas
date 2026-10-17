@@ -55,6 +55,32 @@ forbidden family matches the safe sentence. `test/declaration-honesty.test.mjs` 
 safe sentence before searching, *and* asserts the safe sentence is still present, so the
 tolerance cannot silently become a hole.
 
+### 2b. A restated card keeps every row AND every column
+
+`renderRanked` prints a second line directly under the safe sentence:
+
+> 复述本卡时，每一行与每一列都必须保留（共八列，含「简介」列）：删掉一行或一列是丢失信息，不是缩短表格。
+
+**Why:** `rank_candidates`' description already forbade dropping a column (commit `825423f`),
+and the column still disappeared in the one observed trial session. The card was correct —
+eight columns including 简介 — and the agent re-presented it with 简介 deleted and `relevance`
+translated to 「相关性」. Two things made that possible. A tool description is read once, at
+planning time, while the card is read again on every call, so a rule that lives only in the
+description competes with the table it describes and loses. Worse, the description rule was
+unreachable for a whole day: the host process predated `825423f`, and a plugin's `defineTool`
+payload is built at load time, so every model call still carried the old text even though the
+disk copy was correct the whole time. The card cannot assume the description arrived.
+
+**Trap:** this sentence is a RULE, not a measurement — it claims nothing about what the code
+computed, which is what keeps it compatible with the honesty rules above. It must also stay on
+its **own line**: `test/declaration-honesty.test.mjs` removes the safe sentence by exact match
+before scanning for the banned family, so folding the two into one line would leave a fragment
+behind and turn that tolerance into a hole.
+
+Pinned by `test/render-table.test.mjs` (T7b): the rule is present, names the column count and
+简介, names both losses (a row AND a column), follows the table, occupies its own line, and is
+absent from the empty branch — which has no table to protect.
+
 ### 3. Claiming absence from a failed measurement
 
 A channel that failed proves nothing about the rows that did come back. The forbidden
@@ -184,6 +210,8 @@ do not weaken them.
 - [ ] If two numbers are now reported where one was, is their **difference** still
       meaningful, and does the wording make it so?
 - [ ] Is the banned-claim family absent, and is the safe sentence still present verbatim?
+- [ ] If the card tells the model how to restate it, does that sentence claim nothing about the
+      data, and does it sit on its own line rather than being folded into the safe sentence?
 - [ ] Does any new test assert absence in a way a negation in the output could satisfy?
 - [ ] Was `npx tsc -p tsconfig.json` run, and was `test/source-integrity.test.mjs` run
       after the text edit?
