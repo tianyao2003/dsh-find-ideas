@@ -174,7 +174,7 @@
 - [x] **AC13** `test/ranking.test.mjs:177` 的参数名集合断言原样通过（未新增 `rank_candidates` 参数）。
   - 证据：`test/ranking.test.mjs:177` 原样通过；`test/channel-visibility.test.mjs` §R3.7 另断言一次
 - [x] **AC14** `.trellis/spec/` 的行号引用全部有效：`.scratch/verify-tree.mjs` 输出 `PAST EOF: 0`、`nonexistent file: 0`、`NEEDS ADJUDICATION: 0`。**若某文件的改动不可避免地位移了行号，必须在同一提交内更新受影响的 spec 引用。**
-  - 证据：`.scratch/verify-tree.mjs` → `PAST EOF: 0` / `nonexistent file: 0` / `NEEDS ADJUDICATION: 0`。**R3 不可避免地位移了行号**：三处 schema 站点在 `src/index.ts` 深处、两处 interface 在 `src/types.ts` 深处，`src/github.ts` 与 `src/render.ts` 已排成净零位移。174 处引用在**同一提交** `fdc1c7d` 内机械重编号，并逐条证明指向同一段文本（范围引用只允许按 diff 实际插入的行数扩张）。`.scratch/cite-guard.mjs check` → 539/539 文本一致
+  - 证据：`.scratch/verify-tree.mjs` → `PAST EOF: 0` / `nonexistent file: 0` / `NEEDS ADJUDICATION: 0`。**R3 不可避免地位移了行号**：三处 schema 站点在 `src/index.ts` 深处、两处 interface 在 `src/types.ts` 深处，`src/github.ts` 与 `src/render.ts` 已排成净零位移。174 处引用在**同一提交** `5dcf23a` 内机械重编号，并逐条证明指向同一段文本（范围引用只允许按 diff 实际插入的行数扩张）。`.scratch/cite-guard.mjs check` → 539/539 文本一致
 - [x] **AC15** 全量校验全绿：`npx tsc --noEmit`、`npm run check`、`node test/run-all.test.mjs`（21/23 passed, 2 skipped 为基线；末条 45 PASS / 0 FAIL 为基线）。**复核红灯必须直接跑 `node test/<file>`，不带 `--test`**——本项目测试自己打印 `FAIL`/`PASS`，`node --test` 的过滤会给出假阴性。
   - 证据：`npx tsc --noEmit` 绿、`npm run check` 绿、`node test/run-all.test.mjs` → **24/26 passed, 2 skipped**（基线 21/23 加上本任务新增的三个测试文件；2 个 skip 仍是 `baseline`/`stage2` 的冻结 eval 夹具缺失，与本任务无关）。末条 45 PASS / 0 FAIL 未变
 

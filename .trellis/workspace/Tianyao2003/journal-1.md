@@ -72,13 +72,13 @@ Built the find-ideas-signals task end to end after analysing a comparable projec
 | `749f23e` | docs: sync the READMEs with the maintainer's Chinese edit |
 | `5c99277` | docs: add static badges to the READMEs |
 | `92a7967` | ci: run the check and the test suite on Node 22 and 24 |
-| `43cb874` | chore(task): archive 00-bootstrap-guidelines |
-| `8b5541c` | chore(task): add the find-ideas-signals task and its PRD |
-| `efac686` | docs(task): correct the PRD's R1 after the surface measurement refuted half of it |
-| `65e0f5c` | fix(surface): state GitHub's real retrieval surface in all five places |
-| `cdc0d3e` | feat(render): state the archived share of a pool, not just which rows are archived |
-| `fdc1c7d` | feat(card): show how many query channels found each row |
-| `8a90bac` | docs(task): mark the PRD's acceptance criteria with their verified evidence |
+| `5979928` | chore(task): archive 00-bootstrap-guidelines |
+| `5977799` | chore(task): add the find-ideas-signals task and its PRD |
+| `3ab9e95` | docs(task): correct the PRD's R1 after the surface measurement refuted half of it |
+| `4485cb6` | fix(surface): state GitHub's real retrieval surface in all five places |
+| `d8f3ca8` | feat(render): state the archived share of a pool, not just which rows are archived |
+| `5dcf23a` | feat(card): show how many query channels found each row |
+| `db333ea` | docs(task): mark the PRD's acceptance criteria with their verified evidence |
 
 ### Testing
 
