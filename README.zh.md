@@ -85,7 +85,7 @@ npm run typecheck     # tsc --noEmit
 npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
 ```
 
-`test/` 下有 27 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身之外的 26 个，其中两个（`baseline`、`stage2`）因为 `eval/runs/` 的录制夹具从未移植过来而跳过——所以本地完整跑一遍，验证的是 **24 个文件**。跳过的会列在 `skipped (fixture absent, NOT verified)` 下面，绝不算作通过。
+`test/` 下有 27 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身之外的 26 个，其中两个（`baseline`、`stage2`）因为 `eval/runs/` 下录好的测试数据从未移植过来而跳过——所以本地完整跑一遍，验证的是 **24 个文件**。跳过的会列在 `skipped (fixture absent, NOT verified)` 下面，绝不算作通过。
 
 ## 贡献
 

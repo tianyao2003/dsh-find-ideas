@@ -85,7 +85,7 @@ npm run typecheck     # tsc --noEmit
 npm run check:peers   # check the peer range against the current DSH versions
 ```
 
-`test/` holds 27 `*.test.mjs` files. `test/run-all.test.mjs` runs the 26 that are not itself, and two of those (`baseline`, `stage2`) skip because the recorded fixtures under `eval/runs/` were never ported — so a full local run verifies **24 files**. Skips are listed under `skipped (fixture absent, NOT verified)` and never counted as passes.
+`test/` holds 27 `*.test.mjs` files. `test/run-all.test.mjs` runs the 26 that are not itself, and two of those (`baseline`, `stage2`) skip because the recorded test data under `eval/runs/` was never ported — so a full local run verifies **24 files**. Skips are listed under `skipped (fixture absent, NOT verified)` and never counted as passes.
 
 ## Contributing
 
