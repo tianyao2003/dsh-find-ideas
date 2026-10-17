@@ -64,7 +64,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ## 兼容性
 
-需要 Node ≥ 22。DSH 插件 API 使用预发布版本号，所以 `@deepseek-ai/dsh-tools` 的 peer range 逐条列出要支持的版本（最后一条是 `^0.2.0-rc.1`）；`npm run check:peers` 会从 npm registry 查出当前 DSH 宿主实际安装的 `dsh-tools` 版本，一旦 range 不接受它就报错。
+需要 Node ≥ 22。DSH 插件 API 使用预发布版本号，而一个 range 分支跨不过小版本号，所以 `@deepseek-ai/dsh-tools` 的 peer range 按小版本逐条列出要支持的版本（每个小版本一条）；`npm run check:peers` 会从 npm registry 查出当前 DSH 宿主实际安装的 `dsh-tools` 版本，一旦 range 不接受它就报错。
 
 ## 版本
 

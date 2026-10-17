@@ -64,7 +64,7 @@ Search queries and repository paths go to `api.github.com`; `inspect_projects` o
 
 ## Compatibility
 
-Requires Node ≥ 22. DSH plugin APIs are prerelease-versioned, so the `@deepseek-ai/dsh-tools` peer range names the versions it supports one by one (the last one is `^0.2.0-rc.1`); `npm run check:peers` resolves the `dsh-tools` version the current DSH host actually installs from the npm registry and fails when the range does not accept it.
+Requires Node ≥ 22. DSH plugin APIs are prerelease-versioned, and one range branch cannot reach across a minor version, so the `@deepseek-ai/dsh-tools` peer range names the versions it supports one minor line at a time (one entry per line); `npm run check:peers` resolves the `dsh-tools` version the current DSH host actually installs from the npm registry and fails when the range does not accept it.
 
 ## Version
 
