@@ -7,6 +7,7 @@
 **动手造轮子之前，先看看有没有人已经做过。**
 
 用一句话描述你的想法，agent 会去 GitHub 上搜索同类项目，按「相关性 × star 加权」打分排序后返回一张卡片。你从卡片里挑几个仓库，它再去读这些仓库的 README、依赖清单、目录树和关键文件，整理出一份可以借鉴的架构方案。
+
 <img width="2502" height="1462" alt="image" src="https://github.com/user-attachments/assets/0a8d4b2f-dd72-4628-81c5-2c25cb0f1473" />
 
 ## 安装
