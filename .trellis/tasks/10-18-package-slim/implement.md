@@ -45,8 +45,8 @@ npm pack --dry-run --json | Out-File -Encoding utf8 .scratch\pack-after.json
 **验收**（三条都必须满足）：
 
 - `entryCount ≤ 30`（预估 28）
-- `unpackedSize ≤ 800000`（预估 792,487）
-- `size ≤ 400000`（预估 386,767）
+- `unpackedSize ≤ 810000`（预估 792,487，实测 805,009）
+- `size ≤ 400000`（预估 386,767，实测 391,681）
 
 ### S4 — 核对清单内容
 
@@ -98,7 +98,9 @@ npm run check
 node test/run-all.test.mjs
 ```
 
-**验收**：汇总行 `27/29 test files passed, 2 skipped`（与 R3 完成后一致，本任务不加测试文件）；逐文件求和 ≥ 6377 + R1–R3 新增。
+**验收**：汇总行 `27/29 test files passed, 2 skipped`；逐文件小计求和 = **6463 PASS / 0 FAIL**（`6458` + `test/ranking.test.mjs` 新增的 5 条断言）。
+
+> **不要看终端最后一行 `45 PASS / 0 FAIL`**：`run-all` 用 `stdio: 'inherit'`，最后那行是 `translation-routing.test.mjs` 自己的小计。要看 `^\s*\d+ PASS / \d+ FAIL\s*$` 形态的 27 行再求和。
 
 ### S7 — 提交
 
@@ -109,18 +111,33 @@ git commit -m "build(pkg): stop shipping dev-only files and source maps"
 
 commit message 正文必须写明三条取舍：source map 全部失效（`src/` 不进包，map 指向断链）；包内 README 提到的 `test/`、`scripts/` 路径不存在；装包后 `npm test` 不可用。以及一条长期脆弱点：`lib/` 若出现非 `.js`/`.d.ts` 的运行时资产会被静默漏掉。
 
-**验收**：`git log -1 --stat` 只含 `package.json`；`git revert --no-commit <sha>` 后 `npm pack --dry-run --json` 回到 91 文件，再 `git reset --hard`。
+**验收**：`git log -1 --stat` 只含 `package.json`（外加本任务重写的 `test/ranking.test.mjs`——见执行记录）；`git revert --no-commit <sha>` 后 `npm pack --dry-run --json` 回到 94 文件 / 2,138,731 B，再 `git reset --hard`。
+
+## 执行记录（实际落地与计划的差异）
+
+| 项目 | 计划 | 实际 | 原因 |
+|---|---|---|---|
+| S1 基线 | 91 文件 / 2,073,969 B | **94 文件 / 2,138,731 B** | R1–R3 新增了 3 个测试文件，旧 `files` 把整个 `test/` 打进包，基线随代码增长 |
+| S3 解包体积 | ≤ 800,000 B（预估 792,487） | **805,009 B** | 预估按设计当时的 `lib/`（801,157 B）算；R1–R3 让 `lib/` 长到 818,027 B（+16,870 B / 281 行）。经用户批准阈值改为 **810,000 B**，排查过程见 `prd.md` AC4.1 |
+| S3 tarball | ≤ 400,000 B（预估 386,767） | **391,681 B** | 同上，随 `lib/` 增长；阈值未动，仍通过 |
+| S4 清单核对 | 三条 grep | 三条均符合（`^(src\|test\|scripts)/` 零命中、`\.map$` 零命中、`docs/*.png` 命中） | — |
+| S5 可用性 | 三工具注册齐全 | 通过（`inspect_projects,rank_candidates,scout_projects`） | — |
+| S6 回归 | 逐文件求和「≥ 6377 + R1–R3 新增」 | **= 6463**（6458 + 5） | 本任务**确实改了一个测试文件**（非新增）：`test/ranking.test.mjs:488` 对 `files` 做精确字符串成员判断，改 glob 后必然误报。已按真实语义重写为「每个声明入口至少被一个 glob 覆盖」，断言数 1 → 5 |
+| S7 提交 | `git add package.json` | `package.json` + `test/ranking.test.mjs` | 见上一行；不重写该断言则套件红 |
+| 架构图压缩 | （不在计划内） | **未做** | 实测无损重编码只省 2,294 B（1.3%）仍超限；256 色调色板能降到 72,494 B 但 `pixel-identical: False`（最大通道差 62/255），属有损。用户选择「改阈值 + 记录理由」，不动图片 |
+
+**结论**：唯一超出原计划的是「解包体积」与「回滚基线」两个数字，两者都由 R1–R3 的代码增长解释，不是打包缺陷；唯一的计划外代码改动是 `test/ranking.test.mjs` 的断言重写，它由 `files` 改 glob 直接逼出。
 
 ## 回滚点
 
 | 位置 | 动作 |
 |---|---|
 | S2 之后 | `git checkout -- package.json` |
-| S7 之后 | `git revert <sha>`，重新 `npm pack` 即恢复 91 文件 |
+| S7 之后 | `git revert <sha>`，重新 `npm pack` 即恢复 94 文件 / 2,138,731 B（旧 `files` 的全部内容） |
 
 ## 复核红灯（出现即停下问）
 
 - `entryCount` 突然变大 → `files` glob 写错（如漏了 `*.d.ts` 又误加了目录），先看清单差在哪。
-- `unpackedSize` 超 800 KB → 十有八九是 `.map` 没排干净，`grep '\.map$'` 确认。
+- `unpackedSize` 超 810 KB → 先查是不是 `.map` 没排干净（`grep '\.map$'`），再查 `lib/` 是否新增了非 `.js`/`.d.ts` 资产。**不要直接放宽阈值**——本次改阈值是因为原估算基于旧 `lib/`，不是因为有文件误带。
 - `import` 报 `ERR_MODULE_NOT_FOUND` → 先确认是不是在裸临时目录跑的；若是仓库内还报，检查 `exports` 是否被误改。
 - 三工具只注册出两个 → `apply` 的桩写错（`register` 签名不对），不是包的问题。

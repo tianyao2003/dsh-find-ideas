@@ -50,18 +50,29 @@
 
 ## 验收标准
 
-- [ ] **AC4.1** `npm pack --dry-run --json` 输出：`entryCount ≤ 30`、`unpackedSize ≤ 800,000`、`size ≤ 400,000`。
-  **实测预估：28 文件 / 792,487 B / 386,767 B —— 三项分别只剩 2 / 1% / 3% 余量**，任何一项超标都必须先查是不是误带了新文件，而不是放宽阈值。
-- [ ] **AC4.2** 清单里 **不含** 任何 `src/`、`test/`、`scripts/` 路径，**不含** 任何 `*.map`。两条独立证据，分别 grep 清单。
-- [ ] **AC4.3** 清单里 **含** `docs/dsh-find-ideas-architecture.png` 与两个 README。
-- [ ] **AC4.4** 可用性（**必须在仓库内做，不能在 `$env:TEMP` 裸目录**）：
+- [x] **AC4.1** `npm pack --dry-run --json` 输出：`entryCount ≤ 30`、`unpackedSize ≤ 810,000`、`size ≤ 400,000`。
+  **实测：28 文件 / 805,009 B / 391,681 B —— 全部通过。**
+  > **阈值修正记录（2026-10-18，经用户批准）**：原阈值 `≤ 800,000` 来自 design.md 的估算 792,487 B，而那个估算按**设计当时**的 `lib/`（801,157 B）算出。R1–R3 落地后 `lib/` 长到 818,027 B（+16,870 B），于是实测 805,009 B 超限 5,009 B（0.63%）。
+  >
+  > 先按 PRD 要求排查了「是否误带新文件」，结论是**没有**：`src/`/`test/`/`scripts/` 零命中、22 个 `*.map` 全部排除、文件数 28（≤30）。移除量也精确对账：计划移除 1,285,819 B（test 569,164 + src 487,505 + scripts 22,210 + maps 206,940），实际移除 1,268,960 B，差额 16,859 B 正是 `lib/` 的增长。
+  >
+  > 因此把解包阈值改为 810,000 B：留 4,991 B（0.6%）余量，并且这个数字对应「R1–R3 已落地的真实 `lib/`」，不是估算。文件数与 tarball 两个阈值未动。
+- [x] **AC4.2** 清单里 **不含** 任何 `src/`、`test/`、`scripts/` 路径，**不含** 任何 `*.map`。两条独立证据，分别 grep 清单。
+  **实测：`Select-String -Pattern '^(src|test|scripts)/'` 零命中；`'\.map$'` 零命中**（`lib/` 下 22 个 `.map` 全部排除，`lib/*.js.map` 与 `lib/*.d.ts.map` 各 11）。
+- [x] **AC4.3** 清单里 **含** `docs/dsh-find-ideas-architecture.png` 与两个 README。
+  **实测：`docs/dsh-find-ideas-architecture.png` 命中（173,910 B）；`README.md` 8,498 B、`README.zh.md` 8,057 B 均在清单内。**
+- [x] **AC4.4** 可用性（**必须在仓库内做，不能在 `$env:TEMP` 裸目录**）：
   - 把 `npm pack` 产出的 tarball 解到 `node_modules/dsh-find-ideas`（或 `.scratch/pack-probe/node_modules/dsh-find-ideas`，能向上解析到仓库 `node_modules`）；
   - `import` 后调 `apply({ tools: { register: (d) => defs.set(d.name, d), get: () => undefined } })`；
   - 断言 `[...defs.keys()]` 排序后等于 `['inspect_projects','rank_candidates','scout_projects']`。
   - **坑**：在 `$env:TEMP` 裸目录里做会得到 `ERR_MODULE_NOT_FOUND: @deepseek-ai/dsh-tools`——那是 peerDependency 不在解析路径上，**不是精简导致的**。已实测两次确认。
-- [ ] **AC4.5** `npm run check` 全绿；`npm test` 汇总行应为 `27/29 test files passed, 2 skipped`（与 R3 完成后一致——本任务不加测试文件，只改 `package.json` 的 `files`）；逐文件小计求和 ≥ **6377 PASS / 0 FAIL**（逐文件明细见父任务 PRD）。
+  **实测通过**：`.scratch/pack-probe/check.mjs` 在 `.scratch/pack-probe` 下运行，输出 `OK tools: inspect_projects,rank_candidates,scout_projects`、`count: 3`，exit 0。探针内额外断言：`typeof mod.apply === 'function'`；三个名字无缺无多；每个定义都有非空 `description` 与 callable handler（`handler ?? execute ?? run`）。
+- [x] **AC4.5** `npm run check` 全绿；`npm test` 汇总行应为 `27/29 test files passed, 2 skipped`；逐文件小计求和 = **6463 PASS / 0 FAIL**。
+  **实测：`npm run check` exit 0；汇总行 `27/29 test files passed, 2 skipped`；27 行小计求和 `SUM PASS=6463 FAIL=0`。**
+  - **本任务确实改了一个测试文件**（不是新增）：`test/ranking.test.mjs:488` 原来断言 `['lib','cordis.patch.yml'].every(f => pkg.files.includes(f))`，即对 `files` 做**精确字符串**成员判断。`files` 从目录项 `"lib"` 改成两条 glob 后这条必然误报。已按它真正要验的语义重写：对每个 `main`/`types`/`exports`/`dsh.bundle.patch` 声明的入口，检查 `files` 里**至少有一个 glob 覆盖它**（含 `./` 前缀归一化、`**` 跨段匹配、目录项覆盖子树）。断言数 1 → 5，故总数 6458 + 5 = 6463。
   - **不要看终端最后一行 `45 PASS / 0 FAIL`**：`run-all` 用 `stdio: 'inherit'`，最后那行是 `translation-routing.test.mjs` 的小计。
-- [ ] **AC4.6** 一个独立 commit（`build(pkg): stop shipping dev-only files and source maps`）；`git revert <sha>` 后 `npm pack --dry-run --json` 回到 91 文件 / 2,073,969 B。
+- [ ] **AC4.6** 一个独立 commit（`build(pkg): stop shipping dev-only files and source maps`）；`git revert <sha>` 后 `npm pack --dry-run --json` 回到 **94 文件 / 2,138,731 B**。
+  > 原 AC 写的是「回到 91 文件 / 2,073,969 B」，那是 v0.2.1 发布时的数字。R1–R3 新增了 3 个测试文件（`cache-description-cap`、`cache-memory-ceiling`、`cache-disk-gc`），旧 `files` 会把整个 `test/` 打进包，所以基线随代码增长到 94 / 2,138,731 B。**已实测确认**（`git checkout -- package.json` → `npm pack --dry-run --json` → 恢复）。回滚的判据是「回到旧 `files` 的全部内容」，不是回到某个历史字节数。
 
 ## 已知取舍（写进 commit message）
 

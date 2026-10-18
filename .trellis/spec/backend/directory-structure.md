@@ -17,18 +17,18 @@
 ```
 dsh-find-ideas/
 ├── src/                    # the only directory tsc compiles (rootDir)
-│   ├── index.ts            # 100264 B — plugin entry; all three tool registrations
-│   ├── query.ts            # 73232 B — search planning + planning-degrade prose
-│   ├── github.ts           # 61628 B — HTTP, retry, rate limit, pool selection
-│   ├── types.ts            # 45841 B — shared types + pure scoring/ranking maths
-│   ├── select.ts           # 43520 B — architecture-file selector (pure)
-│   ├── render.ts           # 50754 B — the card renderers (pure string builders)
-│   ├── translate.ts        # 35478 B — idea -> English keywords, via an LLM
-│   ├── lexicon.ts          # 23955 B — CJK -> English seed table (pure data + lookup)
-│   ├── skeleton.ts         # 18988 B — signature scanning over file excerpts (pure)
-│   ├── cache.ts            #  9773 B — memory + JSON disk cache
-│   └── credentials.ts      #  6543 B — GITHUB_TOKEN write path (deliberately unregistered)
-├── test/                   # 24 *.test.mjs files, run as plain node scripts
+│   ├── index.ts            # 103067 B — plugin entry; all three tool registrations
+│   ├── query.ts            #  74757 B — search planning + planning-degrade prose
+│   ├── github.ts           #  65803 B — HTTP, retry, rate limit, pool selection
+│   ├── types.ts            #  47906 B — shared types + pure scoring/ranking maths
+│   ├── select.ts           #  43520 B — architecture-file selector (pure)
+│   ├── render.ts           #  59548 B — the card renderers (pure string builders)
+│   ├── translate.ts        #  35478 B — idea -> English keywords, via an LLM
+│   ├── lexicon.ts          #  23955 B — CJK -> English seed table (pure data + lookup)
+│   ├── skeleton.ts         #  18988 B — signature scanning over file excerpts (pure)
+│   ├── cache.ts            #  19592 B — memory + JSON disk cache
+│   └── credentials.ts      #   6543 B — GITHUB_TOKEN write path (deliberately unregistered)
+├── test/                   # 30 *.test.mjs files, run as plain node scripts
 ├── scripts/                # check-peers.mjs, script-env.mjs, readme-sample.mjs
 ├── lib/                    # tsc output, gitignored — TESTS IMPORT FROM HERE, NOT src/
 ├── docs/                   # the architecture diagram: HTML, PNG, and its candidate
@@ -115,7 +115,9 @@ The `describe*` / `explain*` split is meaningful and worth preserving: `describe
 
 ### Private-by-default
 
-Only what another module or a test needs is exported. `CACHE_VERSION`, `MEMORY_TTL_MS`, `DISK_TTL_MS`, `cacheDir`, `cachePathFor`, `CacheEntry` and `DiskEnvelope` are all module-private in `src/cache.ts` — the exported surface is exactly `SOURCE_TTL_MS` (`:53`), `CacheHit` (`:94`), `dshHome` (`:118`), `cacheGet` (`:163`), `cacheGetWithMeta` (`:186`), `cacheSet` (`:224`) and `cacheClearMemory` (`:244`).
+Only what another module or a test needs is exported. `CACHE_VERSION`, `MEMORY_TTL_MS`, `DISK_TTL_MS`, `MAX_MEMORY_ENTRIES`, `CACHE_DIR_MAX_BYTES`, `SWEEP_INTERVAL_MS`, `TMP_STALE_MS`, `cacheDir`, `cachePathFor`, `remember`, `sweepOnce`, `sweepIfDue`, `CacheEntry` and `DiskEnvelope` are all module-private in `src/cache.ts` — the exported surface is exactly `SOURCE_TTL_MS` (`:118`), `CacheHit` (`:159`), `dshHome` (`:204`), `cacheSweepNow` (`:350`), `cacheGet` (`:365`), `cacheGetWithMeta` (`:388`), `cacheSet` (`:438`), `cacheClearMemory` (`:464`) and `cacheMemoryStats` (`:477`).
+
+The two `cacheSweepNow` / `cacheMemoryStats` exports exist for a single reason each: a bounded resource that no caller can observe is a bound no test can assert. Both are diagnostics — normal operation never calls them, and `sweepIfDue` (`:330`) is the only path that actually runs a sweep in production.
 
 ### Test files
 

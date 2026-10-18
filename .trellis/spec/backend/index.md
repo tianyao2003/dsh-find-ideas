@@ -83,7 +83,7 @@ Run this before declaring backend work done. It is the concrete form of the chec
 ```bash
 npx tsc --noEmit              # type-check only
 npx tsc                       # build to lib/ — REQUIRED before any test run
-node test/run-all.test.mjs    # the suite (21/23 files pass, 2 skip on a missing fixture)
+node test/run-all.test.mjs    # the suite (27/29 files pass, 2 skip on a missing fixture)
 ```
 
 Two traps worth stating because both have already produced a false result here:

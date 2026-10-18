@@ -42,7 +42,7 @@ node test/run-all.test.mjs
 | 截断 + 内存上限 | `.scratch/heap-ceiling.mjs`（`node --expose-gc`） | heap 增量 <20 MB 且 `entries === 64` |
 | 截断 + 磁盘 GC | 真实缓存目录副本上跑 `cacheSweepNow()` | >24h 文件清零；新鲜条目一个不动 |
 | GC + 内存上限 | 连续 100 次 `cacheSet` | `cacheSet` 不因清扫变慢（100 次总耗时 <2s） |
-| 全部 + 打包 | `npm pack --dry-run --json` | 28 文件 / ≤800 KB / ≤400 KB |
+| 全部 + 打包 | `npm pack --dry-run --json` | 28 文件 / ≤810 KB / ≤400 KB（实测 28 / 805,009 B / 391,681 B） |
 
 **为什么必须做这一层**：R1 让单条变小，R3 的总量上限（64 MB）在 R1 之后几乎永不触发——这不是 bug，但要确认它**不是因为失效才不触发**（用 `.scratch` 里造 5×20 MB 文件的用例证明上限仍有效，见子任务 AC3.2）。
 
@@ -89,7 +89,7 @@ python ./.trellis/scripts/task.py archive 10-18-package-slim
 | R1 之后 | `git revert <R1-sha>` | `CACHE_VERSION` 回 2，3 版条目全 miss，一次 re-fetch |
 | R2 之后 | `git revert <R2-sha>` | 无（纯内存行为） |
 | R3 之后 | `git revert <R3-sha>` | 已删的过期文件不回来，代价是一次 re-fetch |
-| R4 之后 | `git revert <R4-sha>` | 重新 `npm pack` 即恢复 91 文件 |
+| R4 之后 | `git revert <R4-sha>` | 重新 `npm pack` 即恢复旧 `files` 的全部内容（94 文件 / 2,138,731 B；v0.2.1 发布时是 91 / 2,073,969，因 R1–R3 新增 3 个测试文件而增长） |
 | 全部推翻 | `git reset --hard v0.2.1-baseline^{commit}` | 代码回到 0.2.1；`lib/` 需重新 `npm run build`；运行时清 `$DSH_HOME/cache/dsh-find-ideas` |
 
 **三层回滚**（已在规划阶段向用户说明并确认）：

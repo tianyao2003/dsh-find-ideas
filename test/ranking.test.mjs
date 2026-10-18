@@ -485,7 +485,43 @@ console.log('\n=== 13. the package manifest points at files that exist ===')
   check('a test script is declared and its target exists', typeof pkg.scripts?.test === 'string')
   check('the test glob matches this file', existsSync(join(pkgRoot, 'test')))
   check('a LICENSE file exists for the declared MIT license', existsSync(join(pkgRoot, 'LICENSE')))
-  check('files[] ships every declared entry point', ['lib', 'cordis.patch.yml'].every(f => pkg.files.includes(f)))
+
+  // `files` used to be a list of directory names, so the check could be a plain
+  // `includes('lib')`. It is now a list of globs (`lib/**/*.js`, `lib/**/*.d.ts`),
+  // which that string comparison reports as broken while shipping every declared
+  // path correctly. Compare what the patterns actually COVER instead: a declared
+  // entry point that no pattern matches would be absent from the tarball, and
+  // that is the bug worth catching. A bare directory entry still counts as
+  // covering everything beneath it.
+  const escape = (s) => s.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+  // `files` patterns are bare (`lib/**/*.js`) while `exports` paths are written
+  // with a leading `./` — both name the same file, so normalise before matching.
+  const bare = (p) => p.replace(/^\.\//, '')
+  const covers = (pattern, rel) => {
+    const target = bare(rel)
+    if (pattern === target) return true
+    // A directory entry ships its whole subtree.
+    if (!/[*?]/.test(pattern) && target.startsWith(`${pattern}/`)) return true
+    // `**/` spans any number of segments, including none.
+    const body = escape(pattern)
+      .replace(/\*\*\//g, '\u0000SLASHSTAR\u0000')
+      .replace(/\*\*/g, '\u0000STARSTAR\u0000')
+      .replace(/\*/g, '[^/]*')
+      .replace(/\?/g, '[^/]')
+      .replace(/\u0000SLASHSTAR\u0000/g, '(?:.*/)?')
+      .replace(/\u0000STARSTAR\u0000/g, '.*')
+    return new RegExp(`^${body}$`).test(target)
+  }
+
+  const files = Array.isArray(pkg.files) ? pkg.files : []
+  for (const rel of declared) {
+    const shipping = files.filter((pattern) => covers(pattern, rel))
+    check(
+      `files[] ships the declared entry point: ${rel}`,
+      shipping.length > 0,
+      `no pattern in [${files.join(', ')}] matches ${rel}`,
+    )
+  }
 }
 
 console.log(`\n${pass} PASS / ${fail} FAIL`)
