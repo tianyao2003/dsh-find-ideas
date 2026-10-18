@@ -89,7 +89,7 @@ python ./.trellis/scripts/task.py archive 10-18-package-slim
 | R1 之后 | `git revert <R1-sha>` | `CACHE_VERSION` 回 2，3 版条目全 miss，一次 re-fetch |
 | R2 之后 | `git revert <R2-sha>` | 无（纯内存行为） |
 | R3 之后 | `git revert <R3-sha>` | 已删的过期文件不回来，代价是一次 re-fetch |
-| R4 之后 | `git revert <R4-sha>` | 重新 `npm pack` 即恢复旧 `files` 的全部内容（94 文件 / 2,138,731 B；v0.2.1 发布时是 91 / 2,073,969，因 R1–R3 新增 3 个测试文件而增长） |
+| R4 之后 | `git revert <R4-sha>` | 重新 `npm pack` 即恢复旧 `files` 的全部内容（**94 文件 / 2,137,053 B / tarball 760,174 B**，已实测；v0.2.1 发布时是 91 / 2,073,969，因 R1–R3 新增 3 个测试文件而增长） |
 | 全部推翻 | `git reset --hard v0.2.1-baseline^{commit}` | 代码回到 0.2.1；`lib/` 需重新 `npm run build`；运行时清 `$DSH_HOME/cache/dsh-find-ideas` |
 
 **三层回滚**（已在规划阶段向用户说明并确认）：

@@ -111,13 +111,13 @@ git commit -m "build(pkg): stop shipping dev-only files and source maps"
 
 commit message 正文必须写明三条取舍：source map 全部失效（`src/` 不进包，map 指向断链）；包内 README 提到的 `test/`、`scripts/` 路径不存在；装包后 `npm test` 不可用。以及一条长期脆弱点：`lib/` 若出现非 `.js`/`.d.ts` 的运行时资产会被静默漏掉。
 
-**验收**：`git log -1 --stat` 只含 `package.json`（外加本任务重写的 `test/ranking.test.mjs`——见执行记录）；`git revert --no-commit <sha>` 后 `npm pack --dry-run --json` 回到 94 文件 / 2,138,731 B，再 `git reset --hard`。
+**验收**：`git log -1 --stat` 只含 `package.json`（外加本任务重写的 `test/ranking.test.mjs`——见执行记录）；`git revert --no-commit <sha>` 后 `npm pack --dry-run --json` 回到 94 文件 / 2,137,053 B / tarball 760,174 B，再 `git reset --hard`。
 
 ## 执行记录（实际落地与计划的差异）
 
 | 项目 | 计划 | 实际 | 原因 |
 |---|---|---|---|
-| S1 基线 | 91 文件 / 2,073,969 B | **94 文件 / 2,138,731 B** | R1–R3 新增了 3 个测试文件，旧 `files` 把整个 `test/` 打进包，基线随代码增长 |
+| S1 基线 | 91 文件 / 2,073,969 B | **94 文件 / 2,137,053 B / tarball 760,174 B** | R1–R3 新增了 3 个测试文件，旧 `files` 把整个 `test/` 打进包，基线随代码增长。（2,138,731 B 是「旧 `files` + 新 ranking 断言」的数字；S1 真实基线用完整 revert 实测的 2,137,053 B） |
 | S3 解包体积 | ≤ 800,000 B（预估 792,487） | **805,009 B** | 预估按设计当时的 `lib/`（801,157 B）算；R1–R3 让 `lib/` 长到 818,027 B（+16,870 B / 281 行）。经用户批准阈值改为 **810,000 B**，排查过程见 `prd.md` AC4.1 |
 | S3 tarball | ≤ 400,000 B（预估 386,767） | **391,681 B** | 同上，随 `lib/` 增长；阈值未动，仍通过 |
 | S4 清单核对 | 三条 grep | 三条均符合（`^(src\|test\|scripts)/` 零命中、`\.map$` 零命中、`docs/*.png` 命中） | — |
@@ -133,7 +133,7 @@ commit message 正文必须写明三条取舍：source map 全部失效（`src/`
 | 位置 | 动作 |
 |---|---|
 | S2 之后 | `git checkout -- package.json` |
-| S7 之后 | `git revert <sha>`，重新 `npm pack` 即恢复 94 文件 / 2,138,731 B（旧 `files` 的全部内容） |
+| S7 之后 | `git revert <sha>`，重新 `npm pack` 即恢复 94 文件 / 2,137,053 B / tarball 760,174 B（旧 `files` 的全部内容；已实测） |
 
 ## 复核红灯（出现即停下问）
 

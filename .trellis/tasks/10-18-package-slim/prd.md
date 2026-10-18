@@ -71,8 +71,10 @@
   **实测：`npm run check` exit 0；汇总行 `27/29 test files passed, 2 skipped`；27 行小计求和 `SUM PASS=6463 FAIL=0`。**
   - **本任务确实改了一个测试文件**（不是新增）：`test/ranking.test.mjs:488` 原来断言 `['lib','cordis.patch.yml'].every(f => pkg.files.includes(f))`，即对 `files` 做**精确字符串**成员判断。`files` 从目录项 `"lib"` 改成两条 glob 后这条必然误报。已按它真正要验的语义重写：对每个 `main`/`types`/`exports`/`dsh.bundle.patch` 声明的入口，检查 `files` 里**至少有一个 glob 覆盖它**（含 `./` 前缀归一化、`**` 跨段匹配、目录项覆盖子树）。断言数 1 → 5，故总数 6458 + 5 = 6463。
   - **不要看终端最后一行 `45 PASS / 0 FAIL`**：`run-all` 用 `stdio: 'inherit'`，最后那行是 `translation-routing.test.mjs` 的小计。
-- [ ] **AC4.6** 一个独立 commit（`build(pkg): stop shipping dev-only files and source maps`）；`git revert <sha>` 后 `npm pack --dry-run --json` 回到 **94 文件 / 2,138,731 B**。
-  > 原 AC 写的是「回到 91 文件 / 2,073,969 B」，那是 v0.2.1 发布时的数字。R1–R3 新增了 3 个测试文件（`cache-description-cap`、`cache-memory-ceiling`、`cache-disk-gc`），旧 `files` 会把整个 `test/` 打进包，所以基线随代码增长到 94 / 2,138,731 B。**已实测确认**（`git checkout -- package.json` → `npm pack --dry-run --json` → 恢复）。回滚的判据是「回到旧 `files` 的全部内容」，不是回到某个历史字节数。
+- [x] **AC4.6** 一个独立 commit（`build(pkg): stop shipping dev-only files and source maps`）；`git revert <sha>` 后 `npm pack --dry-run --json` 回到 **94 文件 / 2,137,053 B / tarball 760,174 B**。
+  > 原 AC 写的是「回到 91 文件 / 2,073,969 B」，那是 v0.2.1 发布时的数字。R1–R3 新增了 3 个测试文件（`cache-description-cap`、`cache-memory-ceiling`、`cache-disk-gc`），旧 `files` 会把整个 `test/` 打进包，所以基线随代码增长到 94 文件。
+  >
+  > **已实测确认**（commit `ab3a726`；`git revert --no-commit HEAD` → `npm pack --dry-run --json` → `git reset --hard HEAD` 恢复）。数字精确对账：只回退 `package.json` 时是 2,138,731 B / 761,100 B，完整 revert 后是 2,137,053 B / 760,174 B，差 **1,678 B** 正是 `test/ranking.test.mjs` 被一并回退的大小（32,420 → 30,742 B）。回滚的判据是「回到旧 `files` 的全部内容」，不是回到某个历史字节数。
 
 ## 已知取舍（写进 commit message）
 
