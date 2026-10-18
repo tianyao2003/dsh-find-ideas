@@ -109,7 +109,7 @@ Single lowercase word, no separators: `cache.ts`, `github.ts`, `lexicon.ts`, `qu
 | User-facing explanations | `explain*` | `explainEmpty` `src/render.ts:332`, `explainThinResult` `src/query.ts:1329` |
 | Suspicion detectors | `find*` | `findSuspicious` `src/types.ts:491`, `findScoreGaps` `src/types.ts:600`, `findDoubleSided` `src/types.ts:664`, `findNoteEchoes` `src/types.ts:738` |
 | Pure predicates | `is*` / `*Failed` | `isDeclarationHit` `src/skeleton.ts:94`, `isTailReachable` `src/query.ts:995`, `translationFailed` `src/translate.ts:288` |
-| Private module helpers | `camelCase`, **not exported** | `cacheDir` `src/cache.ts:136`, `cachePathFor` `src/cache.ts:150`, `rateLimitInfo` `src/github.ts:215` |
+| Private module helpers | `camelCase`, **not exported** | `cacheDir` `src/cache.ts:172`, `cachePathFor` `src/cache.ts:186`, `rateLimitInfo` `src/github.ts:215` |
 
 The `describe*` / `explain*` split is meaningful and worth preserving: `describe*` names a *cause* (a string suitable for a `Degraded.detail`), `explain*` writes *what the reader should do about it*.
 

@@ -31,7 +31,7 @@ There is no linter and no formatter config. `npm run check` is `typecheck && bui
 | A second definition of one fact | "One fact with two definitions disagrees with itself eventually." | `src/select.ts:11-21` (`MANIFEST_RE`); `src/github.ts:70-79` (`countLowStar`) |
 | Enums, parameter properties, namespaces | `erasableSyntaxOnly: true` — TypeScript syntax must be erasable. | `tsconfig.json:18` |
 | Importing without the `.ts` extension | `allowImportingTsExtensions` + `rewriteRelativeImportExtensions` are on; every intra-project import is written `from './types.ts'`. | `tsconfig.json:19-20`; `tsc` |
-| A required field added to the cached shape without a `CACHE_VERSION` bump | A stale entry reads the new field back as `undefined`, and `undefined !== null` tests flip. | `src/cache.ts:32`, `:71-86` |
+| A required field added to the cached shape without a `CACHE_VERSION` bump | A stale entry reads the new field back as `undefined`, and `undefined !== null` tests flip. | `src/cache.ts:32`, `:86-101` |
 | Editing source text without running the integrity gate | A lossy encoding round-trip once rewrote the whole tree; the damage is silent (a vanished space or digit changes a measurement). | `test/source-integrity.test.mjs` |
 
 ---
@@ -67,7 +67,7 @@ Every non-obvious constant, rule and extraction carries a doc comment naming the
 
 - `src/index.ts:1454`, `:1457`, `:1466-1468` — `args.candidates as RepoCandidate[]`, `args.scores as RelevanceInput[]`
 - `src/index.ts:951`, `:1624` — the render-boundary coercions (`as TermReport[]`, `as Inspection[]`)
-- `src/cache.ts:204`, `:208` — `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>`
+- `src/cache.ts:244`, `:250` — `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>`
 - `src/credentials.ts:66` — `get.call(ctx, 'credentials') as CredentialService | undefined`
 - `src/github.ts:471` — `item.owner as Record<string, unknown> | undefined`
 

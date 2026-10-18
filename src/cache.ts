@@ -34,6 +34,21 @@ const CACHE_VERSION = 3
 /** In-process hits are cheap but short-lived. */
 const MEMORY_TTL_MS = 5 * 60 * 1000
 
+/**
+ * Hard ceiling on resident in-process entries.
+ *
+ * Count-based rather than byte-based on purpose: measuring bytes would mean
+ * re-serializing every value on the hot path, and `JSON.stringify` of a large
+ * candidate list costs tens of milliseconds. The real distribution is heavily
+ * skewed — on the machine this was measured, 11 of 41 cache files held 97% of
+ * the directory's bytes — so a count cap is a cheap approximation that still
+ * bounds the resident set.
+ *
+ * 64 covers a single `scout_projects` session comfortably: one call touches a
+ * handful of ideas, and the memory TTL is five minutes.
+ */
+const MAX_MEMORY_ENTRIES = 64
+
 /** Disk survives restarts; a day balances freshness against rate-limit budget. */
 const DISK_TTL_MS = 24 * 60 * 60 * 1000
 
@@ -109,6 +124,27 @@ export interface CacheHit<T> {
 }
 
 const memory = new Map<string, CacheEntry<unknown>>()
+
+/**
+ * Store an entry and keep the resident set under {@link MAX_MEMORY_ENTRIES}.
+ *
+ * `Map` iterates in insertion order, so `delete` followed by `set` moves the key
+ * to the end — that is the entire LRU implementation, and it is why no
+ * dependency is needed. Eviction takes from the front, which is the entry least
+ * recently touched.
+ *
+ * Eviction costs a hit, never a correct answer: an evicted key falls through to
+ * the disk layer, and a key absent from both is a plain miss.
+ */
+function remember(key: string, entry: CacheEntry<unknown>): void {
+  memory.delete(key)
+  memory.set(key, entry)
+  while (memory.size > MAX_MEMORY_ENTRIES) {
+    const oldest = memory.keys().next().value
+    if (oldest === undefined) break
+    memory.delete(oldest)
+  }
+}
 
 /** `~` / `~/` / `~\` against the OS home, matching the host's own expansion. */
 function expandHome(path: string): string {
@@ -201,8 +237,14 @@ export async function cacheGetWithMeta<T>(
 
   const hit = memory.get(key)
   if (hit !== undefined && matches(hit.snapshot) && Date.now() - hit.at < Math.min(MEMORY_TTL_MS, ttlMs)) {
+    // Re-insert to mark this key as the most recently used. `at` is NOT touched:
+    // refreshing it would turn the memory TTL into a sliding window, and an
+    // entry read every few minutes would then never expire.
+    remember(key, hit)
     return { data: hit.data as T, fetchedAt: new Date(hit.at).toISOString(), ageMs: Date.now() - hit.at }
   }
+  // Expired in memory: drop it now rather than leaving a dead entry resident.
+  if (hit !== undefined) memory.delete(key)
 
   try {
     const parsed = JSON.parse(await readFile(cachePathFor(key), 'utf8')) as DiskEnvelope<T>
@@ -211,7 +253,13 @@ export async function cacheGetWithMeta<T>(
     const at = Date.parse(parsed.fetchedAt) || 0
     const ageMs = Date.now() - at
     if (ageMs >= ttlMs) return undefined
-    memory.set(key, { at, data: parsed.data, ...(parsed.snapshot !== undefined ? { snapshot: parsed.snapshot } : {}) })
+    // Backfill only while the entry is still inside the memory TTL. A 6-minute
+    // old entry read from disk would be re-inserted and immediately judged
+    // expired on the next read, so it would cycle in and out forever and the
+    // entry count would never fall. Such an entry is served from disk instead.
+    if (ageMs < MEMORY_TTL_MS) {
+      remember(key, { at, data: parsed.data, ...(parsed.snapshot !== undefined ? { snapshot: parsed.snapshot } : {}) })
+    }
     return { data: parsed.data, fetchedAt: parsed.fetchedAt, ageMs }
   } catch {
     return undefined
@@ -231,7 +279,7 @@ export async function cacheGetWithMeta<T>(
  *   refuse entries its producer would no longer stand behind.
  */
 export async function cacheSet<T>(key: string, data: T, snapshot?: string): Promise<void> {
-  memory.set(key, { at: Date.now(), data, ...(snapshot !== undefined ? { snapshot } : {}) })
+  remember(key, { at: Date.now(), data, ...(snapshot !== undefined ? { snapshot } : {}) })
   try {
     await mkdir(cacheDir(), { recursive: true })
     const path = cachePathFor(key)
@@ -252,4 +300,17 @@ export async function cacheSet<T>(key: string, data: T, snapshot?: string): Prom
 /** Drop every in-process entry. Used by tests. */
 export function cacheClearMemory(): void {
   memory.clear()
+}
+
+/**
+ * Resident entry count and the ceiling it is held to.
+ *
+ * Exported so the bound is ASSERTABLE rather than something a reader has to
+ * infer from the code. Read-only; `cacheClearMemory` set the precedent that this
+ * module's internals are legitimately observable from tests.
+ *
+ * @returns the current resident count and {@link MAX_MEMORY_ENTRIES}.
+ */
+export function cacheMemoryStats(): { entries: number; maxEntries: number } {
+  return { entries: memory.size, maxEntries: MAX_MEMORY_ENTRIES }
 }

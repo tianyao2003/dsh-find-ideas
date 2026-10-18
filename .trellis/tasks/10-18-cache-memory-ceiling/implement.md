@@ -87,9 +87,18 @@ AC2.4 的「改 `fetchedAt` 为 6 分钟前」用 `readFile` + `JSON.parse` + �
 
 ### S7 — 内存压力脚本（AC2.5）
 
-`.scratch/heap-ceiling.mjs`，用 `node --expose-gc` 跑：写 100 条各约 1 MB 的数组，两轮 `global.gc()` 后读 `process.memoryUsage().heapUsed` 增量。
+`.scratch/heap-ceiling.mjs`，用 `node --expose-gc` 跑，两轮 `global.gc()` 后读 `process.memoryUsage().heapUsed` 增量。
 
-**验收**：增量 <20 MB，`cacheMemoryStats().entries === 64`。脚本落在 `.scratch/`，不进 git 不进包。
+**必须测两种载荷，并同时报告两个数**：
+
+| 载荷 | 说明 | 期望 |
+|---|---|---|
+| realistic | 30 候选 × 512 字描述 ≈ 20 KB，R1 之后一条真实结果的量级 | 增量 **<20 MB**、`entries === 64` |
+| adversarial | 2000 对象 ≈ 1.1 MB，调用方硬塞大值 | `entries === 64` 但增量 **会远超 20 MB**，这是按条数上限的已知边界 |
+
+**不要把 adversarial 的失败当成 bug**：按条数的上限约束条数，不约束字节。原 AC 写的「100 条各 1 MB，增量 <20 MB」在算术上不成立（64 × 1 MB = 64 MB），已改正。
+
+**验收**：realistic 载荷增量 <20 MB 且 `entries === 64`；两个数都写进 design.md 的实测表。脚本落在 `.scratch/`，不进 git 不进包。
 
 ### S8 — 全量回归
 

@@ -38,7 +38,9 @@
   3. `cacheClearMemory()`；
   4. 连续两次 `cacheGet` —— 两次都必须返回该值（磁盘 TTL 是 24h）；
   5. 断言 `cacheMemoryStats().entries === 0`（6 分钟龄的条目不再进内存）。
-- [ ] **AC2.5** 内存压力：连续 `cacheSet` 100 条各约 1 MB 的数组，`node --expose-gc` 两轮 GC 后 heap 增量 **<20 MB**，且 `entries <= 64`。脚本落在 `.scratch/`（`.gitignore` 已忽略），不进包、不进 git。
+- [ ] **AC2.5** 内存压力（**按真实数据规模，不是任意大对象**）：连续 `cacheSet` 100 条各约 20 KB 的候选列表（30 个候选 × 512 字描述，即 R1 之后一条真实 `scout_projects` 结果的量级），`node --expose-gc` 两轮 GC 后 heap 增量 **<20 MB**，且 `entries === 64`。脚本 `.scratch/heap-ceiling.mjs`（`.gitignore` 已忽略），不进包、不进 git。
+  - **这条 AC 原本写成「100 条各约 1 MB 数组，增量 <20 MB」，那个算术不成立**：64 条 × 1 MB = 64 MB，按条数设的上限**无法**约束字节数。实测 adversarial 载荷确实是 65.29 MB。所以 AC 改为在真实载荷上验证上限有效，并**单独记录**「上限只约束条数、不约束字节」这个残留风险（见 design.md 决策一）。
+  - 实测（本机）：realistic 载荷 100 条 → `entries 64/64`、heap 增量 **1.67 MB**、单条约 26.7 KB；adversarial 载荷 → `entries 64/64`、heap 增量 **65.29 MB**、单条约 1044.7 KB。两个数都必须报，不能只报前者。
 - [ ] **AC2.6** `npm test` 汇总行应为 `26/28 test files passed, 2 skipped`（基线 24/26 + R1 与本任务各新增 1 个测试文件；`skipped` 恒为 2 个）；逐文件小计求和 ≥ **6377 PASS / 0 FAIL**（基线，逐文件明细见父任务 PRD）。`test/cache.test.mjs` 的 C0–C5 全部仍绿（尤其 C0 的「磁盘层可达」gate 与 C4 的 `SOURCE_TTL_MS` 断言）。
   - **不要看终端最后一行 `45 PASS / 0 FAIL`**：`run-all` 用 `stdio: 'inherit'`，最后那行是 `translation-routing.test.mjs` 的小计。
 - [ ] **AC2.7** 一个独立 commit（`perf(cache): bound the in-process cache at 64 entries with LRU`）；`git revert <sha>` 后 `npm test` 回到 `24/26 passed`、逐文件求和 **6377 PASS**。
