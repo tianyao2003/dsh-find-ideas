@@ -40,9 +40,15 @@ const EMPTY_CELL = '—'
  * tail. The card was then filled with 1-22 star repositories.
  *
  * An honest description is 30-140 characters (`lissy93/dashy` is 136), so this
- * cap is free on real input and defuses the whole failure mode. It is applied
- * at render time rather than at fetch time so the stored candidate keeps its
- * full value for scoring.
+ * cap is free on real input and defuses the whole failure mode.
+ *
+ * This is the DISPLAY budget only. Storage is capped separately, at 512
+ * characters, by `MAX_STORED_DESCRIPTION_CHARS` in `github.ts` — that cap keeps
+ * the cache small and leaves enough of a description for `similarity()` and
+ * `SUSPICION_QUOTE_CHARS` to score against. The two numbers are independent
+ * knobs and deliberately differ: raising the display budget must not require a
+ * cache-format change, and lowering the storage cap must not change what the
+ * model reads.
  */
 export const MAX_DESCRIPTION_CHARS = 200
 

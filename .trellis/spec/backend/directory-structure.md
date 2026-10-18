@@ -102,14 +102,14 @@ Single lowercase word, no separators: `cache.ts`, `github.ts`, `lexicon.ts`, `qu
 | Shape | Convention | Examples |
 |-------|-----------|----------|
 | Types/interfaces | `PascalCase`, no `I` prefix | `RepoCandidate` `src/types.ts:10`, `Degraded` `src/types.ts:72`, `NoiseReport` `src/types.ts:276` |
-| Constants | `SCREAMING_SNAKE_CASE` | `MAX_LIMIT` `src/index.ts:168`, `CACHE_VERSION` `src/cache.ts:23`, `RRF_K` `src/github.ts:634` |
+| Constants | `SCREAMING_SNAKE_CASE` | `MAX_LIMIT` `src/index.ts:168`, `CACHE_VERSION` `src/cache.ts:32`, `RRF_K` `src/github.ts:668` |
 | Version constants | `*_VERSION` | `SEARCH_PLAN_VERSION` `src/types.ts:1008`, `SELECTOR_VERSION` `src/select.ts:305`, `SCANNER_VERSION` `src/skeleton.ts:148` |
-| Card renderers | `render*` | `renderCandidates` `src/render.ts:349`, `renderRanked` `src/render.ts:539`, `renderInspections` `src/render.ts:953` |
-| Degrade-prose helpers | `describe*` | `describeFailure` `src/github.ts:174`, `describePartialFailure` `src/query.ts:1232`, `describeProbeOutcome` `src/github.ts:933` |
-| User-facing explanations | `explain*` | `explainEmpty` `src/render.ts:326`, `explainThinResult` `src/query.ts:1329` |
+| Card renderers | `render*` | `renderCandidates` `src/render.ts:355`, `renderRanked` `src/render.ts:545`, `renderInspections` `src/render.ts:959` |
+| Degrade-prose helpers | `describe*` | `describeFailure` `src/github.ts:174`, `describePartialFailure` `src/query.ts:1232`, `describeProbeOutcome` `src/github.ts:967` |
+| User-facing explanations | `explain*` | `explainEmpty` `src/render.ts:332`, `explainThinResult` `src/query.ts:1329` |
 | Suspicion detectors | `find*` | `findSuspicious` `src/types.ts:491`, `findScoreGaps` `src/types.ts:600`, `findDoubleSided` `src/types.ts:664`, `findNoteEchoes` `src/types.ts:738` |
 | Pure predicates | `is*` / `*Failed` | `isDeclarationHit` `src/skeleton.ts:94`, `isTailReachable` `src/query.ts:995`, `translationFailed` `src/translate.ts:288` |
-| Private module helpers | `camelCase`, **not exported** | `cacheDir` `src/cache.ts:127`, `cachePathFor` `src/cache.ts:141`, `rateLimitInfo` `src/github.ts:215` |
+| Private module helpers | `camelCase`, **not exported** | `cacheDir` `src/cache.ts:136`, `cachePathFor` `src/cache.ts:150`, `rateLimitInfo` `src/github.ts:215` |
 
 The `describe*` / `explain*` split is meaningful and worth preserving: `describe*` names a *cause* (a string suitable for a `Degraded.detail`), `explain*` writes *what the reader should do about it*.
 

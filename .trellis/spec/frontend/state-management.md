@@ -12,11 +12,11 @@ State does exist in the plugin, in three places, and it is specified in the back
 
 | Kind of state | Where it lives | Spec |
 |---------------|---------------|------|
-| In-process cache (a `Map`, per plugin instance) | `src/cache.ts:102` | `backend/database-guidelines.md` |
-| On-disk cache (JSON files under `$DSH_HOME/cache/dsh-find-ideas/`) | `src/cache.ts:127-150` | `backend/database-guidelines.md` |
+| In-process cache (a `Map`, per plugin instance) | `src/cache.ts:111` | `backend/database-guidelines.md` |
+| On-disk cache (JSON files under `$DSH_HOME/cache/dsh-find-ideas/`) | `src/cache.ts:136-159` | `backend/database-guidelines.md` |
 | Per-call state (request counters, deadlines) | `src/index.ts:1628+` | `backend/tool-contracts.md` |
 
-There is no shared mutable state between tool calls other than the cache, and the cache is explicitly allowed to be lost: "A cache must never be able to fail a call" (`src/cache.ts:152-157`).
+There is no shared mutable state between tool calls other than the cache, and the cache is explicitly allowed to be lost: "A cache must never be able to fail a call" (`src/cache.ts:161-166`).
 
 ---
 
@@ -36,9 +36,9 @@ The nearest mapping, for a reader arriving from a frontend background:
 
 Not applicable. The only cross-call state is the cache, and the rule for promoting something into it is: **only if a re-fetch would cost quota or time, and only if a stale copy cannot make a false claim.**
 
-`SOURCE_TTL_MS = 10 * 60 * 1000` (`src/cache.ts:53`) is that rule applied. The 24-hour default is right for a candidate list ("the set of repositories matching an idea changes slowly") and wrong for `inspect_projects`, because what it caches is file *contents*: "a stale candidate list is mildly wrong… while a stale source read is SPECIFICALLY wrong — it reports a package.json that no longer says what it says, and the whole point of `inspect_projects` is to be the step whose evidence can be trusted."
+`SOURCE_TTL_MS = 10 * 60 * 1000` (`src/cache.ts:62`) is that rule applied. The 24-hour default is right for a candidate list ("the set of repositories matching an idea changes slowly") and wrong for `inspect_projects`, because what it caches is file *contents*: "a stale candidate list is mildly wrong… while a stale source read is SPECIFICALLY wrong — it reports a package.json that no longer says what it says, and the whole point of `inspect_projects` is to be the step whose evidence can be trusted."
 
-The `snapshot` stamp (`src/cache.ts:78-83`, `:186-191`) is the second half of the same rule: an entry produced by an older scanner answers a different question, so it is treated as a miss rather than replayed.
+The `snapshot` stamp (`src/cache.ts:87-92`, `:195-200`) is the second half of the same rule: an entry produced by an older scanner answers a different question, so it is treated as a miss rather than replayed.
 
 ---
 
@@ -52,8 +52,8 @@ Not applicable in the React Query / SWR sense. The equivalent is `src/cache.ts`,
 
 Not applicable in the state-management sense. The mistakes that actually occur around state in this project:
 
-- **Bumping `CACHE_VERSION` for an optional field.** Only a new **required** field needs a bump; the reasoning is at `src/cache.ts:62-77`.
+- **Bumping `CACHE_VERSION` for an optional field.** Only a new **required** field needs a bump; the reasoning is at `src/cache.ts:71-86`.
 - **Forgetting to bump it for a required field.** The 1 -> 2 bump exists because `thin === undefined` would have made `hit.thin !== null` true for every old entry, relabelling every clean cached search as short.
 - **Recomputing a stored number from the rows instead of reading it back.** The cached path once recomputed `tail_included` as `candidates.filter(c => c.stars <= TAIL_STAR_CEILING).length`, which answers a different question, so the same search reported one number on a cold run and another on a replay (`src/index.ts:862-869`).
 - **Replaying a stale observation without saying how old it is.** `cacheGetWithMeta` exists so a replay can report its age.
-- **Letting a cache write failure surface.** Writes are best-effort and swallowed; an unwritable directory degrades to memory-only (`src/cache.ts:212-241`).
+- **Letting a cache write failure surface.** Writes are best-effort and swallowed; an unwritable directory degrades to memory-only (`src/cache.ts:221-250`).

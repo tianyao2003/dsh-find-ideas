@@ -31,7 +31,7 @@ The compiler settings that shape the code most:
 
 ## Type Organization
 
-Types live in **`src/types.ts`** (1032 lines) unless they are private to one module. There is no `types/` directory, no barrel file, and no ambient `.d.ts`.
+Types live in **`src/types.ts`** (1053 lines) unless they are private to one module. There is no `types/` directory, no barrel file, and no ambient `.d.ts`.
 
 ### The leaf rule
 
@@ -54,7 +54,7 @@ The concrete case: `TAIL_STAR_CEILING = 100` is defined at `src/github.ts:60` an
 
 ### Module-private types
 
-A type used by one module stays in that module: `CacheEntry` and `DiskEnvelope` (`src/cache.ts:55`, `:78`), `QueryFailure` and `ProbeReport` (`src/github.ts:34`, `:893`), `SignatureHit` (`src/skeleton.ts:67`). Export only what another module or a test needs.
+A type used by one module stays in that module: `CacheEntry` and `DiskEnvelope` (`src/cache.ts:64`, `:87`), `QueryFailure` and `ProbeReport` (`src/github.ts:34`, `:927`), `SignatureHit` (`src/skeleton.ts:67`). Export only what another module or a test needs.
 
 ### Types that are structurally forced
 
@@ -130,9 +130,9 @@ A schema-shaped value arriving as `unknown`-ish, or a generic cache read, is the
 | `src/index.ts:1454`, `:1457` | `args.candidates as RepoCandidate[]`, `args.scores as RelevanceInput[]` |
 | `src/index.ts:1466-1468` | the same, passed to the three detectors |
 | `src/index.ts:951`, `:1624` | render-boundary coercions: `as TermReport[]`, `as Inspection[]` |
-| `src/cache.ts:195`, `:199` | `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>` |
+| `src/cache.ts:204`, `:208` | `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>` |
 | `src/credentials.ts:66` | `get.call(ctx, 'credentials') as CredentialService \| undefined` |
-| `src/github.ts:437` | `item.owner as Record<string, unknown> \| undefined` |
+| `src/github.ts:471` | `item.owner as Record<string, unknown> \| undefined` |
 
 Note the two directions of the cache cast: `cacheSet<T>` is generic and writes whatever it is given, so `cacheGet<T>`'s `as T` is a claim by the *caller*, not a proof. That is why the envelope carries a version and why every mismatch returns `undefined`.
 
@@ -151,7 +151,7 @@ export async function cacheSet<T>(key: string, data: T, snapshot?: string): Prom
 Because `Degraded.reason` is a `string`, callers compare against literals rather than narrowing a union:
 
 ```ts
-// src/render.ts:326-346 (shape)
+// src/render.ts:332-352 (shape)
 if (degraded === null) { /* success, no matches */ }
 else if (degraded.reason === 'rate_limited') { /* quota */ }
 else { /* network or proxy */ }
@@ -169,7 +169,7 @@ Every intra-project import ends in `.ts` — `from './types.ts'`, not `'./types.
 
 ### Appending parameters
 
-A renderer's positional signature is extended by **appending**, never inserting, so every existing call keeps its meaning. `renderCandidates`' `lowStarInPool: number | null = null` (`src/render.ts:349-366`) is the worked example, and its `null` case is a type-safety rule, not a default: `null` means the caller did not report the population, which is not the same as reporting zero — "Defaulting to 0 would have made every such call assert 'this pool held no small projects', a claim about a measurement the caller never took" (`src/render.ts:357-364`).
+A renderer's positional signature is extended by **appending**, never inserting, so every existing call keeps its meaning. `renderCandidates`' `lowStarInPool: number | null = null` (`src/render.ts:355-372`) is the worked example, and its `null` case is a type-safety rule, not a default: `null` means the caller did not report the population, which is not the same as reporting zero — "Defaulting to 0 would have made every such call assert 'this pool held no small projects', a claim about a measurement the caller never took" (`src/render.ts:363-370`).
 
 ---
 

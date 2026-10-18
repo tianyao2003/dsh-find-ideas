@@ -52,6 +52,6 @@ The naming conventions that do apply are in `backend/directory-structure.md` §"
 Not applicable in the hook sense. The mistakes that actually occur when sharing stateful behaviour in this project:
 
 - **Letting an optional host service be required.** Reach it with `ctx.get` and degrade; do not declare it in `inject`. "A plugin whose module throws on load takes the whole host down with it, which is a steep price for a missing optional token" (`src/index.ts:153-160`).
-- **Letting a cache failure fail the call.** "Every failure (missing file, malformed JSON, version drift, expiry) returns `undefined` — the caller refetches. A cache must never be able to fail a call" (`src/cache.ts:152-157`).
-- **Presenting a cached observation as a live one.** `cacheGetWithMeta` (`src/cache.ts:186`) exists precisely so a replay can report the age of its evidence.
+- **Letting a cache failure fail the call.** "Every failure (missing file, malformed JSON, version drift, expiry) returns `undefined` — the caller refetches. A cache must never be able to fail a call" (`src/cache.ts:161-166`).
+- **Presenting a cached observation as a live one.** `cacheGetWithMeta` (`src/cache.ts:195`) exists precisely so a replay can report the age of its evidence.
 - **Defining one fact twice.** See `src/select.ts:11-21` and `src/github.ts:70-79`.

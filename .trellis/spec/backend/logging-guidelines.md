@@ -27,8 +27,8 @@ The functional equivalents, and where each one lives:
 | Conventional level | This project's equivalent | Where |
 |-------------------|---------------------------|-------|
 | `debug` | the rationale comments in the source | every module header |
-| `info` | the card body — counts, rows, table, header line | `src/render.ts:349`, `:539`, `:953` |
-| `warn` | a `degraded` note on the card | `src/query.ts:1232`, `src/github.ts:933` |
+| `info` | the card body — counts, rows, table, header line | `src/render.ts:355`, `:545`, `:959` |
+| `warn` | a `degraded` note on the card | `src/query.ts:1232`, `src/github.ts:967` |
 | `error` | `Degraded { reason, detail }` in the output | `src/types.ts:72`, 10 reasons in `src/index.ts` |
 
 The `describe*` / `explain*` helper families are the message constructors: `describe*` names a cause, `explain*` writes what the reader should do about it. See `error-handling.md` for the full table.
@@ -49,7 +49,7 @@ export interface Degraded {
 }
 ```
 
-`reason` is the field a caller can branch on; `detail` is what a reader sees. Keeping them separate is what allows `explainEmpty` (`src/render.ts:326`) to distinguish a genuine miss from an exhausted quota from a network failure — three cases that previously "rendered identically, so the calling agent had to guess at the cause (in practice it guessed 'rate limited' and gave up on the tool entirely)" (`src/render.ts:315-325`).
+`reason` is the field a caller can branch on; `detail` is what a reader sees. Keeping them separate is what allows `explainEmpty` (`src/render.ts:332`) to distinguish a genuine miss from an exhausted quota from a network failure — three cases that previously "rendered identically, so the calling agent had to guess at the cause (in practice it guessed 'rate limited' and gave up on the tool entirely)" (`src/render.ts:321-331`).
 
 Structured counts are carried the same way, as required schema fields rather than as sentences: `tail_included`, `low_star_in_pool`, `low_star_in_kept`, `requests_used`, `noise.scored` / `noise` / `weak` / `kept` / `unanswered` / `noise_ratio`. A number the reader may need to act on belongs in the schema, where it is typed and asserted, not in a sentence.
 
@@ -61,10 +61,10 @@ Everything a reader needs, onto the card. The events this project considers repo
 
 | Event | Rendered as | Site |
 |-------|------------|------|
-| A search returned nothing | `explainEmpty` — which of the three causes | `src/render.ts:326` |
+| A search returned nothing | `explainEmpty` — which of the three causes | `src/render.ts:332` |
 | A retrieval channel failed | `describePartialFailure` — which channel, and what that does and does not prove | `src/query.ts:1232` |
 | The result set is thin | `explainThinResult` / `describeReplayedThinness` | `src/query.ts:1329`, `:1372` |
-| The term probe was skipped or partial | `probe_note` on the card | `src/github.ts:933`, `:977` |
+| The term probe was skipped or partial | `probe_note` on the card | `src/github.ts:967`, `:1011` |
 | The idea's terms were not in the lexicon | `describeLexiconMiss` | `src/query.ts:1160` |
 | The plan could not be built | `describePlanFailure` | `src/query.ts:1048` |
 | Quota is exhausted or near | `rate_limited` / `quota_exceeded` plus `tokenRemedy()` | `src/index.ts:1207`, `:1767`, `src/query.ts:133` |

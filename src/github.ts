@@ -432,6 +432,40 @@ async function requestJson(
   }
 }
 
+/**
+ * Maximum characters of a description kept in the cache.
+ *
+ * GitHub does not bound `description`, and repositories abuse it: the worst one
+ * seen in the field is 241,896 characters. Only 74 of 817 candidates (9%)
+ * exceeded this cap, yet those 74 accounted for 97% of the cache's 10.9 MB —
+ * so this is a free cap on real input, exactly like the render budget.
+ *
+ * 512 is chosen over the render budget (200) deliberately. The two are separate
+ * knobs: 200 decides what the model sees, 512 decides what is stored and what
+ * `similarity()` and `SUSPICION_QUOTE_CHARS` score against. Capping storage at
+ * the display budget would silently shorten the evidence chain and shift the
+ * bigram similarity of mid-length descriptions. 512 sits at the point where the
+ * long tail is gone but scoring input is untouched.
+ */
+const MAX_STORED_DESCRIPTION_CHARS = 512
+
+/**
+ * Cap a description for STORAGE.
+ *
+ * Truncation only — whitespace is never folded here. `clipDescription` folds at
+ * render time, and folding earlier would change the input to `similarity()`,
+ * breaking the guarantee that candidates under the cap score exactly as before.
+ * No ellipsis or length marker is appended either: the stored value is data,
+ * not display copy, and a marker would both eat the budget and get re-marked by
+ * the render layer.
+ *
+ * @param raw - description as returned by GitHub, possibly adversarial.
+ * @returns the description, at most `MAX_STORED_DESCRIPTION_CHARS` characters.
+ */
+function storedDescription(raw: string): string {
+  return raw.length > MAX_STORED_DESCRIPTION_CHARS ? raw.slice(0, MAX_STORED_DESCRIPTION_CHARS) : raw
+}
+
 /** Map one raw search-API item into the normalized candidate shape. */
 function toCandidate(item: Record<string, unknown>): RepoCandidate {
   const owner = item.owner as Record<string, unknown> | undefined
@@ -441,7 +475,7 @@ function toCandidate(item: Record<string, unknown>): RepoCandidate {
     url: String(item.html_url ?? ''),
     owner: String(owner?.login ?? ''),
     name: String(item.name ?? ''),
-    description: String(item.description ?? ''),
+    description: storedDescription(String(item.description ?? '')),
     stars: Number(item.stargazers_count ?? 0),
     language: String(item.language ?? ''),
     pushed_at: String(item.pushed_at ?? ''),

@@ -85,15 +85,15 @@ export interface Degraded {
 | `describeFailure` | `src/github.ts:174` | the full `cause` chain, joined with `->`, for a transport failure |
 | `proxyHint` | `src/github.ts:195` | the `NODE_USE_ENV_PROXY` sentence, or `''` |
 | `describe` (private) | `src/github.ts:232` | `limit=... remaining=... resetAt=... token=set|none` |
-| `describeProbeOutcome` | `src/github.ts:933` | why the term probe was skipped or partial |
-| `describeUnavailableProbeDiagnostic` | `src/github.ts:977` | why no probe ran at all |
+| `describeProbeOutcome` | `src/github.ts:967` | why the term probe was skipped or partial |
+| `describeUnavailableProbeDiagnostic` | `src/github.ts:1011` | why no probe ran at all |
 | `describePlanFailure` | `src/query.ts:1048` | no query was sent, and what to do about it |
 | `describeLexiconMiss` | `src/query.ts:1160` | the idea's terms were not in the CJK lexicon |
 | `describePartialFailure` | `src/query.ts:1232` | which channels failed, and what that does and does not prove |
 | `explainThinResult` | `src/query.ts:1329` | a live thin result |
 | `describeReplayedThinness` | `src/query.ts:1372` | a cached thin result |
 | `describeReplayedIncompleteness` | `src/query.ts:1399` | a cached incomplete result |
-| `explainEmpty` | `src/render.ts:326` | why a card has no rows |
+| `explainEmpty` | `src/render.ts:332` | why a card has no rows |
 
 ---
 
@@ -129,7 +129,7 @@ Not applicable — this plugin exposes no HTTP API. The equivalent surface is th
 
 Two rules govern that surface:
 
-1. **Every degraded state must render.** A diagnostic that is not printed onto the card does not exist for the caller. `explainEmpty` (`src/render.ts:326`) exists because "a genuine miss, an exhausted quota, and a network failure all rendered identically, so the calling agent had to guess at the cause (in practice it guessed 'rate limited' and gave up on the tool entirely)" (`src/render.ts:315-325`).
+1. **Every degraded state must render.** A diagnostic that is not printed onto the card does not exist for the caller. `explainEmpty` (`src/render.ts:332`) exists because "a genuine miss, an exhausted quota, and a network failure all rendered identically, so the calling agent had to guess at the cause (in practice it guessed 'rate limited' and gave up on the tool entirely)" (`src/render.ts:321-331`).
 2. **A refusal is never dressed up as a result.** The `inspect_projects` description states that the host terminates the call at 60 seconds and returns *nothing* when it does — not even repositories already read — and that a refusal must never be presented as a received inspection.
 
 ---
@@ -140,8 +140,8 @@ Two rules govern that surface:
 |---------|----------------|-------------------|
 | Parsing a failure message to recover a fact | Rewording the message silently disables the logic; no test can catch it because both halves still "work" | `src/github.ts:21-33` |
 | Claiming rows are all high-star because a channel failed | A failed channel proves the lane did not run, not what the surviving lanes returned | `src/query.ts:1251-1257` |
-| Rendering a bare "no results" | A genuine miss, an exhausted quota and a network failure become indistinguishable; the model guesses "rate limited" and abandons the tool | `src/render.ts:315-325` |
-| Treating an absent measurement as `0` | `0` is a measurement ("matched nothing"); absence is not | `src/types.ts:257`, `src/render.ts:357-364` |
+| Rendering a bare "no results" | A genuine miss, an exhausted quota and a network failure become indistinguishable; the model guesses "rate limited" and abandons the tool | `src/render.ts:321-331` |
+| Treating an absent measurement as `0` | `0` is a measurement ("matched nothing"); absence is not | `src/types.ts:257`, `src/render.ts:363-370` |
 | Letting a missing optional host service throw at module load | "A plugin whose module throws on load takes the whole host down with it, which is a steep price for a missing optional token" | `src/index.ts:153-160` |
 | Reporting a cached fetch's failure as a current one | `describeReplayedIncompleteness` (`src/query.ts:1387-1405`) prints only the weaker, still-true fact: these rows are a subset of what was asked for | `src/query.ts:1387-1405` |
 | Retrying a caller-cancelled request | The retry budget is one per call and shared with the rate-limit path; an aborted request is never retried | `src/github.ts:1-17` |

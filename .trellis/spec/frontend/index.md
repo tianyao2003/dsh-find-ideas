@@ -10,7 +10,7 @@
 
 What *is* here is a presentation layer, and it is the part of the system the user actually experiences:
 
-> `src/render.ts` (50692 bytes) turns computed values into the Markdown card that the calling model reads. **That card IS this project's user interface.** — `src/render.ts:1-14`
+> `src/render.ts` (59548 bytes) turns computed values into the Markdown card that the calling model reads. **That card IS this project's user interface.** — `src/render.ts:1-14`
 
 The card is the only thing a human ever sees. It is also the only output channel of any kind: there is no logger, no console output and no other surface (see `backend/logging-guidelines.md`).
 
@@ -22,12 +22,12 @@ Read these before changing anything a model will read. Every one of them is a ru
 
 - [ ] **Decide what the sentence *claims*, not what it *says*.** A card line is read as a factual assertion about the search. 「未测」 asserts ignorance; 「0」 asserts a measurement. Rendering an unmeasured value as `0` is the single most common defect in this layer.
 - [ ] **Do not let a renderer compute.** Renderers format values they are handed. If you find yourself calling `Math`, sorting, filtering or counting inside `src/render.ts`, the computation belongs in `src/types.ts` (`rankCandidates`) or `src/index.ts`, and the renderer should receive the result.
-- [ ] **A new table cell must survive adversarial input.** `full_name`, `description`, `language` and `pushed_at` come from GitHub and are attacker-controlled. Any value entering a cell goes through `escapeCell` (`src/render.ts:97`) and, for the value side, `escapeUntrusted` (`src/render.ts:116`); a url only becomes a link if `allowlistedUrl` (`src/render.ts:182`) accepts it and `linkDestination` (`src/render.ts:208`) re-encodes it.
+- [ ] **A new table cell must survive adversarial input.** `full_name`, `description`, `language` and `pushed_at` come from GitHub and are attacker-controlled. Any value entering a cell goes through `escapeCell` (`src/render.ts:103`) and, for the value side, `escapeUntrusted` (`src/render.ts:122`); a url only becomes a link if `allowlistedUrl` (`src/render.ts:188`) accepts it and `linkDestination` (`src/render.ts:214`) re-encodes it.
 - [ ] **Never emit a bare url from untrusted input.** The reader is a model that follows links. `github.com.evil.example` passes a suffix test — the allowlist compares hosts exactly.
-- [ ] **A bare-text line needs the escaper, not the encoder.** `linkDestination` (`src/render.ts:208`) protects a table cell by percent-encoding the characters that can end a destination — but it does **not** encode `[` or `]`, so it is the wrong tool for a line that is not a link at all. The flat candidate list prints its url as bare text and routes it through `escapeUntrusted` (`src/render.ts:387`). Measured: `https://github.com/o/r) [click](https://evil.example.com/x` passes the allowlist because the host really is `github.com`, and unescaped the `](` is read as a live link to a host the allowlist never approved. An allowlist answers *which host*, never *where the text ends*.
+- [ ] **A bare-text line needs the escaper, not the encoder.** `linkDestination` (`src/render.ts:214`) protects a table cell by percent-encoding the characters that can end a destination — but it does **not** encode `[` or `]`, so it is the wrong tool for a line that is not a link at all. The flat candidate list prints its url as bare text and routes it through `escapeUntrusted` (`src/render.ts:393`). Measured: `https://github.com/o/r) [click](https://evil.example.com/x` passes the allowlist because the host really is `github.com`, and unescaped the `](` is read as a live link to a host the allowlist never approved. An allowlist answers *which host*, never *where the text ends*.
 - [ ] **State the numbers, and state what they do not mean.** A low-star count on its own reads as "small projects were available"; it means nothing without the count that entered the final list. Report both or neither.
 - [ ] **Spend from the render budget deliberately.** `test/render-budget.test.mjs` pins the pool under 15000 B, single lines under 1024 B and the ranked card under 4000 B. Measured headroom is still comfortable (pool 6128 B, longest line 249 B, ranked card 2839 B), but a per-row field is spent **per row**, not once: the flat list gained `pushed_at` and that one field cost 600 B across the 25-candidate pool (25 rows × 24 B, re-measured by deleting the field from the render rather than estimating it). A long description, or the next per-row field, is what closes the remaining gap.
-- [ ] **Check the empty branch too.** The zero-candidate card is a separate code path (`src/render.ts:367-373`) and has silently lost honesty lines before. Any rule you add to the table branch must be checked against the empty branch as well.
+- [ ] **Check the empty branch too.** The zero-candidate card is a separate code path (`src/render.ts:373-379`) and has silently lost honesty lines before. Any rule you add to the table branch must be checked against the empty branch as well.
 
 ---
 
@@ -52,11 +52,11 @@ Three of these files (`component-guidelines.md`, `hook-guidelines.md`, `state-ma
 
 | Renderer | Site | Produces |
 |----------|------|----------|
-| `renderCandidates` | `src/render.ts:349` | the step-1 candidate list |
-| `renderRanked` | `src/render.ts:539` | the step-2 eight-column ranked table |
-| `renderSkeleton` | `src/render.ts:812` | per-file signature evidence |
-| `renderInspections` | `src/render.ts:953` | the step-3 inspection report |
-| `explainEmpty` | `src/render.ts:326` | why a card has no rows |
+| `renderCandidates` | `src/render.ts:355` | the step-1 candidate list |
+| `renderRanked` | `src/render.ts:545` | the step-2 eight-column ranked table |
+| `renderSkeleton` | `src/render.ts:818` | per-file signature evidence |
+| `renderInspections` | `src/render.ts:959` | the step-3 inspection report |
+| `explainEmpty` | `src/render.ts:332` | why a card has no rows |
 
 They import types and two constants and nothing else — no I/O, no network, no clock. That is what makes them testable without a host, and it is why the module exists separately from the tool registration:
 
@@ -73,12 +73,14 @@ This is the project's central defence against a model narrating its own ranking.
 | Convention | Site | Reason |
 |-----------|------|--------|
 | `EMPTY_CELL = '—'` for an absent value | `src/render.ts:28` | an empty table cell reads as "nothing worth saying here", a different claim from "this value is missing" |
-| `escapeCell` before any table cell | `src/render.ts:97` | a value containing `|` would otherwise break the table |
-| `clipDescription` collapses whitespace, then truncates | `src/render.ts:58` | the format is line-oriented; whitespace is flattened first |
-| `MAX_DESCRIPTION_CHARS = 200` | `src/render.ts:47` | see below |
-| Eight-column ranked table | `src/render.ts:242-243` (header), `:284-295` (row builder) | rank, project, pushed, relevance/10, stars, score, language, description |
+| `escapeCell` before any table cell | `src/render.ts:103` | a value containing `|` would otherwise break the table |
+| `clipDescription` collapses whitespace, then truncates | `src/render.ts:64` | the format is line-oriented; whitespace is flattened first |
+| `MAX_DESCRIPTION_CHARS = 200` | `src/render.ts:53` | see below |
+| Eight-column ranked table | `src/render.ts:248-249` (header), `:290-301` (row builder) | rank, project, pushed, relevance/10, stars, score, language, description |
 
-**The description cap is a measured fix, not a style choice.** `src/render.ts:30-46` records the incident: four keyword-stuffed descriptions of 241,979 / 143,365 / 143,333 / 139,284 characters took 668,409 of 674,064 bytes — 99.2% of one `scout_projects` result — while the other 21 candidates needed 5,655 bytes. The harness truncated the observation and the model silently lost 11 of 25 candidates, specifically the 324–2,600 star mid-tier ones, and the card filled with 1–22 star repos instead. "An honest description is 30-140 characters (`lissy93/dashy` is 136)." The cap is applied at render time rather than fetch time "so the stored candidate keeps its full value for scoring".
+**The description cap is a measured fix, not a style choice.** `src/render.ts:30-52` records the incident: four keyword-stuffed descriptions of 241,979 / 143,365 / 143,333 / 139,284 characters took 668,409 of 674,064 bytes — 99.2% of one `scout_projects` result — while the other 21 candidates needed 5,655 bytes. The harness truncated the observation and the model silently lost 11 of 25 candidates, specifically the 324–2,600 star mid-tier ones, and the card filled with 1–22 star repos instead. "An honest description is 30-140 characters (`lissy93/dashy` is 136)."
+
+**Two caps, not one.** `MAX_DESCRIPTION_CHARS = 200` (`src/render.ts:53`) is the DISPLAY budget only. Storage is capped separately at 512 characters by `MAX_STORED_DESCRIPTION_CHARS` (`src/github.ts:450`), applied by `storedDescription` (`:465`) from `toCandidate` (`:478`). The two are independent knobs and deliberately differ: 200 decides what the model reads, 512 decides what the cache holds and what `similarity()` and `SUSPICION_QUOTE_CHARS` score against. Capping storage at the display budget would shorten the evidence chain and shift the bigram similarity of mid-length descriptions. The storage-side rule, and the `CACHE_VERSION` 2 -> 3 bump it required, are in `backend/database-guidelines.md`.
 
 ### Honesty rules that live in the renderer
 
@@ -86,10 +88,10 @@ The renderer is where a claim either becomes visible or is lost. Four rules are 
 
 | Rule | Site |
 |------|------|
-| An empty card distinguishes a genuine miss, an exhausted quota and a network failure | `src/render.ts:315-346` |
-| An unreported pool population is `null`, never a defaulted `0` | `src/render.ts:357-364` |
-| A probe that did not run must say so, even on an empty card | `src/render.ts:367-373` |
-| An unmeasured term is labelled unmeasured, distinct from a measured zero | `src/render.ts:480-484`, `src/index.ts:944-951` |
+| An empty card distinguishes a genuine miss, an exhausted quota and a network failure | `src/render.ts:321-352` |
+| An unreported pool population is `null`, never a defaulted `0` | `src/render.ts:363-370` |
+| A probe that did not run must say so, even on an empty card | `src/render.ts:373-379` |
+| An unmeasured term is labelled unmeasured, distinct from a measured zero | `src/render.ts:486-490`, `src/index.ts:944-951` |
 
 The first is worth quoting, because it is the reason the module has an `explain*` family at all: "A bare 'no results' was actively misleading: a genuine miss, an exhausted quota, and a network failure all rendered identically, so the calling agent had to guess at the cause (in practice it guessed 'rate limited' and gave up on the tool entirely)."
 
@@ -129,7 +131,7 @@ node test/run-all.test.mjs
 - [ ] **The budget was re-measured.** `node test/render-budget.test.mjs` must pass; if the change is near a limit, measure the actual number rather than trusting that it fits.
 - [ ] **The honesty tests were re-run, not just the render tests.** `diagnostics-honesty`, `declaration-honesty` and `evidence-chain` assert that specific false phrasings are *absent*; a reworded sentence can satisfy a positive test while introducing a forbidden claim.
 - [ ] **Every number on the card traces to a value the code computed.** No renderer invents a rating, reorders rows or fills a gap with a plausible default.
-- [ ] **The empty card still says why it is empty.** A genuine miss, an exhausted quota and a network failure must remain distinguishable (`src/render.ts:315-346`).
+- [ ] **The empty card still says why it is empty.** A genuine miss, an exhausted quota and a network failure must remain distinguishable (`src/render.ts:321-352`).
 - [ ] **Spec citations still resolve.** Adding or removing lines in `src/render.ts` moves every `path:line` citation in this directory. Update them, or confirm the cited symbol is still within the cited range.
 
 ---

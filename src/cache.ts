@@ -19,8 +19,17 @@ import { join, resolve } from 'node:path'
  * every clean cached search as a short one. Ignoring the old entries costs one
  * re-fetch per distinct idea; reading them costs a wrong answer that looks
  * right, which is the trade this constant exists to make.
+ *
+ * 2 -> 3: `RepoCandidate.description` is now capped at 512 characters when it is
+ * stored (`MAX_STORED_DESCRIPTION_CHARS` in `github.ts`), so a version-2 entry
+ * holds a description of a different length for the same repository. Mixing the
+ * two would make the same query report a different description depending on
+ * whether it came from disk or from the network — and it would do so silently,
+ * with the "（描述过长，原长 N 字符）" marker reporting 241,896 one day and 512
+ * the next for an unchanged row. Same trade as 1 -> 2: one re-fetch per distinct
+ * idea buys a consistent answer.
  */
-const CACHE_VERSION = 2
+const CACHE_VERSION = 3
 
 /** In-process hits are cheap but short-lived. */
 const MEMORY_TTL_MS = 5 * 60 * 1000

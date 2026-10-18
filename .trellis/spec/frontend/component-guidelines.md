@@ -26,7 +26,7 @@ The nearest analogue is a renderer function in `src/render.ts` (`renderCandidate
 
 Not applicable — there are no props.
 
-The nearest analogue is a renderer's **positional parameter list**, and there is one convention worth carrying over from it: **new parameters are appended, never inserted**, so every existing call keeps its meaning. `renderCandidates`' `lowStarInPool` parameter is the worked example — see the doc at `src/render.ts:357-364`, and `type-safety.md` §"Common Patterns" for why its `null` case must not default to `0`.
+The nearest analogue is a renderer's **positional parameter list**, and there is one convention worth carrying over from it: **new parameters are appended, never inserted**, so every existing call keeps its meaning. `renderCandidates`' `lowStarInPool` parameter is the worked example — see the doc at `src/render.ts:363-370`, and `type-safety.md` §"Common Patterns" for why its `null` case must not default to `0`.
 
 ---
 
@@ -42,7 +42,7 @@ The nearest analogue is **Markdown layout**, which lives entirely in `src/render
 
 Not applicable — the output is plain text read by a language model and printed to a terminal. There is no DOM, no ARIA, no keyboard navigation and no colour.
 
-The nearest analogue is **legibility to the reader**, and it is taken seriously: the card distinguishes three causes of an empty result rather than printing a bare "no results" (`src/render.ts:315-346`), because a reader who cannot tell a quota problem from a genuine miss will conclude the wrong thing. See `logging-guidelines.md` §"Structured Logging".
+The nearest analogue is **legibility to the reader**, and it is taken seriously: the card distinguishes three causes of an empty result rather than printing a bare "no results" (`src/render.ts:321-352`), because a reader who cannot tell a quota problem from a genuine miss will conclude the wrong thing. See `logging-guidelines.md` §"Structured Logging".
 
 ---
 
@@ -51,5 +51,5 @@ The nearest analogue is **legibility to the reader**, and it is taken seriously:
 Not applicable in the component sense. For the mistakes that actually occur when building the presentation layer, see:
 
 - `quality-guidelines.md` §"Forbidden Patterns" — including "reconstructing a URL from `full_name`" and "reporting an unmeasured value as `0`";
-- `src/render.ts:30-46` — the 668,409-byte description incident that produced `MAX_DESCRIPTION_CHARS`;
+- `src/render.ts:30-52` — the 668,409-byte description incident that produced `MAX_DESCRIPTION_CHARS`;
 - `src/index.ts:1364-1371` — the `note` field that was accepted as input and read by the renderer but never declared in the output schema, so it was dropped in between.

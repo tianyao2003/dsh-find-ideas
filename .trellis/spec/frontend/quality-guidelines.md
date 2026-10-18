@@ -19,9 +19,9 @@ Three card families are rendered, all in `src/render.ts`:
 
 | Renderer | Card | Tool |
 |---|---|---|
-| `renderCandidates` (`src/render.ts:349`) | Candidate pool | `scout_projects` |
-| `renderRanked` (`src/render.ts:539`) | Ranked table | `rank_candidates` |
-| `renderInspections` (`src/render.ts:953`) | Source excerpts | `inspect_projects` |
+| `renderCandidates` (`src/render.ts:355`) | Candidate pool | `scout_projects` |
+| `renderRanked` (`src/render.ts:545`) | Ranked table | `rank_candidates` |
+| `renderInspections` (`src/render.ts:959`) | Source excerpts | `inspect_projects` |
 
 ---
 
@@ -101,11 +101,11 @@ Three distinct states must render differently and never collapse:
 |---|---|
 | Measured, matched nothing | `0（solo 无命中）` |
 | Never probed | `未知（未测得）` |
-| Measured | `12.3k` (via `formatCount`, `src/render.ts:501`) |
+| Measured | `12.3k` (via `formatCount`, `src/render.ts:507`) |
 
 A bare `0` reads as "this term is useless", which is a claim the probe did not make; `未测`
 claims an ignorance the probe does not have when it did run and got zero. See
-`termCoverage` (`src/render.ts:465`), which returns `[]` entirely when *nothing* was
+`termCoverage` (`src/render.ts:471`), which returns `[]` entirely when *nothing* was
 measured — an absent block and a clean block look the same otherwise.
 
 ### 5. Reporting one long-tail number instead of two
@@ -123,15 +123,15 @@ numbers.
 ### 6. Rendering `undefined`, or a URL that is not the canonical one
 
 `pushed_at` absent renders `—` (`EMPTY_CELL`, `src/render.ts:28`), never `undefined` — in the
-ranked table and in the flat candidate list alike (`src/render.ts:382`), which is why both go
+ranked table and in the flat candidate list alike (`src/render.ts:388`), which is why both go
 through the one `formatMetaCell` rather than each spelling its own placeholder.
-`canonicalUrl` (`src/render.ts:645`) must not lowercase `full_name`: GitHub paths are
+`canonicalUrl` (`src/render.ts:651`) must not lowercase `full_name`: GitHub paths are
 case-sensitive, and a lowercased `FuRongJun-1999/dsh-memory` returns 404.
 
 ### 7. Letting card text build structure
 
-`escapeCell` (`src/render.ts:97`) flattens all whitespace and escapes `|`. Do not add
-escaping of `[`/`]` to the 项目 column — `rankedRow` (`src/render.ts:284`) uses that column
+`escapeCell` (`src/render.ts:103`) flattens all whitespace and escapes `|`. Do not add
+escaping of `[`/`]` to the 项目 column — `rankedRow` (`src/render.ts:290`) uses that column
 to construct the Markdown link, so escaping brackets there breaks every link. This
 constraint is documented at the function and must not be "fixed".
 
@@ -145,7 +145,7 @@ one is.
 
 ### Declarations belong to every branch, not just the happy one
 
-`CODE_AREA_DECLARATION` (`src/render.ts:267`) is pushed in the **empty-result branch** as
+`CODE_AREA_DECLARATION` (`src/render.ts:273`) is pushed in the **empty-result branch** as
 well as the table branch. A card that shows no candidates is exactly when the reader most
 needs to know what would have been computed and by whom.
 
@@ -159,14 +159,14 @@ all clean".
 
 ### `note` renders outside the computed table
 
-A caller-supplied note goes to `【调用方说明区】` (`callerNotes`, `src/render.ts:618`), below
+A caller-supplied note goes to `【调用方说明区】` (`callerNotes`, `src/render.ts:624`), below
 the table, labelled `[未验证]`, with whitespace flattened. It must never appear inside a
 table row, where it would read as a computed field.
 
 ### Truncation is always annotated
 
-`clipDescription` (`src/render.ts:58`, `MAX_DESCRIPTION_CHARS = 200`) marks that it clipped.
-`renderSkeleton` and its `SKELETON_DISCLAIMER` (`src/render.ts:791`) are already careful —
+`clipDescription` (`src/render.ts:64`, `MAX_DESCRIPTION_CHARS = 200`) marks that it clipped.
+`renderSkeleton` and its `SKELETON_DISCLAIMER` (`src/render.ts:797`) are already careful —
 do not weaken them.
 
 ---

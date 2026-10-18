@@ -31,7 +31,7 @@ There is no linter and no formatter config. `npm run check` is `typecheck && bui
 | A second definition of one fact | "One fact with two definitions disagrees with itself eventually." | `src/select.ts:11-21` (`MANIFEST_RE`); `src/github.ts:70-79` (`countLowStar`) |
 | Enums, parameter properties, namespaces | `erasableSyntaxOnly: true` — TypeScript syntax must be erasable. | `tsconfig.json:18` |
 | Importing without the `.ts` extension | `allowImportingTsExtensions` + `rewriteRelativeImportExtensions` are on; every intra-project import is written `from './types.ts'`. | `tsconfig.json:19-20`; `tsc` |
-| A required field added to the cached shape without a `CACHE_VERSION` bump | A stale entry reads the new field back as `undefined`, and `undefined !== null` tests flip. | `src/cache.ts:23`, `:62-77` |
+| A required field added to the cached shape without a `CACHE_VERSION` bump | A stale entry reads the new field back as `undefined`, and `undefined !== null` tests flip. | `src/cache.ts:32`, `:71-86` |
 | Editing source text without running the integrity gate | A lossy encoding round-trip once rewrote the whole tree; the damage is silent (a vanished space or digit changes a measurement). | `test/source-integrity.test.mjs` |
 
 ---
@@ -48,7 +48,7 @@ Established practice: copy `lib/` into a scratch directory, mutate the copy, and
 
 ### Rationale lives in the source
 
-Every non-obvious constant, rule and extraction carries a doc comment naming the measured failure that produced it. This is not decoration — the headers are the project's institutional memory and the reason a later reader can tell a deliberate choice from an accident. Examples: `src/render.ts:30-46` (the 668,409-byte description incident behind `MAX_DESCRIPTION_CHARS`), `src/github.ts:52-59` (`TAIL_STAR_CEILING` names the four projects that were unreachable), `src/index.ts:225` (`TIME_BUDGET_SHARE` explains 0.75).
+Every non-obvious constant, rule and extraction carries a doc comment naming the measured failure that produced it. This is not decoration — the headers are the project's institutional memory and the reason a later reader can tell a deliberate choice from an accident. Examples: `src/render.ts:30-52` (the 668,409-byte description incident behind `MAX_DESCRIPTION_CHARS`), `src/github.ts:52-59` (`TAIL_STAR_CEILING` names the four projects that were unreachable), `src/index.ts:225` (`TIME_BUDGET_SHARE` explains 0.75).
 
 ### Honesty invariants
 
@@ -57,9 +57,9 @@ Every non-obvious constant, rule and extraction carries a doc comment naming the
 | An unmeasured term is `TERM_TOTAL_UNKNOWN` (`-1`), labelled unmeasured, distinct from a measured `0` | `src/types.ts:257`, `src/index.ts:136`, `:142-144` |
 | Pool low-star count and kept low-star count are **two** numbers; their difference is the measurement | `src/github.ts:70-79`, `src/index.ts:871-883`, `:1415-1422` |
 | A failed channel means coverage unknown, never "the rows are all high-star" | `src/query.ts:1251-1257` |
-| `null` for an unreported pool population, never a defaulted `0` | `src/render.ts:357-364` |
+| `null` for an unreported pool population, never a defaulted `0` | `src/render.ts:363-370` |
 | A cached fetch's failure is not reported as a current one | `src/query.ts:1387-1405` |
-| A probe that did not run must say so, even on an empty card | `src/render.ts:367-373` |
+| A probe that did not run must say so, even on an empty card | `src/render.ts:373-379` |
 
 ### Types
 
@@ -67,9 +67,9 @@ Every non-obvious constant, rule and extraction carries a doc comment naming the
 
 - `src/index.ts:1454`, `:1457`, `:1466-1468` — `args.candidates as RepoCandidate[]`, `args.scores as RelevanceInput[]`
 - `src/index.ts:951`, `:1624` — the render-boundary coercions (`as TermReport[]`, `as Inspection[]`)
-- `src/cache.ts:195`, `:199` — `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>`
+- `src/cache.ts:204`, `:208` — `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>`
 - `src/credentials.ts:66` — `get.call(ctx, 'credentials') as CredentialService | undefined`
-- `src/github.ts:437` — `item.owner as Record<string, unknown> | undefined`
+- `src/github.ts:471` — `item.owner as Record<string, unknown> | undefined`
 
 There is no `any`, no `@ts-ignore`, no `@ts-expect-error` and no `as unknown as` anywhere in `src/`.
 
