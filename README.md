@@ -76,7 +76,7 @@ Requires Node ≥ 22. DSH plugin APIs are prerelease-versioned, and one range br
 
 | Version | Update | DSH versions supported |
 | --- | --- | --- |
-| 0.2.1 (current) | Published to npm; the install section now leads with npm and demotes the GitHub route to an alternative. Same functionality as 0.2.0. | `0.1.0-rc.2` through `0.2.1-rc.1` |
+| 0.2.1 (current) | Published to npm | `0.1.0-rc.2` through `0.2.1-rc.1` |
 | 0.2.0 | The card states how many query channels found each row and how many rows on the board are archived, and writes the "keep all eight columns when restating" rule into the card itself. | `0.1.0-rc.2` through `0.2.1-rc.1` |
 | 0.1.0 | First usable version: the `scout_projects` → `rank_candidates` → `inspect_projects` chain, and the rule that keeps computed fields apart from caller-supplied ones. | `0.1.0-rc.2` through `0.2.0-rc.2` |
 
