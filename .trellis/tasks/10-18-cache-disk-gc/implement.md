@@ -144,10 +144,21 @@ node test/run-all.test.mjs
 
 ```powershell
 git add -A
-git commit -m "perf(cache): sweep expired and oversized disk entries"
+git commit -F .scratch/commit-r3.txt   # 多行消息必须用 -F，-m + here-string 会被当成 pathspec
 ```
 
 **验收**：`git revert --no-commit <sha>` 后 `npm test` 回到上一基线。
+
+## 执行记录（实际落地与计划的差异）
+
+| 项 | 计划 | 实际 | 原因 |
+|---|---|---|---|
+| S6 测试小节顺序 | 未规定 | **G1 必须是第一小节** | `lastSweepAt` 是进程级状态、初值 0，只有进程内第一次 `cacheSet` 必然触发清扫。把「自动清扫」放在后面的小节会永远观测到「被节流」。 |
+| S6 首版 G7 | 断言 `cacheSet` 触发清扫 | 改为断言「**没有**触发（被节流）+ `cacheSweepNow` 才删」 | 同一条原因；首版 3 个 FAIL 是测试假设错，不是代码错。 |
+| S6 总量用例 | 5 × 20 MB | 70 × 1 MB | 20 MB 单文件要写 100 MB 临时数据；70 个 1 MB 同样能证明「按 mtime 升序删到刚好不超限」。 |
+| S6 不可写目录用例 | 把目录设成不可写 | 目录不存在 + 非普通文件跳过 | Windows 上设不可写会让测试文件自己无法清理；两种构造覆盖同一条降级路径。 |
+| S7 真实目录 | 先在副本上验证，再对真目录执行 | **只对副本执行**，真目录保持 41 文件 / 11,215,236 B | 计划里「再对真目录执行一次」是多余的：R3 上线后第一次 `cacheSet` 自然就会扫。手动对用户真实目录动手没有必要。 |
+| AC3.5 基线数字 | 26 个过期 | **28** 个（采样时刻不同） | AC 断言写成「降为 0」，不写死数字。 |
 
 ## 回滚点
 

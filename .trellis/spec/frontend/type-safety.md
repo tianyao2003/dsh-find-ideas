@@ -54,7 +54,7 @@ The concrete case: `TAIL_STAR_CEILING = 100` is defined at `src/github.ts:60` an
 
 ### Module-private types
 
-A type used by one module stays in that module: `CacheEntry` and `DiskEnvelope` (`src/cache.ts:79`, `:102`), `QueryFailure` and `ProbeReport` (`src/github.ts:34`, `:927`), `SignatureHit` (`src/skeleton.ts:67`). Export only what another module or a test needs.
+A type used by one module stays in that module: `CacheEntry` and `DiskEnvelope` (`src/cache.ts:120`, `:143`), `QueryFailure` and `ProbeReport` (`src/github.ts:34`, `:927`), `SignatureHit` (`src/skeleton.ts:67`). Export only what another module or a test needs.
 
 ### Types that are structurally forced
 
@@ -130,7 +130,7 @@ A schema-shaped value arriving as `unknown`-ish, or a generic cache read, is the
 | `src/index.ts:1454`, `:1457` | `args.candidates as RepoCandidate[]`, `args.scores as RelevanceInput[]` |
 | `src/index.ts:1466-1468` | the same, passed to the three detectors |
 | `src/index.ts:951`, `:1624` | render-boundary coercions: `as TermReport[]`, `as Inspection[]` |
-| `src/cache.ts:244`, `:250` | `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>` |
+| `src/cache.ts:401`, `:407` | `hit.data as T`, `JSON.parse(...) as DiskEnvelope<T>` |
 | `src/credentials.ts:66` | `get.call(ctx, 'credentials') as CredentialService \| undefined` |
 | `src/github.ts:471` | `item.owner as Record<string, unknown> \| undefined` |
 

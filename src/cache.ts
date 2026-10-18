@@ -5,7 +5,7 @@
  * `$DSH_HOME` when set and non-blank (blank means unset), else `~/.dsh`.
  */
 
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -51,6 +51,47 @@ const MAX_MEMORY_ENTRIES = 64
 
 /** Disk survives restarts; a day balances freshness against rate-limit budget. */
 const DISK_TTL_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Sweep the cache directory at most once per hour per process.
+ *
+ * The sweep is opportunistic — it rides along after a write rather than owning a
+ * timer. `setInterval` would keep the event loop alive and this plugin has no
+ * dispose hook to clear it, and a startup-only sweep would never run in a
+ * long-lived process (and would run on every short-lived one).
+ */
+const SWEEP_INTERVAL_MS = 60 * 60 * 1000
+
+/**
+ * Total on-disk budget for the cache directory.
+ *
+ * The observed steady state on the machine this was measured on was ~11 MB, so
+ * 64 MB is roughly six times that: high enough that normal use never reaches it,
+ * low enough to stop pathological growth. A lower bound such as 32 MB would
+ * start evicting entries a heavy user still wants; 256 MB would be meaningless
+ * on a full disk.
+ */
+const CACHE_DIR_MAX_BYTES = 64 * 1024 * 1024
+
+/**
+ * A temp file older than this was orphaned by a crash.
+ *
+ * `cacheSet` writes `${path}.tmp-${pid}` and then renames it. A process killed
+ * between those two steps leaves the temp file behind forever. Ten minutes is
+ * far longer than any legitimate write takes, so a file this old cannot be a
+ * write still in flight.
+ */
+const TMP_STALE_MS = 10 * 60 * 1000
+
+/**
+ * When this process last STARTED a sweep, or 0 for never.
+ *
+ * Set before the sweep runs, not after: concurrent `cacheSet` calls in one tick
+ * would otherwise all see "not due yet" and all start a sweep. A failed sweep
+ * does not reset it either — otherwise one unwritable directory would make every
+ * subsequent write retry the same doomed sweep.
+ */
+let lastSweepAt = 0
 
 /**
  * Disk TTL for repository source reads, which age far faster than "which repos
@@ -195,6 +236,122 @@ function cachePathFor(key: string): string {
 }
 
 /**
+ * Delete entries that are provably worthless, plus orphans from a crashed write.
+ *
+ * **Why `mtime` and not `fetchedAt`.** Deciding staleness from the envelope means
+ * reading and parsing every file — on the machine this was measured on that is
+ * 41 files and 11 MB of I/O, so the cleanup would cost more than the space it
+ * reclaims. `mtime` costs one `stat` per file. The safety argument is that
+ * `cacheSet` writes a temp file and then RENAMES it, and `rename` updates
+ * `mtime`, so `mtime` is never earlier than `fetchedAt`. Therefore "mtime older
+ * than the TTL" implies "fetchedAt older than the TTL" implies the entry is
+ * certainly expired and deleting it loses nothing. The converse does not hold
+ * (a fresh `mtime` over an old `fetchedAt`), but that case is left alone — the
+ * error is in the safe direction. Real TTL enforcement still lives in
+ * `cacheGetWithMeta`; this only reclaims what is certainly dead.
+ *
+ * Order matters: expired entries and orphans are removed FIRST, and only then is
+ * the surviving total compared against {@link CACHE_DIR_MAX_BYTES}. Computing
+ * the total first would let a pile of expired garbage trigger the size cap and
+ * evict fresh entries that were never the problem.
+ *
+ * @returns how many files were removed and how many bytes that freed.
+ */
+async function sweepOnce(): Promise<{ removed: number; bytesFreed: number }> {
+  const dir = cacheDir()
+  let names: string[]
+  try {
+    names = await readdir(dir)
+  } catch {
+    // No cache directory yet: nothing to sweep, and not an error.
+    return { removed: 0, bytesFreed: 0 }
+  }
+
+  const now = Date.now()
+  const survivors: { name: string; mtimeMs: number; size: number }[] = []
+  let removed = 0
+  let bytesFreed = 0
+
+  for (const name of names) {
+    const full = join(dir, name)
+    let info
+    try {
+      info = await stat(full)
+    } catch {
+      continue // vanished between readdir and stat
+    }
+    if (!info.isFile()) continue
+
+    const isTemp = name.includes('.tmp-')
+    const isEntry = name.endsWith('.json')
+    if (!isTemp && !isEntry) continue
+
+    const age = now - info.mtimeMs
+    const stale = isTemp ? age > TMP_STALE_MS : age > DISK_TTL_MS
+    if (!stale) {
+      survivors.push({ name, mtimeMs: info.mtimeMs, size: info.size })
+      continue
+    }
+    try {
+      await unlink(full)
+      removed++
+      bytesFreed += info.size
+    } catch {
+      // Locked or already gone; leave it for the next sweep.
+    }
+  }
+
+  let total = survivors.reduce((sum, entry) => sum + entry.size, 0)
+  if (total > CACHE_DIR_MAX_BYTES) {
+    survivors.sort((a, b) => a.mtimeMs - b.mtimeMs)
+    for (const entry of survivors) {
+      if (total <= CACHE_DIR_MAX_BYTES) break
+      try {
+        await unlink(join(dir, entry.name))
+        total -= entry.size
+        removed++
+        bytesFreed += entry.size
+      } catch {
+        // Locked; skip and keep going rather than abandoning the whole sweep.
+      }
+    }
+  }
+
+  return { removed, bytesFreed }
+}
+
+/**
+ * Run {@link sweepOnce} if the hourly throttle allows it.
+ *
+ * Failures are swallowed here rather than at the call site so the caller can
+ * drop the promise with `void`. Doing it internally also covers a synchronous
+ * throw, which `void promise.catch(...)` would not.
+ */
+async function sweepIfDue(): Promise<void> {
+  const now = Date.now()
+  if (now - lastSweepAt < SWEEP_INTERVAL_MS) return
+  lastSweepAt = now
+  try {
+    await sweepOnce()
+  } catch {
+    // Best effort: a cache must never be able to fail a call.
+  }
+}
+
+/**
+ * Sweep the cache directory now, ignoring the hourly throttle.
+ *
+ * Exported for tests and diagnostics, mirroring `cacheMemoryStats` — the sweep's
+ * behaviour has to be observable without waiting an hour or reaching into module
+ * state. Normal operation never calls this; `cacheSet` uses the throttled path.
+ *
+ * @returns how many files were removed and how many bytes that freed.
+ */
+export async function cacheSweepNow(): Promise<{ removed: number; bytesFreed: number }> {
+  return sweepOnce()
+}
+
+/**
  * Read a cached value, preferring memory then disk.
  *
  * Every failure (missing file, malformed JSON, version drift, expiry) returns
@@ -292,6 +449,12 @@ export async function cacheSet<T>(key: string, data: T, snapshot?: string): Prom
     }
     await writeFile(temp, JSON.stringify(envelope), 'utf8')
     await rename(temp, path)
+    // Reclaim expired and oversized entries, but never make the write wait for
+    // it. A sweep stats every file in the directory, which on a slow or network
+    // disk can take hundreds of milliseconds — that must not land on the
+    // `scout_projects` hot path. `sweepIfDue` swallows its own failures, so a
+    // dropped promise here cannot surface as an unhandled rejection.
+    void sweepIfDue()
   } catch {
     // Cache writes are best-effort; the next call simply refetches.
   }
