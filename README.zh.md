@@ -46,7 +46,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 - 「我想做一个本地优先的 Markdown 笔记应用，帮我看一下 GitHub 上的项目。」
 - 「我想做一个 UI 增强的 DSH 插件，GitHub 上有哪些项目？」
 
-`scout_projects` → `rank_candidates` → `inspect_projects` 三个工具彼此独立，不共享状态。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。排序卡片固定八列：序号、项目、最近更新、relevance、stars、得分、语言、简介。
+`scout_projects` → `rank_candidates` → `inspect_projects` 三个工具彼此独立，不共享状态。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。排序卡片固定八列：序号、项目、最近更新、relevance、stars、得分、开发语言、简介。
 
 ## 工作方式
 
@@ -94,7 +94,7 @@ npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
 
 ## 贡献
 
-issue 和 pull request 都欢迎。
+欢迎 issue 和 PR ！ 
 
 - **报问题 / 提需求**：开 issue，写清你输入的想法、期望的结果和实际结果。
 - **改代码**：fork → 从 `master` 切分支 → 改代码并补测试 → `npm run check && npm test` 全绿 → 提 pull request。CI 在 Node 22 和 24 上跑的也是这两条命令。
