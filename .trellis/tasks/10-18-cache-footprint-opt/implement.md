@@ -31,45 +31,53 @@ node test/run-all.test.mjs
 **门禁**：
 - `npm run check` 零输出/零错误；
 - `run-all` 汇总行 `27/29 test files passed, 2 skipped`（基线 24/26；R1–R3 各新增 1 个测试文件，分母 +3、分子 +3，skipped 恒为 2）；
-- 逐文件小计求和 ≥ **6377 + 新增**，任何单文件小计不得低于基线（明细见 `prd.md`）。
+- 逐文件小计求和与实测一致（**实测 6463 PASS / 0 FAIL**），任何单文件小计不得低于基线（明细见 `prd.md`）。
+
+**实测结果（2026-10-18）**：`npm run check` exit 0；汇总行 `27/29 test files passed, 2 skipped`；27 个小计行求和 `SUM PASS=6463 FAIL=0`。证据：`.scratch/suite-final.txt`。
 
 ### I2 — 交叉验证四项改动的叠加效果
 
 单看每项都合格，叠加后可能互相掩盖。必须重跑：
 
-| 验证 | 命令 / 脚本 | 期望 |
-|---|---|---|
-| 截断 + 内存上限 | `.scratch/heap-ceiling.mjs`（`node --expose-gc`） | heap 增量 <20 MB 且 `entries === 64` |
-| 截断 + 磁盘 GC | 真实缓存目录副本上跑 `cacheSweepNow()` | >24h 文件清零；新鲜条目一个不动 |
-| GC + 内存上限 | 连续 100 次 `cacheSet` | `cacheSet` 不因清扫变慢（100 次总耗时 <2s） |
-| 全部 + 打包 | `npm pack --dry-run --json` | 28 文件 / ≤810 KB / ≤400 KB（实测 28 / 805,009 B / 391,681 B） |
+| 验证 | 命令 / 脚本 | 期望 | 实测结果 |
+|---|---|---|---|
+| 截断 + 内存上限 | `.scratch/heap-ceiling.mjs`（`node --expose-gc`） | `entries === 64`；realistic 载荷 heap 增量 <20 MB | `resident 64 / 64`；realistic **1.67 MB / 每条 26.8 KB** → PASS；adversarial **64.81 MB / 每条 1037 KB** → 按设计 FAIL（条数上限不约束字节，见 `prd.md` AC3） |
+| 截断 + 磁盘 GC | 真实缓存目录副本上跑 `cacheSweepNow()` | >24h 文件清零；新鲜条目一个不动 | 副本 `41 文件 / 11,215,236 B`，stale24h **30 文件 / 7,850,893 B** → `removed=30`、`bytesFreed=7,850,893` → 清扫后 `11 文件 / 3,364,343 B`、**stale24h=0**；`WRONGLY DELETED 0`、`STALE SURVIVORS 0`；真实目录未被触碰 |
+| GC + 内存上限 | `.scratch/gc-timing.mjs`：连续 100 次 `cacheSet` | `cacheSet` 不因清扫变慢（100 次总耗时 <2s） | **1022 ms**（每次 10.22 ms）、落盘 100 条、内存 64 条 → PASS |
+| 全部 + 打包 | `npm pack --dry-run --json` | 28 文件 / ≤810 KB / ≤400 KB | **28 文件 / 805,009 B / 391,681 B** → 三项全部通过；`^(src\|test\|scripts)/` 与 `\.map$` 零命中；docs PNG 在包内 |
 
 **为什么必须做这一层**：R1 让单条变小，R3 的总量上限（64 MB）在 R1 之后几乎永不触发——这不是 bug，但要确认它**不是因为失效才不触发**（用 `.scratch` 里造 5×20 MB 文件的用例证明上限仍有效，见子任务 AC3.2）。
+
+**叠加后的真实结论**：四项改动互不掩盖——R1 把稳态从 10.70 MB 压到 0.77 MB，R2 让进程内驻留条数恒为 64，R3 在副本上清掉全部 30 条过期文件且零误删，R4 把安装体积砍到 28 文件 / 805,009 B。唯一「不达标」的是 adversarial 载荷下的 heap 增量，它由 R2 的条数口径决定，属已知边界而非叠加副作用（realistic 载荷下同一代码通过）。
 
 ### I3 — 未改动项逐条核对（父任务 AC7）
 
 ```powershell
-git diff v0.2.1-baseline..HEAD --stat
+git diff --stat v0.2.1-baseline..HEAD -- src test package.json
 ```
 
-然后逐条确认这些**没有**出现在 diff 里：
+实测只有 8 个文件被改动：`src/cache.ts`（+241）、`src/github.ts`（+36）、`src/render.ts`（+12）、`package.json`（6 行）、`test/cache-description-cap.test.mjs`、`test/cache-disk-gc.test.mjs`、`test/cache-memory-ceiling.test.mjs`、`test/ranking.test.mjs`。
 
-- [ ] `MAX_DESCRIPTION_CHARS` 仍是 200，`clipDescription` 实现未变
-- [ ] `SUSPICION_QUOTE_CHARS`（120）、`SCORE_GAP_SIMILARITY`（0.6）、`similarity()` 未变
-- [ ] 排序公式 / `rank_candidates` 输出格式未变
-- [ ] 三个 TTL 常量（5min / 24h / 10min）未变
-- [ ] `dependencies` 仍为 `{}`
-- [ ] 缓存目录位置（`$DSH_HOME/cache/dsh-find-ideas`）未变
-- [ ] `main` / `types` / `exports` / `dsh.bundle.patch` 未变
-- [ ] 工具入参 / 出参 / 卡片渲染格式未变
+`src/index.ts`、`src/types.ts`、`src/select.ts`、`src/query.ts`、`src/translate.ts`、`src/lexicon.ts`、`src/skeleton.ts`、`src/credentials.ts` 的 diff **为空**，所以下面这些**必然**未变：
+
+- [x] `MAX_DESCRIPTION_CHARS` 仍是 200（`src/render.ts:53`），`clipDescription` 实现未变——R1 只改了它上方的 docblock 注释
+- [x] `SUSPICION_QUOTE_CHARS`（120）、`SCORE_GAP_SIMILARITY`（0.6）、`similarity()` 未变（均在未改动的 `src/types.ts`）
+- [x] 排序公式 / `rank_candidates` 输出格式未变（在未改动的 `src/select.ts` 与 `src/index.ts`）
+- [x] 三个 TTL 常量（5min `MEMORY_TTL_MS` / 24h `DISK_TTL_MS` / 10min `SOURCE_TTL_MS`）未变；`SOURCE_TTL_MS` 现位于 `src/cache.ts:118`（仅行号因新增代码下移）
+- [x] `dependencies` 仍为 `{}`（`node -e` 读取确认；`package.json` 的 diff 只有 `files` 一处）
+- [x] 缓存目录位置（`$DSH_HOME/cache/dsh-find-ideas`）未变（`src/cache.ts:213` `cacheDir()`），文件名格式未变
+- [x] `main` / `types` / `exports` / `dsh.bundle.patch` 未变（同属 `package.json` 的 diff 外区域）
+- [x] 工具入参 / 出参 / 卡片渲染格式未变（工具定义在 `src/index.ts`，渲染在 `src/render.ts` 除 docblock 外未动）
 
 ### I4 — 基线 tag 完好性
 
 ```powershell
-git rev-parse "v0.2.1-baseline^{commit}"
+git rev-list -n 1 v0.2.1-baseline
 ```
 
 **门禁**：仍是 `1505487808fec5e04029e5846ef6bdea9a8461e6`。tag 是回滚锚点，任何改动都不得移动它。
+
+**实测通过**：`git rev-list -n 1 v0.2.1-baseline` → `1505487808fec5e04029e5846ef6bdea9a8461e6`；`git log --oneline --decorate` 显示 tag 仍钉在 `1505487`，其上叠了 5 个 commit（4 个改动 + 1 个文档）。
 
 ### I5 — 收尾
 

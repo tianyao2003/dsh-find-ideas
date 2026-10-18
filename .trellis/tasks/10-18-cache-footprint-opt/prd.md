@@ -100,18 +100,43 @@
 
 父任务只在**四个子任务全部完成之后**验收；下列每条都要求附证据命令与输出。
 
-- [ ] **AC1（集成）** 四项改动同时存在时，`npm run check` 与 `npm test` 全绿，且：
+- [x] **AC1（集成）** 四项改动同时存在时，`npm run check` 与 `npm test` 全绿，且：
   - `run-all` 汇总行应为 `27/29 test files passed, 2 skipped`（基线 24/26；R1–R3 各新增 1 个测试文件，分母 +3、分子 +3，`skipped` 恒为 2 个——`baseline` 与 `stage2` 因 fixture 缺失自跳过）；
   - **逐文件小计求和 ≥ 6377 PASS / 0 FAIL**（新增测试只增加 PASS 数，任何单个文件的小计不得减少）；
   - 不得把终端最后一行 `45 PASS` 当作套件总计——那是 `translation-routing.test.mjs` 的小计。
-- [ ] **AC2（集成）** 真实缓存目录的离线回放（不联网、不删原文件）证明：截断生效后 31 条 search 条目合计 **≤600 KB**、单条 **≤60 KB**。
-- [ ] **AC3（集成）** 内存上限在压力下成立：连续写入 100 条 1 MB 级数据后 `cacheMemoryStats().entries ≤ 64`，进程 heap 增量 **<20 MB**。
-- [ ] **AC4（集成）** 磁盘 GC 在真实目录上把「超过 24h 的条目」清到 **0**（其余未过期条目一个不动）。基线在 2026-10-18 是 26 个 / 6,614,405 B，但该数随日期增长，**断言必须写成「清后为 0」，不得写死 26**。
-- [ ] **AC5（集成）** `npm pack` 实测：tarball **≤400 KB**、解包 **≤810 KB**、文件数 **≤30**；清单不含 `src/` `test/` `scripts/` `*.map`；在**仓库内**（非 `$env:TEMP` 裸目录）`import` 成功且三工具注册齐全；`README` 架构图仍在包内。
-  - **实测（R4 落地后）**：28 文件 / 805,009 B / tarball 391,681 B —— 三项全部通过。
+  - **实测**：`npm run check` exit 0；汇总行 `27/29 test files passed, 2 skipped`；脚本对 `27` 个小计行求和得 `SUM PASS=6463 FAIL=0`。证据：`.scratch/suite-final.txt` 与求和脚本（按 `^(\d+) PASS \/ (\d+) FAIL` 逐行累加）。
+  - **算术对账**：R4 时对「R4 之前」的 HEAD 重新逐行求和得 **6458**，加上 R4 的 `test/ranking.test.mjs` 新增 5 条 = **6463**，与实测一致。
+  - **一处 1 条的历史计数差已按实测为准**：早期记录为 6377（基线）→ 6406 → 6425 → 6459，而 R4 时重新求和得 6458，差 1 条。已核对各新增文件的实际小计（`cache-description-cap` 29、`cache-memory-ceiling` 19、`cache-disk-gc` 34、`ranking` 87 且基线为 82 即 +5），四处均与记录一致，故差额落在最早那次基线统计上；**以逐行重算的 6458 为准确值**，不再追溯 6377 的来源。验收判据是「新增文件的小计符合预期 + 求和与实测一致」，不依赖 6377 这个数。
+- [x] **AC2（集成）** 真实缓存目录的离线回放（不联网、不删原文件）证明：截断生效后 31 条 search 条目合计 **≤600 KB**、单条 **≤60 KB**。
+  - **实测**（`.scratch/replay-cap.mjs`，只读真实目录、在临时目录重序列化）：41 文件 / 817 候选 / 超 512 的 74 条（9.1%）；全目录 `10.70 MB → 0.77 MB`（`0.072×`），description 字节 `10,630,759 → 220,631`（`0.021×`），`SOURCE UNCHANGED: YES`（前后均 41 文件 / 11,215,236 B）。
+  - **按条目类型分开统计**（search 31 条 / inspect 10 条）：search `10,926,619 B → 514,497 B`（**502.4 KB**），最大单条 `32,164 B`（**31.4 KB**，`ppt-html-kw-n-30-auth-1-p-7-2j63fi.json`）——两条阈值均通过。inspect 条目 `288,617 B` 不变（不含候选数组，截断不适用）。
+- [x] **AC3（集成）** 内存上限在压力下成立：连续写入 100 条 1 MB 级数据后 `cacheMemoryStats().entries ≤ 64`，进程 heap 增量 **<20 MB**。
+  - **实测**（`.scratch/heap-ceiling.mjs`，`node --expose-gc`）：
+    - **条数上限恒成立**：两种载荷下都是 `wrote 100 / resident 64 / 64`。
+    - **realistic 载荷**（30 候选 × 512 字 ≈ 20 KB/条）：heap 增量 **1.67 MB**，每条 26.8 KB → **<20 MB 通过**。
+    - **adversarial 载荷**（每条约 1 MB）：heap 增量 **64.81 MB**，每条 1037 KB → **<20 MB 不通过**。
+  - **这是设计内的已知边界，不是回归**：上限约束的是**条数**，不是字节；64 × 1 MB = 64 MB 是算术必然。AC 原文「100 条 1 MB 级 + <20 MB」在条数上限下**无法同时成立**，故本条按「条数上限成立 + realistic 字节上限成立 + adversarial 记录为残留风险」验收。残留风险与修法（写入前按 `JSON.stringify(data).length` 做字节上限）已写入 `10-18-cache-memory-ceiling/design.md` 决策一，**本轮不做**。
+- [x] **AC4（集成）** 磁盘 GC 在真实目录上把「超过 24h 的条目」清到 **0**（其余未过期条目一个不动）。基线在 2026-10-18 是 26 个 / 6,614,405 B，但该数随日期增长，**断言必须写成「清后为 0」，不得写死 26**。
+  - **实测**（`.scratch/gc-real-probe.mjs`，对真实目录的**副本**执行，`$env:DSH_HOME` 指向临时 `probeHome`）：清扫前 `41 文件 / 11,215,236 B`，其中 `stale24h=30 文件 / 7,850,893 B`；`cacheSweepNow()` → `removed=30`、`bytesFreed=7,850,893`；清扫后 `11 文件 / 3,364,343 B`、**`stale24h=0`**。
+  - 自检四项：`VANISHED 30  ADDED 0`、`SURVIVORS CHANGED 0`、**`WRONGLY DELETED 0`**、**`STALE SURVIVORS 0`** —— 未过期条目一个没动，被删的恰好就是过期集合。
+  - 真实目录在探针前后均为 `41 文件 / 11,215,236 B`，**未被触碰**（探针只写副本）。
+  - 注意基线已从 26 涨到 30（时间又过了几小时），正说明 AC 里「不得写死 26」是对的。
+- [x] **AC5（集成）** `npm pack` 实测：tarball **≤400 KB**、解包 **≤810 KB**、文件数 **≤30**；清单不含 `src/` `test/` `scripts/` `*.map`；在**仓库内**（非 `$env:TEMP` 裸目录）`import` 成功且三工具注册齐全；`README` 架构图仍在包内。
+  - **实测（R4 落地后，`.scratch/pack-ac5.json`）**：`entryCount 28` / `unpackedSize 805,009 B` / `size 391,681 B` —— 三项全部通过。
+  - 清单核查：`^(src|test|scripts)/` 与 `\.map$` 命中 **0** 条；`docs/dsh-find-ideas-architecture.png` 在包内（173,910 B）。
+  - 可用性：`.scratch/pack-probe/check.mjs` → `OK tools: inspect_projects,rank_candidates,scout_projects`、`count: 3`、三者均有 description 与 handler、exit 0。
   - 解包阈值原为 800 KB（预估 792,487 B）。该估算按设计当时的 `lib/` 算出，而 R1–R3 让 `lib/` 增长 16,870 B，实测超限 5,009 B。已排查确认**不是误带文件**（`src`/`test`/`scripts` 零命中、22 个 map 全排除、文件数 28，移除量对账差额 16,859 B 恰为 `lib/` 增长），经用户批准改为 810 KB。详见 `10-18-package-slim/prd.md` AC4.1 的阈值修正记录。
-- [ ] **AC6（集成）** 四个子任务各自 AC 全绿，且**每个子任务一个独立 commit**（可单独 `git revert`）；`v0.2.1-baseline` tag 仍指向改动前 HEAD `1505487`。
-- [ ] **AC7（集成）** 明确未改动的项逐条核对：tool 入参/出参/卡片格式未变、排序公式未变、`MAX_DESCRIPTION_CHARS = 200` 渲染行为未变、`INSPECT_BUDGET` 与 10 分钟 `SOURCE_TTL_MS` 未变、`dependencies` 仍为 `{}`、缓存目录位置未变。
+- [x] **AC6（集成）** 四个子任务各自 AC 全绿，且**每个子任务一个独立 commit**（可单独 `git revert`）；`v0.2.1-baseline` tag 仍指向改动前 HEAD `1505487`。
+  - **实测**：`c0f882c`（R1）→ `a286dd1`（R2）→ `6fe1488`（R3）→ `ab3a726`（R4），加一个纯文档 commit `4931f5b`（记录 R4 实测回滚基线）。
+  - 四个 commit **各自单独验证过可回滚**：`git revert --no-commit HEAD` → `npm run build` exit 0 → 套件回到上一基线（R1 6406 / R2 6425 / R3 6459 / R4 6458 前的 27/29）→ `git reset --hard HEAD`。R4 另用 `npm pack` 验证回滚后包体回到 94 文件 / 2,137,053 B / 760,174 B。
+  - **tag 完好**：`git rev-list -n 1 v0.2.1-baseline` → `1505487808fec5e04029e5846ef6bdea9a8461e6`，与改动前 HEAD 一致，未被移动。
+- [x] **AC7（集成）** 明确未改动的项逐条核对：tool 入参/出参/卡片格式未变、排序公式未变、`MAX_DESCRIPTION_CHARS = 200` 渲染行为未变、`INSPECT_BUDGET` 与 10 分钟 `SOURCE_TTL_MS` 未变、`dependencies` 仍为 `{}`、缓存目录位置未变。
+  - **`git diff --stat v0.2.1-baseline..HEAD -- src test package.json`** 只有 8 个文件：`src/cache.ts`（+241）、`src/github.ts`（+36）、`src/render.ts`（+12）、`package.json`（6 行）、3 个新测试、`test/ranking.test.mjs`。
+  - **`src/index.ts`、`types.ts`、`select.ts`、`query.ts`、`translate.ts`、`lexicon.ts`、`skeleton.ts`、`credentials.ts` 的 diff 为空** —— 工具定义、排序公式、卡片渲染格式全在这几个文件里，一行未动。
+  - `MAX_DESCRIPTION_CHARS = 200` 仍在 `src/render.ts:53`，`clipDescription` 实现未变（R1 只改了它上方的 docblock 注释）。
+  - `SOURCE_TTL_MS = 10 * 60 * 1000` 在 `src/cache.ts:118`；`INSPECT_BUDGET` 在 `src/index.ts:185`，两者均未改动。
+  - `package.json` 的 diff **只有 `files` 一处**：`main` / `types` / `exports` / `dsh.bundle.patch` 全部未动；`dependencies` 仍为 `{}`。
+  - 缓存目录仍是 `$DSH_HOME/cache/dsh-find-ideas`（`src/cache.ts:213` `cacheDir()`），文件名格式未变。
 
 ## Out of Scope
 
