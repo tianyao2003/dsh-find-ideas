@@ -1,15 +1,15 @@
 # dsh-find-ideas
 
 ![license](https://img.shields.io/badge/license-MIT-blue) ![node](https://img.shields.io/badge/node-%3E%3D22-brightgreen) ![runtime deps](https://img.shields.io/badge/runtime%20deps-0-brightgreen)
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.1.0--rc.2%20to%200.2.1--rc.1-blue)](#version) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.2.0--rc.2%20%7C%200.2.1--rc.2-blue)](#compatibility) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
 
 English | [中文](README.zh.md)
 
 **Before you build it, check whether it already exists.**
 
-Describe your idea in one sentence. The agent searches GitHub for similar projects, ranks them by relevance weighted with stars, and hands back a card. Pick a few repositories from the card and it reads their README, dependency manifest, directory tree and key files, then writes up an architecture you can borrow from.
+Describe your idea in one sentence. The agent searches GitHub for similar projects, ranks them by relevance weighted with stars, and returns a card. Pick a few repositories from it and the agent reads their README, dependency manifest, directory tree and key files, then writes up an architecture you can borrow from.
 
-<img width="2502" height="1462" alt="image" src="https://github.com/user-attachments/assets/e17fcf47-6aa1-45ef-830f-dc3885121908" />
+<img width="2502" height="1462" alt="a ranked card and the repository inspection that follows it" src="https://github.com/user-attachments/assets/e17fcf47-6aa1-45ef-830f-dc3885121908" />
 
 ## Install
 
@@ -24,7 +24,7 @@ dsh plugin --profile web add github:tianyao2003/dsh-find-ideas
 dsh plugin --profile web add /path/to/dsh-find-ideas
 ```
 
-Published on npm as `dsh-find-ideas`. Installing from GitHub runs the build once at install time and needs pnpm to allow build scripts; the npm package ships the compiled output, so there is no such step.
+The npm package is 391 KB to download, 805 KB unpacked, 28 files, and has no runtime dependencies. Installing from GitHub runs the build once at install time and needs pnpm to allow build scripts; the npm package ships the compiled output, so there is no such step.
 
 ### Configure a GitHub token (recommended)
 
@@ -56,29 +56,36 @@ Restart dsh after installing, then describe your idea — the agent calls the th
 - **`rank_candidates`** scores the pool with `relevance × (1 + log10(max(stars, 10) + 1)) / 2` and produces the card.
 - **`inspect_projects`** reads up to 5 repositories — README, dependency manifest, tree summary and a few key files.
 
-### What the cards guarantee
+### Reading the card
 
-- **Computed and supplied stay apart.** The ranked card declares which fields the code derived and which the caller (the agent invoking the tool) passed in. Caller text is truncated, escaped and labelled `[未验证]`, and never enters the arithmetic.
-- **A count nobody measured is never rendered as 0.** A query term that was never tested on its own reads 未知（未测得）; an archived field that is missing says 数据缺失; when the pool size was never measured the card reports only the reserved-seat count and never invents a total.
-- **Third-party text is always data.** Repository excerpts are wrapped in code blocks and escaped, so a line of README cannot impersonate card structure; the only hosts emitted as links are `github.com` and `raw.githubusercontent.com`.
-- **Failures come back as values.** Nothing throws out of a tool: every failure returns a `reason` and a `detail` you can act on, and a partial result says why it is partial.
-- **A restatement keeps every column.** The card says so itself: keep all eight columns when you restate it — dropping a row or a column is losing information, not shortening the table.
+- Eight columns, always in that order, and every row keeps every column.
+- `relevance` is the agent's 0–10 judgement; `score` is computed from it and the star count, so the order cannot be set from prose.
+- A number nobody measured is never written as `0`: a query term that was never tested on its own reads 未知（未测得）, a missing archive count reads 数据缺失.
+- Repository text is quoted as data, so a line of README cannot impersonate card structure; links are only ever `github.com` or `raw.githubusercontent.com`.
+- Nothing throws: a failure comes back as a `reason` and a `detail`, and a partial result says why it is partial.
+
+### Caching
+
+- In memory: up to 64 results, 5 minutes.
+- On disk: search results 24 hours, source reads 10 minutes, capped at 64 MB and swept about once an hour.
+- All of it under `$DSH_HOME/cache/dsh-find-ideas/`, and deleting that directory is always safe.
 
 ### What leaves your machine
 
-Search queries and repository paths go to `api.github.com`; `inspect_projects` only reads repository content on GitHub and never uploads your local code. The only other place data goes is the model that DSH itself uses, and only to translate an idea with no Latin letters when the caller supplied no Latin `keywords` — a purely English idea is never sent to a model for translation. Search results are cached for 24 hours and source reads for 10 minutes, both under `$DSH_HOME/cache/dsh-find-ideas/` locally.
+Search queries and repository paths go to `api.github.com`, and `inspect_projects` only reads repository content on GitHub — your local code is never uploaded. The one other destination is the model DSH already uses, and only to translate an idea with no Latin letters when the caller supplied no Latin `keywords`; a purely English idea is never sent anywhere for translation.
 
 ## Compatibility
 
-Requires Node ≥ 22. DSH plugin APIs are prerelease-versioned, and one range branch cannot reach across a minor version, so the `@deepseek-ai/dsh-tools` peer range names the versions it supports one minor line at a time (one entry per line); `npm run check:peers` resolves the `dsh-tools` version the current DSH host actually installs from the npm registry and fails when the range does not accept it. The Version section below lists which DSH versions each plugin release supports.
+Requires Node ≥ 22. The `@deepseek-ai/dsh-tools` peer range accepts every published version from `0.1.0-rc.6` on, which covers the current DSH release lines — `latest` (0.2.0-rc.2) and `next` (0.2.1-rc.2). `npm run check:peers` re-checks that against the npm registry.
 
 ## Version
 
-| Version | Update | DSH versions supported |
-| --- | --- | --- |
-| 0.2.1 (current) | Published to npm | `0.1.0-rc.2` through `0.2.1-rc.1` |
-| 0.2.0 | The card states how many query channels found each row and how many rows on the board are archived, and writes the "keep all eight columns when restating" rule into the card itself. | `0.1.0-rc.2` through `0.2.1-rc.1` |
-| 0.1.0 | First usable version: the `scout_projects` → `rank_candidates` → `inspect_projects` chain, and the rule that keeps computed fields apart from caller-supplied ones. | `0.1.0-rc.2` through `0.2.0-rc.2` |
+| Version | What changed |
+| --- | --- |
+| 0.3.0 (current) | Cache and package footprint. Descriptions are stored at 512 characters instead of unbounded, the in-memory cache is capped at 64 entries, the disk cache sweeps expired entries and stays under 64 MB, and the published package no longer ships `src/`, `test/`, `scripts/` or source maps — 805 KB unpacked instead of 2.07 MB. Tool names, parameters and output are unchanged. |
+| 0.2.1 | Published to npm. Same functionality as 0.2.0. |
+| 0.2.0 | The card shows how many query channels found each row and how many rows are archived repositories. |
+| 0.1.0 | First usable version: the `scout_projects` → `rank_candidates` → `inspect_projects` chain. |
 
 ## Development
 
@@ -90,16 +97,15 @@ npm run typecheck     # tsc --noEmit
 npm run check:peers   # check the peer range against the current DSH versions
 ```
 
-`test/` holds 27 `*.test.mjs` files. `test/run-all.test.mjs` runs the 26 that are not itself, and two of those (`baseline`, `stage2`) skip because the recorded test data under `eval/runs/` was never ported — so a full local run verifies **24 files**. Skips are listed under `skipped (fixture absent, NOT verified)` and never counted as passes.
+`test/` holds 30 `*.test.mjs` files. `test/run-all.test.mjs` runs the 29 that are not itself, and two of those (`baseline`, `stage2`) skip because the recorded test data under `eval/runs/` was never ported — so a full local run is **27 files and 6463 assertions**. Skips are listed under `skipped (fixture absent, NOT verified)` and never counted as passes.
 
 ## Contributing
 
 Issues and pull requests are both welcome.
 
-- **Report a problem or ask for a feature**: open an issue with the idea you typed, the result you expected and the result you got. Tool output is in Chinese; paste the ranked card it returned.
+- **Report a problem or ask for a feature**: open an issue with the idea you typed, the result you expected and the result you got.
 - **Change the code**: fork, branch off `master`, make the change with a test, run `npm run check && npm test` until green, then open a pull request. CI runs the same two commands on Node 22 and 24.
 - **One change per PR**: a PR solves one problem; commit messages use prefixes such as `feat:` / `fix:` / `docs:` / `chore:`.
-- **Change the card's wording**: the table header and the notes on the card are asserted word for word by tests (see `test/render-table.test.mjs`), so the test changes along with the text; `.trellis/spec/` holds this project's development conventions (generated by Trellis, committed with the repo), and the relevant section needs updating too.
 
 ## License
 

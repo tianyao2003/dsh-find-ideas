@@ -1,15 +1,15 @@
 # dsh-find-ideas
 
 ![license](https://img.shields.io/badge/license-MIT-blue) ![node](https://img.shields.io/badge/node-%3E%3D22-brightgreen) ![runtime deps](https://img.shields.io/badge/runtime%20deps-0-brightgreen)
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.1.0--rc.2%20to%200.2.1--rc.1-blue)](#版本) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.2.0--rc.2%20%7C%200.2.1--rc.2-blue)](#兼容性) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
 
 [English](README.md) | 中文
 
 **动手造轮子之前，先看看有没有人已经做过。**
 
-用一句话描述你的想法，agent 会去 GitHub 上搜索同类项目，按「相关性 × star 加权」打分排序后返回一张卡片。你从卡片里挑几个仓库，它再去读这些仓库的 README、依赖清单、目录树和关键文件，整理出一份可以借鉴的架构方案。
+用一句话描述你的想法，agent 会去 GitHub 上搜索同类项目，按「相关性 × star 加权」打分排序后返回一张卡片。你从卡片里挑几个仓库，agent 再去读它们的 README、依赖清单、目录树和关键文件，整理出一份可以借鉴的架构方案。
 
-<img width="2502" height="1462" alt="image" src="https://github.com/user-attachments/assets/0a8d4b2f-dd72-4628-81c5-2c25cb0f1473" />
+<img width="2502" height="1462" alt="排序卡片，以及随后对仓库的源码阅读" src="https://github.com/user-attachments/assets/0a8d4b2f-dd72-4628-81c5-2c25cb0f1473" />
 
 ## 安装
 
@@ -24,7 +24,7 @@ dsh plugin --profile web add github:tianyao2003/dsh-find-ideas
 dsh plugin --profile web add /path/to/dsh-find-ideas
 ```
 
-已发布到 npm，包名 `dsh-find-ideas`。从 GitHub 装会在安装时跑一次构建，需要 pnpm 放行构建脚本；从 npm 装拿到的是编译好的产物，没有这一步。
+npm 包下载 391 KB，解包 805 KB、28 个文件，没有运行时依赖。从 GitHub 装会在安装时跑一次构建，需要 pnpm 放行构建脚本；从 npm 装拿到的是编译好的产物，没有这一步。
 
 ### 配置 GitHub token（推荐）
 
@@ -46,7 +46,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 - 「我想做一个本地优先的 Markdown 笔记应用，帮我看一下 GitHub 上的项目。」
 - 「我想做一个 UI 增强的 DSH 插件，GitHub 上有哪些项目？」
 
-`scout_projects` → `rank_candidates` → `inspect_projects` 三个工具彼此独立，不共享状态。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。排序卡片固定八列：序号、项目、最近更新、relevance、stars、得分、开发语言、简介。
+`scout_projects` → `rank_candidates` → `inspect_projects` 三个工具彼此独立，不共享状态。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。排序卡片固定八列：序号、项目、最近更新、relevance、stars、得分、语言、简介。
 
 ## 工作方式
 
@@ -56,29 +56,36 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 - **`rank_candidates`**：用 `relevance × (1 + log10(max(stars, 10) + 1)) / 2` 给候选池打分并生成卡片。
 - **`inspect_projects`**：最多读 5 个仓库，包括 README、依赖清单、目录树摘要和几个关键文件。
 
-### 卡片给出的保证
+### 怎么看这张卡片
 
-- **算出来的和传进来的分开。** 排序卡会声明哪些字段由代码算出、哪些由调用方（也就是调用工具的那个 agent）传入。调用方给的文字会被截断、转义并标上 `[未验证]`，永远不参与算术。
-- **没测到的数量不会写成 0。** 查询词没单独测过，显示「未知（未测得）」；归档字段缺失，明说「数据缺失」；候选池总数没测过时，只报保留槽位的数量，不编造池子里的总数。
-- **第三方文本一律当作数据。** 仓库摘录用代码块包住并转义，README 里的一行无法冒充卡片结构；能作为链接输出的，只有 `github.com` 和 `raw.githubusercontent.com`。
-- **失败也走返回值。** 工具不抛异常：每次失败都返回可以据以行动的 `reason` 和 `detail`，结果不完整时会说明为什么不完整。
-- **复述不能丢列。** 卡片自己写着：复述它时八列必须全部保留，删掉一行或一列是丢信息，不是把表格缩短。
+- 固定八列，顺序固定，每一行都保留全部列。
+- `relevance` 是 agent 给出的 0–10 判断；`score` 由它和 star 数算出，所以顺序没法用一句话指定。
+- 没测到的数量不会写成 `0`：查询词没单独测过显示「未知（未测得）」，归档数量缺失显示「数据缺失」。
+- 仓库里的文字一律当数据引用，README 里的一行没法冒充卡片结构；能作为链接输出的只有 `github.com` 和 `raw.githubusercontent.com`。
+- 工具不抛异常：失败会返回 `reason` 和 `detail`，结果不完整时会说明为什么不完整。
+
+### 缓存
+
+- 内存里最多 64 条，5 分钟。
+- 磁盘上搜索结果存 24 小时、源码读取存 10 分钟，总量不超过 64 MB，大约每小时清理一次。
+- 都在 `$DSH_HOME/cache/dsh-find-ideas/` 下，删掉这个目录永远安全。
 
 ### 数据去向
 
-搜索查询和仓库路径会发到 `api.github.com`；`inspect_projects` 只读取 GitHub 上的仓库内容，不会上传你本地的代码。另一处出口是运行插件的 DSH 所用的模型，只有在想法不含拉丁字母、调用方又没给拉丁字母的 `keywords` 时，才用来翻译——纯英文的想法不会为了翻译而发给模型。搜索结果缓存 24 小时，源码读取结果缓存 10 分钟，都在本地 `$DSH_HOME/cache/dsh-find-ideas/`。
+搜索查询和仓库路径会发到 `api.github.com`；`inspect_projects` 只读取 GitHub 上的仓库内容，不会上传你本地的代码。另一处出口是运行插件的 DSH 所用的模型，只有在想法不含拉丁字母、调用方又没给拉丁字母的 `keywords` 时，才用来翻译——纯英文的想法不会为了翻译而发给模型。
 
 ## 兼容性
 
-需要 Node ≥ 22。DSH 插件 API 使用预发布版本号，而一个 range 分支跨不过小版本号，所以 `@deepseek-ai/dsh-tools` 的 peer range 按小版本逐条列出要支持的版本（每个小版本一条）；`npm run check:peers` 会从 npm registry 查出当前 DSH 宿主实际安装的 `dsh-tools` 版本，一旦 range 不接受它就报错。每个插件版本各自支持哪些 DSH 版本，见下面「版本」一节。
+需要 Node ≥ 22。`@deepseek-ai/dsh-tools` 的 peer range 接受从 `0.1.0-rc.6` 起的所有已发布版本，覆盖当前两条 DSH 发布线——`latest`（0.2.0-rc.2）和 `next`（0.2.1-rc.2）。`npm run check:peers` 会拿 npm registry 上的实际版本再核一遍。
 
 ## 版本
 
-| 版本 | 更新 | 适配的 DSH 版本 |
-| --- | --- | --- |
-| 0.2.1（当前） | 发布到 npm，功能与 0.2.0 相同。 | `0.1.0-rc.2` 到 `0.2.1-rc.1` |
-| 0.2.0 | 卡片标出每行被几个查询命中、榜上有多少行是归档仓库，并把「复述时八列必须全部保留」写进卡片本身。 | `0.1.0-rc.2` 到 `0.2.1-rc.1` |
-| 0.1.0 | 首个可用版本：`scout_projects` → `rank_candidates` → `inspect_projects` 三工具链路，以及把「算出来的」和「传进来的」分开的规则。 | `0.1.0-rc.2` 到 `0.2.0-rc.2` |
+| 版本 | 更新 |
+| --- | --- |
+| 0.3.0（当前） | 缓存与包体。简介按 512 字符存储而不是无限长，内存缓存上限 64 条，磁盘缓存会清理过期条目并保持在 64 MB 以内，发布包里不再包含 `src/`、`test/`、`scripts/` 和 source map——解包 805 KB，原来是 2.07 MB。工具名、参数和输出都没变。 |
+| 0.2.1 | 发布到 npm，功能与 0.2.0 相同。 |
+| 0.2.0 | 卡片标出每行被几个查询命中、榜上有多少行是归档仓库。 |
+| 0.1.0 | 首个可用版本：`scout_projects` → `rank_candidates` → `inspect_projects` 三工具链路。 |
 
 ## 开发
 
@@ -90,11 +97,11 @@ npm run typecheck     # tsc --noEmit
 npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
 ```
 
-`test/` 下有 27 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身之外的 26 个，其中两个（`baseline`、`stage2`）因为 `eval/runs/` 下录好的测试数据从未移植过来而跳过——所以本地完整跑一遍，验证的是 **24 个文件**。跳过的会列在 `skipped (fixture absent, NOT verified)` 下面，绝不算作通过。
+`test/` 下有 30 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身之外的 29 个，其中两个（`baseline`、`stage2`）因为 `eval/runs/` 下录好的测试数据从未移植过来而跳过——所以本地完整跑一遍是 **27 个文件、6463 条断言**。跳过的会列在 `skipped (fixture absent, NOT verified)` 下面，绝不算作通过。
 
 ## 贡献
 
-欢迎 issue 和 PR ！ 
+欢迎 issue 和 PR！
 
 - **报问题 / 提需求**：开 issue，写清你输入的想法、期望的结果和实际结果。
 - **改代码**：fork → 从 `master` 切分支 → 改代码并补测试 → `npm run check && npm test` 全绿 → 提 pull request。CI 在 Node 22 和 24 上跑的也是这两条命令。
