@@ -41,12 +41,12 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ## 使用
 
-安装后重启 dsh，然后直接说出你的想法，agent 会自己调用三个内置工具：
+安装后重启 dsh，然后直接说出你的想法，agent 会自己调用四个内置工具：
 
 - 「我想做一个本地优先的 Markdown 笔记应用，帮我看一下 GitHub 上的项目。」
 - 「我想做一个 UI 增强的 DSH 插件，GitHub 上有哪些项目？」
 
-`scout_projects` → `rank_candidates` → `inspect_projects` 三个工具彼此独立，不共享状态。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。排序卡片固定八列：序号、项目、最近更新、relevance、stars、得分、语言、简介。
+`scout_projects` → `rank_candidates` → `inspect_projects` → `read_repo_files` 四个工具彼此独立，不共享状态。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。排序卡片固定八列：序号、项目、最近更新、relevance、stars、得分、语言、简介。
 
 ## 工作方式
 
@@ -55,6 +55,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 - **`scout_projects`**：把想法拆成多条 GitHub 搜索查询，返回按 star 排序的候选池，刻意**不**按相关性排序。想法里不含拉丁字母时，会先翻译成英文检索词；如果做不到（调用方没给拉丁字母的 `keywords`、又没有可用的 LLM），就返回 `plan_failed`。
 - **`rank_candidates`**：用 `relevance × (1 + log10(max(stars, 10) + 1)) / 2` 给候选池打分并生成卡片。
 - **`inspect_projects`**：最多读 5 个仓库，包括 README、依赖清单、目录树摘要和几个关键文件。
+- **`read_repo_files`**：在**同一个提交**上点读一个仓库里的最多 4 个文件，返回一段行窗口（`focus` 会把窗口落在命中词所在行附近）以及带提交号和行范围的永久链接。它读多少就只返回多少：字节预算是上限，不是建议值。
 
 ### 怎么看这张卡片
 
@@ -72,7 +73,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ### 数据去向
 
-搜索查询和仓库路径会发到 `api.github.com`；`inspect_projects` 只读取 GitHub 上的仓库内容，不会上传你本地的代码。另一处出口是运行插件的 DSH 所用的模型，只有在想法不含拉丁字母、调用方又没给拉丁字母的 `keywords` 时，才用来翻译——纯英文的想法不会为了翻译而发给模型。
+搜索查询和仓库路径会发到 `api.github.com`；`inspect_projects` 和 `read_repo_files` 只读取 GitHub 上的仓库内容，不会上传你本地的代码。另一处出口是运行插件的 DSH 所用的模型，只有在想法不含拉丁字母、调用方又没给拉丁字母的 `keywords` 时，才用来翻译——纯英文的想法不会为了翻译而发给模型。
 
 ## 兼容性
 

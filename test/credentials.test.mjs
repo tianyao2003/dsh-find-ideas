@@ -183,12 +183,12 @@ console.log('\n=== C4. it is NOT registered as a tool (the exposure decision sta
   const defs = new Map()
   mod.apply({ tools: { register: (d) => defs.set(d.name, d) }, get: () => undefined })
   const names = [...defs.keys()]
-  check('apply() still registers exactly the three pipeline tools',
-    names.length === 3, names.join(', '))
+  check('apply() registers the pipeline tools and nothing else',
+    names.length === 4, names.join(', '))
   check('no token-configuring tool is exposed',
     !names.some((n) => /token|credential|configure/i.test(n)), names.join(', '))
-  check('the three registered tools are the expected ones',
-    ['scout_projects', 'rank_candidates', 'inspect_projects'].every((n) => defs.has(n)), names.join(', '))
+  check('the four registered tools are the expected ones',
+    ['scout_projects', 'rank_candidates', 'inspect_projects', 'read_repo_files'].every((n) => defs.has(n)), names.join(', '))
   check('the credential service is not part of the static inject list',
     !(mod.inject ?? []).includes('credentials'),
     JSON.stringify(mod.inject))

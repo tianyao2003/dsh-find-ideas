@@ -581,6 +581,16 @@ export interface TreeEntry {
   path: string
   type: string
   size?: number
+  /**
+   * The git object id of this entry, at the commit the tree was read from.
+   *
+   * Kept because it is the only way to build a permalink that still means
+   * something later: `blob/HEAD/<path>` resolves to whatever the default branch
+   * says at click time, which is not evidence of what was read. The trees API
+   * returns this on every entry; `getTree` used to drop it, so a caller wanting a
+   * stable reference had no way to obtain one.
+   */
+  sha?: string
 }
 
 /**
@@ -610,6 +620,7 @@ export async function getTree(
         path: String(item.path ?? ''),
         type: String(item.type ?? ''),
         size: Number.isFinite(size) ? size : undefined,
+        sha: typeof item.sha === 'string' && item.sha.length > 0 ? item.sha : undefined,
       }
     })
     const cap = Math.max(1, Math.floor(maxEntries))
@@ -626,30 +637,78 @@ export async function getTree(
  * @param fullName - `owner/repo`.
  * @param path - repository-relative path, e.g. `src/index.ts`.
  * @param maxChars - truncation budget per file.
- * @param options - token and cancellation, plus an optional branch.
- * @returns file text, or an empty string with an `error`.
+ * @param options - token and cancellation, plus an optional branch or commit.
+ * @returns file text plus its blob sha, or an empty string with an `error`.
  */
 export async function getFileContent(
   fullName: string,
   path: string,
   maxChars: number,
   options: RequestOptions & { branch?: string } = {},
-): Promise<{ text: string; truncated: boolean; error?: string }> {
+): Promise<{ text: string; truncated: boolean; sha?: string; error?: string }> {
   const encodedPath = path.split('/').map(segment => encodeURIComponent(segment)).join('/')
   const ref = options.branch === undefined || options.branch.length === 0 ? '' : `?ref=${encodeURIComponent(options.branch)}`
   try {
     const { body } = await requestJson(`/repos/${repoPath(fullName)}/contents/${encodedPath}${ref}`, options)
-    const payload = body as { content?: unknown; encoding?: unknown; type?: unknown }
+    const payload = body as { content?: unknown; encoding?: unknown; type?: unknown; sha?: unknown }
     if (payload.type === 'dir') return { text: '', truncated: false, error: '这是一个目录，不是文件' }
+    // The blob sha identifies the exact bytes returned, so it is the one piece of
+    // evidence that survives a later force-push: a commit link can be rewritten
+    // out of existence, a content hash cannot. Carried alongside the text rather
+    // than fetched separately because the contents response already contains it.
+    const sha = typeof payload.sha === 'string' && /^[0-9a-f]{40}$/i.test(payload.sha) ? payload.sha : undefined
     const raw = typeof payload.content === 'string' ? payload.content : ''
     if (raw.length === 0) return { text: '', truncated: false, error: '文件没有正文内容' }
     const encoding = typeof payload.encoding === 'string' ? payload.encoding : 'base64'
     const decoded = encoding === 'base64' ? Buffer.from(raw, 'base64').toString('utf8') : raw
     const clipped = decoded.slice(0, Math.max(0, maxChars))
-    return { text: clipped, truncated: decoded.length > clipped.length }
+    return { text: clipped, truncated: decoded.length > clipped.length, sha }
   } catch (error) {
     if (error instanceof GitHubSearchRateLimited) throw error
     return { text: '', truncated: false, error: describeFailure(error) }
+  }
+}
+
+/**
+ * Resolve the commit that a point read should be pinned to.
+ *
+ * ## Why this costs a request
+ *
+ * `blob/HEAD/<path>` resolves at click time, so a card built on it says "this is
+ * what the file looks like now", not "this is what I read". Measured against
+ * GitHub's own pages: `/blob/<blob-sha>/README.md` returns 404 — the web UI only
+ * accepts a commit sha, branch or tag — so the blob sha cannot stand in for a
+ * commit. That leaves two honest options, and this is the cheaper one: spend ONE
+ * request per call to learn the default branch's tip commit, then read every file
+ * at that commit so the links and the bytes describe the same snapshot.
+ *
+ * The alternative — no extra request, `blob/HEAD` links, and a sentence saying
+ * the links are not permanent — was rejected because it makes every card carry a
+ * caveat for the sake of one request that is shared by all files in the call.
+ *
+ * @param fullName - `owner/repo`.
+ * @param options - token and cancellation.
+ * @returns the 40-hex commit sha, or an empty string with an `error`.
+ * @throws {GitHubSearchRateLimited} when GitHub reports rate limiting.
+ */
+export async function getHeadCommit(
+  fullName: string,
+  options: RequestOptions = {},
+): Promise<{ sha: string; error?: string }> {
+  try {
+    const { body } = await requestJson(`/repos/${repoPath(fullName)}/commits?per_page=1`, options)
+    // The documented shape is an array. A single object is accepted too because
+    // the alternative is failing on a shape GitHub itself has served for the
+    // single-commit endpoints, and a sha that is present is a sha.
+    const first: unknown = Array.isArray(body) ? body[0] : body
+    const raw = first !== null && typeof first === 'object' ? (first as { sha?: unknown }).sha : undefined
+    if (typeof raw !== 'string' || !/^[0-9a-f]{40}$/i.test(raw)) {
+      return { sha: '', error: 'GitHub 没有返回可用的提交号' }
+    }
+    return { sha: raw }
+  } catch (error) {
+    if (error instanceof GitHubSearchRateLimited) throw error
+    return { sha: '', error: describeFailure(error) }
   }
 }
 

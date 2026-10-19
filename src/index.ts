@@ -1,12 +1,14 @@
 /**
  * dsh-find-ideas — the plugin entry point.
  *
- * This file registers the three tools and nothing else. The logic they call
+ * This file registers the four tools and nothing else. The logic they call
  * lives in focused modules:
  *
  *   - `query.ts`   — idea text -> GitHub search plan (pure)
  *   - `select.ts`  — repository tree -> the four files worth reading (pure)
  *   - `render.ts`  — computed values -> the text a model reads (pure)
+ *   - `read.ts`    — file text -> which window a point read returns (pure)
+ *   - `preamble.ts`— file text -> where the body starts, past licence/imports (pure)
  *   - `github.ts`  — the transport, plus pool selection and quoting
  *   - `cache.ts`   — memory + disk caching, with silent memory-only fallback
  *   - `types.ts`   — the ranking formula and the cache-key shape
@@ -22,13 +24,14 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { cacheGet, cacheGetWithMeta, cacheSet, SOURCE_TTL_MS } from './cache.ts'
-import { GitHubSearchRateLimited, countLowStar, describeFailure, describeProbeOutcome, describeUnavailableProbeDiagnostic, getCoreQuota, getFileContent, getReadme, getTree, proxyHint, searchMerged, type AuthOptions } from './github.ts'
-import { describeLexiconMiss, describePartialFailure, describePlanFailure, describeReplayedIncompleteness, describeReplayedThinness, explainThinResult, thinResultKind, tryPlanQueries, type QueryStep, type ThinKind } from './query.ts'
+import { GitHubSearchRateLimited, countLowStar, describeFailure, describeProbeOutcome, describeUnavailableProbeDiagnostic, getCoreQuota, getFileContent, getHeadCommit, getReadme, getTree, proxyHint, searchMerged, type AuthOptions } from './github.ts'
+import { MAX_QUERY_TERMS, describeLexiconMiss, describePartialFailure, describePlanFailure, describeReplayedIncompleteness, describeReplayedThinness, explainThinResult, significantTerms, thinResultKind, tryPlanQueries, type QueryStep, type ThinKind } from './query.ts'
 import { MANIFEST_RE, SELECTOR_VERSION, pickArchitectureFiles, treeEvidence } from './select.ts'
 import { SCANNER_VERSION } from './skeleton.ts'
 import { describeExcerpt, extractReadmeLead, renderReadmeExcerpt } from './excerpts.ts'
+import { looksBinary, pickWindow } from './read.ts'
 import { termBudget, translateIdea, translationFailed, type TranslateDeps } from './translate.ts'
-import { INSPECT_FORMAT_VERSION, README_LEAD_CHARS, type Inspection, renderCandidates, renderInspections, renderRanked, renderSkeletonCard, type SkeletonCardEntry } from './render.ts'
+import { INSPECT_FORMAT_VERSION, README_LEAD_CHARS, type Inspection, type ReadFileResult, type ReadRefKind, renderCandidates, renderInspections, renderRanked, renderReadFiles, renderSkeletonCard, type SkeletonCardEntry } from './render.ts'
 import {
   type Degraded,
   type RankedCandidate,
@@ -170,6 +173,77 @@ const MAX_LIMIT = 30
 
 /** Cap on repositories per inspection call, for the same reason as MAX_LIMIT. */
 const MAX_INSPECT_REPOS = 5
+
+/** Cap on file paths per point read, for the same reason as MAX_LIMIT. */
+const MAX_READ_PATHS = 4
+
+/**
+ * Byte budget for one point-read card: default, floor and ceiling.
+ *
+ * All three are measured, not chosen (`.scratch/probe-read-frame.cjs`): the card's
+ * fixed framing is ~1,256 bytes of shared header plus ~818 bytes per file, and the
+ * smallest budget that can return a single file with a real window is ~3,040 bytes
+ * (a short repo and path) to ~3,256 (long ones).
+ *
+ * The floor is above that, because a floor below the achievable minimum would
+ * advertise a budget that can never succeed — the caller would be inside the
+ * documented range and still refused. The ceiling is 8 KiB for the same reason
+ * the whole task exists: `max_bytes` is a LIMIT, not a request for a large
+ * response. One call that returns 32 KB costs more than the inspection it is
+ * meant to replace, so the range itself enforces the byte discipline instead of
+ * trusting the caller to.
+ */
+const READ_BYTES_DEFAULT = 8000
+const READ_BYTES_FLOOR = 4000
+const READ_BYTES_CEILING = 8192
+
+/**
+ * Slack held back from the body share, once per call, when the shrink loop in
+ * `read_repo_files` hands out windows.
+ *
+ * The frame itself is MEASURED there (`frameBytes`, rendered from the real
+ * metadata with empty bodies), so this is not the frame's cost. It covers what
+ * that measurement cannot see: the escaper expanding a body (`|`, `<`, backtick
+ * each become two bytes) and the `#L<a>-L<b>` anchor growing from the
+ * placeholder's short form to a real line range. Without it a card whose bodies
+ * escape badly lands a few bytes over budget and the loop defers a file it did
+ * not have to.
+ */
+const FRAME_ALLOWANCE_BYTES = 400
+
+/**
+ * Smallest window worth returning for one file.
+ *
+ * Below this a "window" is a line or two with no surrounding context — enough to
+ * mislead, not enough to judge. A file that cannot get this much says so in its
+ * row instead of returning a fragment that looks like the answer.
+ */
+const MIN_WINDOW_BYTES = 600
+
+/**
+ * Characters of a file fetched before windowing, independent of `max_bytes`.
+ *
+ * Deliberately much larger than the returned window: `focus` has to be able to
+ * find its hit ANYWHERE in the file, and a read capped at the output budget would
+ * only ever find hits in the first few hundred lines — the exact failure the
+ * point-read tool exists to fix. The cost of fetching more is network bytes, not
+ * model tokens; what reaches the model is still the window.
+ *
+ * 120k characters covers essentially every hand-written source file (the largest
+ * file in the 48-repository fixture is ~40k) while staying well inside the
+ * contents API's 1 MB response limit.
+ */
+const READ_SOURCE_CHARS = 120000
+
+/**
+ * Wall-clock ceiling on one point read.
+ *
+ * One commit lookup plus at most four file reads: at the measured p90 of ~640ms
+ * per request that is ~3.2s, so 30s is roughly 10x headroom. Not the 60s of
+ * `inspect_projects`, because this tool does far less work and a caller that
+ * waits a minute for four files has already lost the turn.
+ */
+export const READ_TIMEOUT_MS = 30000
 
 /**
  * Per-depth inspection budget.
@@ -1927,5 +2001,373 @@ export function apply(ctx: Context): void {
       return { idea, cached: false, depth, requests_used: requestsUsed, inspections, degraded }
     },
     timeoutMs: INSPECT_TIMEOUT_MS,
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'read_repo_files',
+    description:
+      'STEP 3: point-read files of a repository. Use it when `inspect_projects` did not show a file, or ' +
+      'collapsed part of one — read it here instead of guessing from the name. Each path returns its line range, ' +
+      'the text in an untrusted fence, a commit-pinned link, and the blob sha of these bytes. ' +
+      'FOCUS: the terms you seek; the window centres on the best matching line (±40), not the head — which is how ' +
+      'you find where a concept lives. ' +
+      'BUDGET: `max_bytes` caps the whole response and is split across paths; a file that does not fit is listed ' +
+      'with a note, never silently dropped. One request for the commit plus one per path. ' +
+      'An invalid repo or path, more than 4 paths, or an out-of-range `max_bytes` is refused with the rule it ' +
+      'broke and nothing is fetched. Quote what you read and name the lines; say so when a file was not returned.',
+    parameters: {
+      repo: {
+        type: 'string',
+        required: true,
+        description: 'The repository as "owner/repo".',
+      },
+      paths: {
+        type: 'array',
+        required: true,
+        items: { type: 'string' },
+        description:
+          `Repository-relative paths (no leading /), at most ${MAX_READ_PATHS} per call, all read at one commit.`,
+      },
+      focus: {
+        type: 'string',
+        description:
+          'Optional terms locating the window: it centres on the line matching most of them (±40 lines). ' +
+          'When none match you get the head, and the card says so.',
+      },
+      max_bytes: {
+        type: 'number',
+        description:
+          `Optional byte budget for the whole response (default ${READ_BYTES_DEFAULT}, ` +
+          `${READ_BYTES_FLOOR}–${READ_BYTES_CEILING}), split across the paths.`,
+      },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          repo: { type: 'string', required: true },
+          ref: { type: 'string', required: true },
+          ref_kind: { type: 'string', required: true },
+          requests_used: { type: 'number', required: true },
+          files: {
+            type: 'array',
+            required: true,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                path: { type: 'string', required: true },
+                ok: { type: 'boolean', required: true },
+                error: { type: 'string', required: true },
+                sha: { type: 'string', required: true },
+                start_line: { type: 'number', required: true },
+                end_line: { type: 'number', required: true },
+                hit_line: { type: 'number', required: true },
+                window_kind: { type: 'string', required: true },
+                text: { type: 'string', required: true },
+                truncated: { type: 'boolean', required: true },
+                read_chars: { type: 'number', required: true },
+                read_truncated: { type: 'boolean', required: true },
+                note: { type: 'string', required: true },
+              },
+            },
+          },
+          degraded: {
+            required: true,
+            oneOf: [
+              {
+                type: 'object',
+                additionalProperties: false,
+                properties: {
+                  reason: { type: 'string', required: true },
+                  detail: { type: 'string', required: true },
+                },
+              },
+              { type: 'null' },
+            ],
+          },
+        },
+      },
+      render: (_args, value) => [
+        {
+          type: 'text',
+          text: renderReadFiles(
+            value.repo,
+            value.ref,
+            value.ref_kind as ReadRefKind,
+            value.files as ReadFileResult[],
+            value.degraded as Degraded | null,
+          ),
+        },
+      ],
+    },
+    execute: async (args, exec) => {
+      const empty = { repo: '', ref: '', ref_kind: 'default-branch', requests_used: 0, files: [] as ReadFileResult[], degraded: null as Degraded | null }
+
+      // Same discipline as `inspect_projects`: validate first, refuse rather
+      // than drop, and name the rule that was broken.
+      const repoCheck = collectValidated(typeof args.repo === 'string' ? [args.repo] : [], validateRepo, '仓库名')
+      if (repoCheck.refusals.length > 0) {
+        const detail =
+          `repo 不是合法的 "owner/name"：${repoCheck.refusals.join('；')}。` +
+          `要求：恰好两段、非空、只含 GitHub 允许的字符（字母、数字、. _ -），不含 ".."、空白或控制字符。` +
+          `本次没有读取任何文件——请修正后重新调用。`
+        return { ...empty, degraded: { reason: 'invalid_repo', detail } }
+      }
+      const repo = repoCheck.values[0]
+      // MEASURED: this branch is unreachable through the harness — `repo` is
+      // `required: true` in the parameter schema, so a call without it dies in
+      // `ToolArgsError: invalid arguments: missing required property "repo"`
+      // before `execute` is entered (pinned by `test/read-files.test.mjs` R2).
+      // It stays because `noUncheckedIndexedAccess` makes `values[0]` possibly
+      // undefined and a silent `undefined` repo would become a request to
+      // `/repos/undefined/...`; the wording matches the sibling refusals so a
+      // direct `execute` call gets the same answer as a validated one.
+      if (repo === undefined) {
+        const detail = '没有提供 repo。请传入形如 "owner/repo" 的字符串。'
+        return { ...empty, degraded: { reason: 'no_repo', detail } }
+      }
+
+      const pathCheck = collectValidated(args.paths, validateFilePath, '文件路径')
+      if (pathCheck.refusals.length > 0) {
+        const detail =
+          `以下 paths 不是合法的仓库内相对路径：${pathCheck.refusals.join('；')}。` +
+          `要求：不含 ".." 路径段、不含控制字符、不是绝对路径。` +
+          `这些条目已拒绝，本次没有读取任何文件——请修正后重新调用。`
+        return { ...empty, repo, degraded: { reason: 'invalid_paths', detail } }
+      }
+      const requestedPaths = pathCheck.values
+      if (requestedPaths.length === 0) {
+        const detail = '没有提供任何文件路径。请传入形如 ["src/main.ts"] 的数组。'
+        return { ...empty, repo, degraded: { reason: 'no_paths', detail } }
+      }
+      if (requestedPaths.length > MAX_READ_PATHS) {
+        const detail =
+          `一次最多点读 ${MAX_READ_PATHS} 个文件，收到 ${requestedPaths.length} 个。` +
+          `请只保留这次真正要读的文件，分批调用；每个 path 都要花一个请求。`
+        return { ...empty, repo, degraded: { reason: 'too_many_paths', detail } }
+      }
+      const paths = requestedPaths.slice(0, MAX_READ_PATHS)
+
+      const rawBudget = args.max_bytes
+      if (rawBudget !== undefined && (!Number.isFinite(rawBudget) || rawBudget < READ_BYTES_FLOOR || rawBudget > READ_BYTES_CEILING)) {
+        const detail =
+          `max_bytes 必须是 ${READ_BYTES_FLOOR}–${READ_BYTES_CEILING} 之间的字节数，收到 ${JSON.stringify(rawBudget)}。` +
+          `它是一次返回的总预算，不是"要一个大响应"的请求；低于 ${READ_BYTES_FLOOR} 连卡框（围栏、链接、指纹）都装不下，` +
+          `所以直接拒绝而不是返回超出你要求的内容。`
+        return { ...empty, repo, degraded: { reason: 'invalid_max_bytes', detail } }
+      }
+      const budget = rawBudget === undefined ? READ_BYTES_DEFAULT : Math.floor(rawBudget)
+
+      const focus = typeof args.focus === 'string' ? args.focus.trim() : ''
+      const terms = focus.length === 0 ? [] : significantTerms(focus).slice(0, MAX_QUERY_TERMS)
+
+      const token = await resolveGitHubToken(ctx)
+      let requestsUsed = 0
+      const countRequest = (): void => { requestsUsed += 1 }
+      const deadline = Date.now() + Math.floor(READ_TIMEOUT_MS * TIME_BUDGET_SHARE)
+      const options: AuthOptions = { token, signal: exec?.signal, deadline, onRequest: countRequest }
+
+      // Refuse a budget that cannot even hold the framing BEFORE spending any
+      // request. This check used to sit after the commit lookup, which made the
+      // refusal report `requests_used: 0` while one request had in fact gone out —
+      // a card that miscounts its own cost in the very change about counting cost.
+      // The honest answer to a too-small budget is the arithmetic, and the
+      // arithmetic is free.
+      const placeholder: ReadFileResult[] = paths.map(path => ({
+        path,
+        ok: true,
+        error: '',
+        sha: 'x'.repeat(40),
+        start_line: 1,
+        end_line: 1,
+        hit_line: 1,
+        window_kind: 'focus',
+        text: '',
+        truncated: true,
+        read_chars: 0,
+        read_truncated: false,
+        note: '',
+      }))
+      // Measured against BOTH ref kinds and the larger kept: the fallback card
+      // carries an extra warning line, so a budget that fits the commit card would
+      // otherwise be refused only on the calls where the commit lookup failed —
+      // a refusal that depends on an unrelated failure is not a rule.
+      const frameLowerBound = Math.max(
+        Buffer.byteLength(renderReadFiles(repo, 'x'.repeat(40), 'commit', placeholder, null), 'utf8'),
+        Buffer.byteLength(renderReadFiles(repo, '', 'default-branch', placeholder, null), 'utf8'),
+      )
+      // `frameLowerBound` is rendered from one row per path, so the per-file
+      // framing (link, window sentence, fingerprint, licence lines) is ALREADY in
+      // it. Only the escape slack is once per call; adding an allowance per file
+      // here double-counts and, measured, refuses the 4-path call at the default
+      // budget that the parameter description promises.
+      const needed = frameLowerBound + FRAME_ALLOWANCE_BYTES + MIN_WINDOW_BYTES * paths.length
+      if (budget < needed) {
+        const detail =
+          `max_bytes=${budget} 装不下这次调用的固定开销：${paths.length} 个文件的卡框（未信任声明、链接、内容指纹、` +
+          `行范围说明）本身约 ${frameLowerBound} 字节，加上每文件至少 ${MIN_WINDOW_BYTES} 字节正文和 ` +
+          `${FRAME_ALLOWANCE_BYTES} 字节转义余量，需要约 ${needed} 字节。` +
+          `本次没有发出任何请求，也没有读取任何文件——请提高 max_bytes 或减少 paths。`
+        return { ...empty, repo, degraded: { reason: 'budget_too_small', detail } }
+      }
+
+      // The commit is what makes the links permalinks, so it is fetched before the
+      // files and its failure degrades the whole card rather than one file.
+      // Measured: the web UI rejects a blob sha in `/blob/`, so the blob sha cannot
+      // stand in for the commit — see `getHeadCommit`.
+      const head = await getHeadCommit(repo, options)
+      const refKind: ReadRefKind = head.sha.length > 0 ? 'commit' : 'default-branch'
+      const ref = head.sha
+      const notes: string[] = []
+      if (refKind === 'default-branch') {
+        notes.push(
+          `没能取到默认分支的提交号（${head.error ?? '未知原因'}），所以链接指向默认分支的当前内容，` +
+          `而不是本次读到的快照。`,
+        )
+      }
+
+      // Read, then window. Every file is read at the SAME commit so the card is a
+      // snapshot; a read that fails is reported per file and never silently
+      // replaced by a neighbouring path.
+      const files: ReadFileResult[] = []
+      for (const path of paths) {
+        const cacheKey = `read:${repo}:${ref}:${path}`
+        const cached = await cacheGet<{ text: string; truncated: boolean; sha: string }>(cacheKey, SOURCE_TTL_MS)
+        let text = ''
+        let truncated = false
+        let sha = ''
+        let error = ''
+        if (cached !== undefined && typeof cached.text === 'string') {
+          text = cached.text
+          truncated = cached.truncated === true
+          sha = typeof cached.sha === 'string' ? cached.sha : ''
+        } else {
+          const file = await getFileContent(repo, path, READ_SOURCE_CHARS, {
+            ...options,
+            branch: ref.length > 0 ? ref : undefined,
+          })
+          text = file.text
+          truncated = file.truncated
+          sha = file.sha ?? ''
+          error = file.error ?? ''
+          if (text.length > 0) await cacheSet(cacheKey, { text, truncated, sha })
+        }
+        const base: ReadFileResult = {
+          path,
+          ok: false,
+          error,
+          sha: '',
+          start_line: 0,
+          end_line: 0,
+          hit_line: 0,
+          window_kind: '',
+          text: '',
+          truncated: false,
+          read_chars: 0,
+          read_truncated: false,
+          note: '',
+        }
+        if (text.length === 0) {
+          files.push({ ...base, error: error.length > 0 ? error : '文件没有正文内容' })
+          continue
+        }
+        // Binary is decided by decodability, not by extension: a `.ts` file full
+        // of NULs is not source, and a text file with an odd extension is.
+        if (looksBinary(text)) {
+          files.push({ ...base, error: '文件看起来是二进制（含不可解码字节），没有按文本返回' })
+          continue
+        }
+        files.push({ ...base, ok: true, sha, read_chars: text.length, read_truncated: truncated, text })
+      }
+
+      const okFiles = files.filter(file => file.ok)
+      if (okFiles.length === 0) {
+        const detail = `没有读到任何文件正文：${files.map(file => `${file.path}（${file.error}）`).join('；')}`
+        return { repo, ref, ref_kind: refKind, requests_used: requestsUsed, files, degraded: { reason: 'read_failed', detail } }
+      }
+
+      // Split the budget: measure the framing with the real metadata and empty
+      // bodies, then hand each file an equal share of what is left. Rendering is
+      // pure string work, so the shrink loop below can afford to measure instead
+      // of estimating — an estimate would either overspend (escaping expands
+      // bytes) or leave budget unused.
+      const build = (perFileBytes: number): ReadFileResult[] => files.map(file => {
+        if (!file.ok) return file
+        const window = pickWindow(file.text, terms, perFileBytes)
+        return {
+          ...file,
+          start_line: window.startLine,
+          end_line: window.endLine,
+          hit_line: window.hitLine,
+          window_kind: window.kind,
+          text: window.text,
+          truncated: window.truncated,
+        }
+      })
+      const frameBytes = Buffer.byteLength(
+        renderReadFiles(repo, ref, refKind, files.map(file => ({ ...file, text: '' })), null),
+        'utf8',
+      )
+      const available = Math.max(0, budget - frameBytes - FRAME_ALLOWANCE_BYTES)
+      let perFileBytes = Math.max(MIN_WINDOW_BYTES, Math.floor(available / okFiles.length))
+      let rows = build(perFileBytes)
+      let rendered = renderReadFiles(repo, ref, refKind, rows, null)
+      let bytes = Buffer.byteLength(rendered, 'utf8')
+      // Shrink to fit. Two levers, in order: the per-file byte budget, then the
+      // number of files that carry a body. A file whose body is withheld says so
+      // in its own row — the card never gets shorter by quietly dropping a path.
+      for (let guard = 0; bytes > budget && guard < 32; guard += 1) {
+        if (perFileBytes > MIN_WINDOW_BYTES) {
+          perFileBytes = Math.max(MIN_WINDOW_BYTES, Math.floor(perFileBytes * 0.8))
+          rows = build(perFileBytes)
+          rendered = renderReadFiles(repo, ref, refKind, rows, null)
+          bytes = Buffer.byteLength(rendered, 'utf8')
+          continue
+        }
+        const last = rows.findLastIndex(row => row.ok && row.text.length > 0)
+        if (last < 0) break
+        const row = rows[last] as ReadFileResult
+        rows = rows.map((item, index) => index === last
+          ? {
+              ...item,
+              text: '',
+              start_line: 0,
+              end_line: 0,
+              hit_line: 0,
+              window_kind: '',
+              truncated: false,
+              note:
+                `本次返回的字节预算装不下这个文件（max_bytes=${budget}），正文未随本次返回；` +
+                `请减少 paths 或提高 max_bytes 单独读它。`,
+            }
+          : item)
+        rendered = renderReadFiles(repo, ref, refKind, rows, null)
+        bytes = Buffer.byteLength(rendered, 'utf8')
+        void row
+      }
+
+      const failed = rows.filter(row => !row.ok)
+      const deferred = rows.filter(row => row.ok && row.text.length === 0)
+      if (failed.length > 0) {
+        notes.push(`以下文件没能读到：${failed.map(row => `${row.path}（${row.error}）`).join('；')}`)
+      }
+      if (deferred.length > 0) {
+        notes.push(
+          `${deferred.length} 个文件的正文因 max_bytes=${budget} 没有随本次返回：` +
+          `${deferred.map(row => row.path).join(', ')}。`,
+        )
+      }
+      const reason = refKind === 'default-branch'
+        ? 'ref_unavailable'
+        : failed.length > 0
+          ? 'partial'
+          : deferred.length > 0 ? 'budget_trimmed' : ''
+      const degraded: Degraded | null = reason.length === 0 ? null : { reason, detail: notes.join(' ') }
+
+      return { repo, ref, ref_kind: refKind, requests_used: requestsUsed, files: rows, degraded }
+    },
+    timeoutMs: READ_TIMEOUT_MS,
   }))
 }

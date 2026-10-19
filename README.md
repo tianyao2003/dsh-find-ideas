@@ -41,12 +41,12 @@ Everything works without a token, but `inspect_projects` refuses an anonymous ba
 
 ## Usage
 
-Restart dsh after installing, then describe your idea — the agent calls the three built-in tools on its own:
+Restart dsh after installing, then describe your idea — the agent calls the four built-in tools on its own:
 
 - "I want to build a local-first Markdown note app — what's out there on GitHub?"
 - "I want to build a UI-enhancing DSH plugin. Which projects exist?"
 
-`scout_projects` → `rank_candidates` → `inspect_projects` are independent and share no state. The 0–10 relevance is the agent's judgement; the tools only search, compute, sort and read, and never judge semantic similarity. The ranking formula is `relevance × (1 + log10(max(stars, 10) + 1)) / 2`. A ranked card always has eight columns: rank, project, last updated, relevance, stars, score, language, description.
+`scout_projects` → `rank_candidates` → `inspect_projects` → `read_repo_files` are independent and share no state. The 0–10 relevance is the agent's judgement; the tools only search, compute, sort and read, and never judge semantic similarity. The ranking formula is `relevance × (1 + log10(max(stars, 10) + 1)) / 2`. A ranked card always has eight columns: rank, project, last updated, relevance, stars, score, language, description.
 
 ## How it works
 
@@ -55,6 +55,7 @@ Restart dsh after installing, then describe your idea — the agent calls the th
 - **`scout_projects`** turns the idea into several GitHub search queries and returns a star-sorted pool — deliberately *not* ranked by relevance. When the idea contains no Latin letters it is translated into English search terms first; when that is impossible (the caller gave no Latin `keywords` and no LLM is available) it returns `plan_failed`.
 - **`rank_candidates`** scores the pool with `relevance × (1 + log10(max(stars, 10) + 1)) / 2` and produces the card.
 - **`inspect_projects`** reads up to 5 repositories — README, dependency manifest, tree summary and a few key files.
+- **`read_repo_files`** point-reads up to 4 files of one repository at a single commit, returning a line window (`focus` centres it on the line matching your terms) plus a permalink with the commit and line range. It reads no more than it returns: the byte budget is the ceiling, not a suggestion.
 
 ### Reading the card
 
@@ -72,7 +73,7 @@ Restart dsh after installing, then describe your idea — the agent calls the th
 
 ### What leaves your machine
 
-Search queries and repository paths go to `api.github.com`, and `inspect_projects` only reads repository content on GitHub — your local code is never uploaded. The one other destination is the model DSH already uses, and only to translate an idea with no Latin letters when the caller supplied no Latin `keywords`; a purely English idea is never sent anywhere for translation.
+Search queries and repository paths go to `api.github.com`, and `inspect_projects` and `read_repo_files` only read repository content on GitHub — your local code is never uploaded. The one other destination is the model DSH already uses, and only to translate an idea with no Latin letters when the caller supplied no Latin `keywords`; a purely English idea is never sent anywhere for translation.
 
 ## Compatibility
 
