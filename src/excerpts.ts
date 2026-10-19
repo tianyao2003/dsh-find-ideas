@@ -29,6 +29,7 @@
 // globals, so the renderer and the tests can call them freely.
 
 import { EXCERPT_WINDOW_CHARS, SCANNED_EXTENSIONS, scanSignatures } from './skeleton.ts'
+import { skipPreamble } from './preamble.ts'
 import { isSourcePath } from './select.ts'
 import type { SkeletonCardEntry } from './render.ts'
 
@@ -118,6 +119,44 @@ export function classifyExcerpt(
  * already shown above.
  */
 export const README_ALREADY_SHOWN = '（正文见上方 [README 摘录]，此处不再重复）'
+
+/**
+ * What replaces a window whose entire content is preamble.
+ *
+ * Not an empty string: blank reads as "this file is empty". Not the preamble
+ * itself: it is the one part of the file that provably contains no architecture,
+ * and it was 82.1% of the skeleton bytes measured on the 12 dumps. The sentence
+ * has to say two things — that nothing was shown, and why that is not a claim
+ * about the file.
+ *
+ * The claim is scoped to "本次读到的开头" on purpose. When the read budget cut
+ * the file, everything past the cut is unexamined, and a sentence that read as
+ * "this file has no declarations" would be exactly the falsehood this module
+ * exists to stop. That case gets `PREAMBLE_ONLY_MORE` appended below.
+ */
+export const PREAMBLE_ONLY =
+  '正文未随本次返回：本次读到的开头全是许可头、import 或模块文档字符串，其中不可能有类/函数声明，所以没有展示'
+
+/**
+ * Appended when the read budget cut the file, so the head that was classified is
+ * not mistaken for the whole file.
+ */
+const PREAMBLE_ONLY_MORE = '；文件还有内容没有读到，其后是否有声明本次没有检查'
+
+/** Always last: what to do when the bytes are actually wanted. */
+const PREAMBLE_ONLY_HINT = '；需要时用 read_repo_files 点读'
+
+/**
+ * Windows smaller than this are never collapsed, even when every byte is preamble.
+ *
+ * The collapse is not free: the header still costs its line and the note costs
+ * ~70 characters, so deferring a window shorter than that PAYS bytes to save
+ * fewer. It is also not only about bytes — `src/app/app.routes.ts` is 33 bytes
+ * of pure route table, all of it "preamble" by any lexical rule, and it is the
+ * architecture. A guard at 60 bytes keeps every small file verbatim and still
+ * collapses all 19 measured licence-header windows (the smallest was 200 bytes).
+ */
+const MIN_COLLAPSE_BYTES = 60
 
 /** First Markdown heading in `text`, or `''` when there is none. */
 export function firstHeading(text: string): string {
@@ -439,38 +478,103 @@ export function describeExcerpt(
   // is actually in front of them.
   const coverage: string[] = []
   if (source.truncated) coverage.push(`文件长于 ${readBudgetChars} 字符的读取预算，已截断`)
-  if (windowed) coverage.push(`本摘录只含开头 ${EXCERPT_WINDOW_CHARS} 字符，其后内容未展示`)
-  const header = `--- ${path} ---${coverage.length > 0 ? `（${coverage.join('；')}）` : ''}`
 
   const disposition = classifyExcerpt(path, isSourcePath)
+
+  // Where the file's body starts, past the licence header, the import block and
+  // any module docstring. Measured on 107 real files: 21 of them spent the ENTIRE
+  // 1200-character window on that preamble, and the card then reported "零声明"
+  // about text that cannot contain a declaration. The window was pointed at the
+  // one part of the file that provably has no architecture in it.
+  const skip =
+    disposition.kind === 'window'
+      ? skipPreamble(source.text)
+      : { offset: 0, lineOffset: 0, allPreamble: false }
+  const collapse = disposition.kind === 'window' && skip.allPreamble && source.text.length >= MIN_COLLAPSE_BYTES
+  // Once the window starts after the preamble, "文件开头" is not where it starts.
+  // The header is a claim about which bytes the reader has, so it has to change
+  // with the window instead of describing the old one.
+  const shifted = disposition.kind === 'window' && !skip.allPreamble && skip.lineOffset > 0
+
+  const headerWith = (notes: string[]): string =>
+    `--- ${path} ---${notes.length > 0 ? `（${notes.join('；')}）` : ''}`
+  // Every non-window branch shows no file body, so for those the only coverage
+  // fact is how much of the file the read budget returned.
+  const plainHeader = headerWith(
+    windowed ? [...coverage, `本摘录只含开头 ${EXCERPT_WINDOW_CHARS} 字符，其后内容未展示`] : coverage,
+  )
+
   switch (disposition.kind) {
     case 'readme-lead':
       // The README's prose is rendered once, under its own heading. Repeating the
       // body here is the 68.9KB of duplication the dumps measured. The coverage
       // notes stay: they are the only statement of how much of the README the
       // reader actually has.
-      return { block: `${header}\n${README_ALREADY_SHOWN}`, entry: { path, skipped: 'readme-shown' } }
+      return { block: `${plainHeader}\n${README_ALREADY_SHOWN}`, entry: { path, skipped: 'readme-shown' } }
     case 'title-only': {
       // A documentation file that is not the README: its heading answers "what
       // documents does this project have", which is a real fact; its prose does
       // not answer "how is it built".
       const title = firstHeading(source.text)
       const body = title.length > 0 ? title : '（未展开：文档正文，只列标题）'
-      return { block: `${header}\n${body}`, entry: { path, skipped: 'not-source' } }
+      return { block: `${plainHeader}\n${body}`, entry: { path, skipped: 'not-source' } }
     }
     case 'path-only': {
       const why =
         disposition.reason === 'unscanned-language'
           ? '只列路径：该扩展名不在扫描器的语言覆盖内，本文件没有被扫描过'
           : '只列路径：非源码文件'
-      return { block: `${header}\n（${why}）`, entry: { path, skipped: disposition.reason } }
+      return { block: `${plainHeader}\n（${why}）`, entry: { path, skipped: disposition.reason } }
     }
     case 'window': {
-      const excerpt = source.text.slice(0, EXCERPT_WINDOW_CHARS)
+      if (collapse) {
+        // Nothing but preamble: there is no body to show. A blank block would read
+        // as "this file is empty", and dumping the preamble spends bytes on text
+        // that cannot answer what the card is for. Say what happened and how to
+        // get the bytes if they are really wanted.
+        //
+        // The middle clause is conditional because the classification only covers
+        // the bytes that were READ. When the read budget cut the file, the part
+        // past the cut was never examined, and the note must not let "开头全是
+        // 许可头" harden into "这个文件没有声明".
+        const more = source.truncated ? PREAMBLE_ONLY_MORE : ''
+        return {
+          block: `${headerWith(coverage)}\n${PREAMBLE_ONLY}${more}${PREAMBLE_ONLY_HINT}`,
+          entry: { path, skipped: 'preamble-only' },
+        }
+      }
+      // `allPreamble` under the guard is a SHORT file that happens to be all
+      // preamble (`src/app/app.routes.ts`, 33 bytes, the whole route table). It is
+      // shown verbatim: the guard exists because deferring costs more bytes than
+      // the window it saves, and because a small architecture file must not be
+      // hidden by a rule aimed at licence headers.
+      const body = skip.allPreamble ? source.text : source.text.slice(skip.offset)
+      const excerpt = body.slice(0, EXCERPT_WINDOW_CHARS)
+      const windowCut = excerpt.length >= EXCERPT_WINDOW_CHARS
+      // The header has to describe THIS window. After a shift the shown text is
+      // not the file's opening, and saying it is would be the same class of
+      // falsehood the window cut itself used to commit (a silent second cut).
+      const notes = [...coverage]
+      if (shifted) {
+        notes.push(
+          `已跳过开头的许可头、import 或模块文档字符串，本摘录从第 ${skip.lineOffset + 1} 行开始` +
+            (windowCut ? `，只含其后 ${EXCERPT_WINDOW_CHARS} 字符` : ''),
+        )
+      } else if (windowed) {
+        notes.push(`本摘录只含开头 ${EXCERPT_WINDOW_CHARS} 字符，其后内容未展示`)
+      }
       // The scanner reads the SAME window the excerpt shows. Scanning more than
       // is displayed would let the card cite a declaration the reader cannot see,
       // and scanning less would leave a line number pointing at nothing.
-      return { block: `${header}\n${excerpt}`, entry: { path, hits: scanSignatures(path, excerpt) } }
+      //
+      // `lineOffset` is what keeps the citations honest once the window no longer
+      // starts at line 1: the excerpt is a slice, but every `#L<n>` must be a line
+      // number in the ORIGINAL file. Measured shift on the same sample: p50=4,
+      // p90=20, max=35 lines — so skipping this arithmetic would put every
+      // citation tens of lines too high, which is worse than no citation at all
+      // because a wrong line number still looks like evidence.
+      const lineOffset = skip.allPreamble ? 0 : skip.lineOffset
+      return { block: `${headerWith(notes)}\n${excerpt}`, entry: { path, hits: scanSignatures(path, excerpt, lineOffset) } }
     }
   }
 }

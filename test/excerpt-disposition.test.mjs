@@ -336,6 +336,116 @@ console.log('\n--- renderSkeletonCard: the framing is a claim about the METHOD -
     hits.length > 0 && recoverable.length === hits.length, `${recoverable.length}/${hits.length}`)
 }
 
+console.log('\n--- C7: the window starts after the licence/import preamble ---')
+{
+  // Measured on 107 real files: 59 windows held no declaration, and 21 of those
+  // spent the ENTIRE 1200-character window on a licence header, an import block
+  // or a module docstring. The card then reported "零声明" about text that cannot
+  // contain a declaration. The fix moves the window's start, and the whole risk of
+  // it is that the citations then point at the wrong line -- so that is pinned
+  // first.
+  const licenceTs = [
+    '/**',
+    ' * SPDX-License-Identifier: MIT',
+    ' */',
+    "import { readFile } from 'node:fs/promises'",
+    "import { join } from 'node:path'",
+    '',
+    'export class Runner {',
+    '  run(): void {}',
+    '}',
+    'export function boot(): void {}',
+    '',
+  ].join('\n')
+  const shifted = describeExcerpt('src/runner.ts', { text: licenceTs, truncated: false }, 4000)
+  const shiftedHits = (shifted.entry.hits ?? []).filter(isDeclarationHit)
+  check('the preamble is skipped, not shown', !shifted.block.includes('SPDX-License-Identifier'), shifted.block.slice(0, 200))
+  check('the body IS shown', shifted.block.includes('export class Runner'), shifted.block)
+  // THE invariant: `startLine` is a line number in the ORIGINAL file. `Runner` is
+  // on line 7 of the input, not line 1 of the excerpt.
+  check('a citation carries the ORIGINAL file line number, not the window-relative one',
+    shiftedHits.some((h) => h.name === 'Runner' && h.startLine === 7),
+    JSON.stringify(shiftedHits.map((h) => `${h.name}@${h.startLine}`)))
+  check('every shifted citation lands on a line that really declares it',
+    shiftedHits.every((h) => (licenceTs.split('\n')[h.startLine - 1] ?? '').includes(h.name)),
+    JSON.stringify(shiftedHits.map((h) => `${h.name}@${h.startLine}=${licenceTs.split('\n')[h.startLine - 1]}`)))
+  // The header has to describe the window it actually ships. Saying "文件开头"
+  // after a shift would be the same class of falsehood the silent second cut used
+  // to commit.
+  const shiftedHeader = shifted.block.split('\n')[0]
+  check('the header says the window no longer starts at line 1', /已跳过开头/.test(shiftedHeader), shiftedHeader)
+  check('the header names the line the window starts at', /从第 7 行开始/.test(shiftedHeader), shiftedHeader)
+  check('the header does not claim the excerpt is the file opening', !/本摘录只含开头/.test(shiftedHeader), shiftedHeader)
+
+  // A Python module docstring is the same problem in a different syntax: the
+  // `"""` opener, its body, and the closer are all preamble.
+  const py = ['"""Module docstring.', '', 'This module does things.', '"""', '', 'import os', '', 'class Handler:', '    pass', ''].join('\n')
+  const pyPlan = describeExcerpt('query_builder/server.py', { text: py, truncated: false }, 4000)
+  const pyHits = (pyPlan.entry.hits ?? []).filter(isDeclarationHit)
+  check('a module docstring is skipped too', !pyPlan.block.includes('Module docstring'), pyPlan.block)
+  check('and the class after it is cited at its original line',
+    pyHits.some((h) => h.name === 'Handler' && h.startLine === 8),
+    JSON.stringify(pyHits.map((h) => `${h.name}@${h.startLine}`)))
+
+  // Control: a file with no preamble must be byte-identical to the pre-C7 render.
+  // The change must cost nothing on the 84-of-107 files that start with code.
+  const plain = 'export function alpha(): void {}\nexport class Beta {}\n'
+  const plainPlan = describeExcerpt('src/plain.ts', { text: plain, truncated: false }, 4000)
+  check('a file with no preamble is untouched', plainPlan.block === `--- src/plain.ts ---\n${plain}`, JSON.stringify(plainPlan.block))
+  check('and its citations are unchanged',
+    (plainPlan.entry.hits ?? []).filter(isDeclarationHit).map((h) => h.startLine).join(',') === '1,2',
+    JSON.stringify((plainPlan.entry.hits ?? []).map((h) => h.startLine)))
+
+  // A window that is ENTIRELY preamble collapses to a note. Not an empty string
+  // (that reads as "this file is empty") and not the preamble itself (it is the
+  // one part of the file that provably has no architecture in it).
+  const allPreamble = [
+    '// Copyright 2024 Example Corp.',
+    '// Licensed under the Apache License, Version 2.0.',
+    "import { a } from './a.ts'",
+    ...Array.from({ length: 20 }, (_, i) => `// filler line ${i} with enough text to pass the guard`),
+  ].join('\n')
+  const collapsed = describeExcerpt('src/climate.py', { text: allPreamble, truncated: false }, 4000)
+  check('an all-preamble window is not dumped', !collapsed.block.includes('Copyright 2024'), collapsed.block)
+  check('it says the body was not returned', /正文未随本次返回/.test(collapsed.block), collapsed.block)
+  check('it says WHY: the head is all licence/import/docstring', /全是许可头/.test(collapsed.block), collapsed.block)
+  check('it says where to get the bytes instead', /read_repo_files/.test(collapsed.block), collapsed.block)
+  check('it is marked preamble-only, not "no declarations"', collapsed.entry.skipped === 'preamble-only', JSON.stringify(collapsed.entry))
+  check('it carries no hit list at all', collapsed.entry.hits === undefined, JSON.stringify(collapsed.entry))
+  // The claim is scoped to what was READ. A truncated file has unexamined bytes,
+  // and the note must not harden "开头全是许可头" into "这个文件没有声明".
+  const collapsedCut = describeExcerpt('src/climate.py', { text: allPreamble, truncated: true }, 4000)
+  check('a truncated all-preamble window says the rest was never examined',
+    /其后是否有声明本次没有检查/.test(collapsedCut.block), collapsedCut.block)
+  check('the untruncated one does not make that claim',
+    !/其后是否有声明本次没有检查/.test(collapsed.block), collapsed.block)
+
+  // The guard: deferring costs bytes (header + 57-char note), so a window shorter
+  // than the note must NOT be collapsed. `src/app/app.routes.ts` is 33 bytes of
+  // pure route table -- all "preamble" lexically, and it is the architecture.
+  const tiny = "import { Routes } from '@angular/router'\n"
+  const tinyPlan = describeExcerpt('src/app/app.routes.ts', { text: tiny, truncated: false }, 4000)
+  check('a tiny all-preamble file is still shown verbatim', tinyPlan.block.includes("import { Routes }"), tinyPlan.block)
+  check('and it is not marked preamble-only', tinyPlan.entry.skipped !== 'preamble-only', JSON.stringify(tinyPlan.entry))
+  check('the tiny file keeps its hit list', tinyPlan.entry.hits !== undefined, JSON.stringify(tinyPlan.entry))
+
+  // The card has FOUR populations now, and preamble-only is not one of the three
+  // that existed before. In particular it is NOT "未扫描": those bytes were read
+  // and classified, and the detail line asserts such files "没有被看过".
+  const card = renderSkeletonCard([
+    { path: 'src/a.ts', hits: scanSignatures('src/a.ts', 'export function alpha() {}\n') },
+    { path: 'src/climate.py', skipped: 'preamble-only' },
+    { path: 'src/plugin.lua', skipped: 'unscanned-language' },
+    { path: 'package.json', skipped: 'not-source' },
+  ])
+  check('the card counts preamble-only separately', /1 个开头全是许可头\/import（已读，但没有正文）/.test(card), card)
+  check('preamble-only is not counted as 未扫描', /2 个未扫描/.test(card), card)
+  check('the per-file line says the file WAS read', /src\/climate\.py（本次读到的开头全是许可头/.test(card), card)
+  check('and refuses the "no declarations" reading', /这不是「该文件没有声明」/.test(card), card)
+  check('the preamble-only breakdown does not claim the file was never looked at',
+    !/开头全是许可头\/import 1 个/.test(card), card)
+}
+
 console.log('\n--- the format version is bumped when the rendered shape changes ---')
 {
   // `inspect_projects` caches the whole `Inspection` record, and every field of
@@ -344,7 +454,10 @@ console.log('\n--- the format version is bumped when the rendered shape changes 
   // nothing in the entry says which renderer wrote it. That is why the format
   // version is part of the cache key and why it had to move for this change.
   check('INSPECT_FORMAT_VERSION is an exported integer', Number.isInteger(INSPECT_FORMAT_VERSION), String(INSPECT_FORMAT_VERSION))
-  check('and it is at least 2, because the rendered shape changed', INSPECT_FORMAT_VERSION >= 2, String(INSPECT_FORMAT_VERSION))
+  // 2 was the de-duplication change. 3 is C7: the window start moved past the
+  // preamble and a fourth skeleton population appeared, so a record cached under 2
+  // describes a different window than the same call would render now.
+  check('and it is at least 3, because the window start moved', INSPECT_FORMAT_VERSION >= 3, String(INSPECT_FORMAT_VERSION))
   check('README_LEAD_CHARS is a bounded budget', Number.isInteger(README_LEAD_CHARS) && README_LEAD_CHARS > 0 && README_LEAD_CHARS <= 800, String(README_LEAD_CHARS))
 }
 

@@ -61,8 +61,13 @@ export const README_LEAD_CHARS = 400
  * 1 -> 2: README excerpted once (not twice) and cut to its first real
  * paragraph; skeleton framing stated once per card instead of once per file;
  * unscanned and non-source files reduced to path lines.
+ *
+ * 2 -> 3: the excerpt window starts after the licence/import/docstring preamble
+ * instead of at byte 0, so the bytes of a cached record no longer describe the
+ * same window; a window that was entirely preamble collapses to a note and a
+ * fourth skeleton population (`preamble-only`) appears in the card.
  */
-export const INSPECT_FORMAT_VERSION = 2
+export const INSPECT_FORMAT_VERSION = 3
 
 /**
  * One file's entry in the card-level skeleton block.
@@ -79,7 +84,7 @@ export interface SkeletonCardEntry {
   /** Scan result for a head that WAS scanned; absent when it was not. */
   hits?: SignatureHit[]
   /** Why the head was not scanned, when it was not. */
-  skipped?: 'not-source' | 'unscanned-language' | 'readme-shown'
+  skipped?: 'not-source' | 'unscanned-language' | 'readme-shown' | 'preamble-only'
 }
 
 /**
@@ -106,7 +111,7 @@ export function renderSkeletonCard(entries: SkeletonCardEntry[]): string {
     ? entries.filter((entry): entry is SkeletonCardEntry => entry !== null && typeof entry === 'object')
     : []
 
-  // Three populations, counted before rendering because the counts are the
+  // Four populations, counted before rendering because the counts are the
   // summary line's whole content. `declared` counts DECLARATIONS, not entries:
   // a file with four functions contributes four, and reporting "1" would make
   // the count describe files while the label says declarations.
@@ -114,12 +119,22 @@ export function renderSkeletonCard(entries: SkeletonCardEntry[]): string {
   let declarationCount = 0
   let zeroDeclaration = 0
   let notScanned = 0
+  let preambleOnly = 0
   const skippedByReason = new Map<string, number>()
   for (const entry of rows) {
     if (entry.hits === undefined) {
-      notScanned++
-      const reason = entry.skipped ?? 'not-source'
-      skippedByReason.set(reason, (skippedByReason.get(reason) ?? 0) + 1)
+      // `preamble-only` is NOT a member of the not-scanned population. The head
+      // WAS read and classified; what it says is that the returned bytes contain
+      // no code at all. Folding it into "未扫描" would replace one falsehood with
+      // another -- and the detail line below asserts these files "没有被看过",
+      // which for this population would be a lie about work that did happen.
+      if (entry.skipped === 'preamble-only') {
+        preambleOnly++
+      } else {
+        notScanned++
+        const reason = entry.skipped ?? 'not-source'
+        skippedByReason.set(reason, (skippedByReason.get(reason) ?? 0) + 1)
+      }
       continue
     }
     const declarations = entry.hits.filter(isDeclarationHit)
@@ -135,6 +150,7 @@ export function renderSkeletonCard(entries: SkeletonCardEntry[]): string {
   const summary: string[] = [`本卡 ${rows.length} 个文件`]
   if (withDeclarations > 0) summary.push(`${withDeclarations} 个有声明（共 ${declarationCount} 条）`)
   if (zeroDeclaration > 0) summary.push(`${zeroDeclaration} 个窗口内零声明`)
+  if (preambleOnly > 0) summary.push(`${preambleOnly} 个开头全是许可头/import（已读，但没有正文）`)
   if (notScanned > 0) summary.push(`${notScanned} 个未扫描`)
   // The counts are a LIST, so they are separated by commas. Joining them all with
   // `：` (the first draft) rendered "1 个窗口内零声明：3 个未扫描", which reads as a
@@ -150,6 +166,13 @@ export function renderSkeletonCard(entries: SkeletonCardEntry[]): string {
         lines.push(`   · ${label}（扩展名不在扫描器的语言覆盖内：这个文件根本没有被看过，不是「没有声明」）`)
       } else if (entry.skipped === 'readme-shown') {
         lines.push(`   · ${label}（正文已在上面单独给出，不重复扫描）`)
+      } else if (entry.skipped === 'preamble-only') {
+        // A fourth claim, and it is NOT "not looked at": the head WAS read and
+        // classified. What it says is that the bytes returned contain no code at
+        // all, so there was no window worth scanning. Saying "未扫描" here would
+        // hide the fact that the file was examined and found to be all licence
+        // header -- and "没有声明" would be the exact falsehood C7 exists to stop.
+        lines.push(`   · ${label}（本次读到的开头全是许可头/import/模块文档字符串，没有正文可扫描——这不是「该文件没有声明」）`)
       } else {
         lines.push(`   · ${label}（非源码文件，未扫描）`)
       }
@@ -181,8 +204,14 @@ export function renderSkeletonCard(entries: SkeletonCardEntry[]): string {
   }
 
   if (skippedByReason.size > 0) {
+    // `preamble-only` cannot reach this map: it is counted in its own population
+    // above, because this line asserts the files "没有被看过" and those were read.
     const detail = [...skippedByReason.entries()]
-      .map(([reason, count]) => `${reason === 'unscanned-language' ? '扩展名不在覆盖内' : reason === 'readme-shown' ? 'README 已单独给出' : '非源码'} ${count} 个`)
+      .map(([reason, count]) => {
+        const label =
+          reason === 'unscanned-language' ? '扩展名不在覆盖内' : reason === 'readme-shown' ? 'README 已单独给出' : '非源码'
+        return `${label} ${count} 个`
+      })
       .join('，')
     lines.push(`   未扫描明细：${detail}。未扫描 ≠ 没有声明，这些文件的内容没有被看过。`)
   }
@@ -977,8 +1006,8 @@ function suspiciousBlock(
  * per file; `renderSkeleton` always includes it.
  */
 export const SKELETON_DISCLAIMER =
-  `这是文件头局部声明证据，不是完整架构：窗口只有文件开头的 ${EXCERPT_WINDOW_CHARS} 字符，` +
-  `版权头与 import 常常就把它填满，文件主体里的类/函数通常不在窗口内，` +
+  `这是文件头局部声明证据，不是完整架构：窗口只有 ${EXCERPT_WINDOW_CHARS} 字符，` +
+  `起点在开头的版权头与 import 之后（它们常常占满文件开头），窗口之后的内容没有扫描，` +
   `因此零命中不代表该仓库没有类或函数；签名列表也推不出依赖方向、调用链或进程边界。`
 
 /**

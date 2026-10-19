@@ -377,8 +377,13 @@ console.log('\n=== T11. renderSkeleton: declarations, lines, and the disclaimer 
   check('the line number is usable as an anchor', out.includes('src/d.ts#L1') && out.includes('src/d.ts#L2'), out)
   check('the disclaimer is present', out.includes(SKELETON_DISCLAIMER), '')
   check('the disclaimer denies completeness', /不是完整架构/.test(out), '')
-  check('the disclaimer states the window size', new RegExp(`文件开头的 ${EXCERPT_WINDOW_CHARS} 字符`).test(out), '')
-  check('the disclaimer says headers and imports fill the window', /版权头与 import 常常就把它填满/.test(out), '')
+  // The window no longer starts at byte 0 -- C7 moves its start past the
+  // licence/import preamble -- so the disclaimer must not say "文件开头的 N 字符".
+  // What it has to state is still the same fact: the window is N characters and
+  // it is not the whole file.
+  check('the disclaimer states the window size', new RegExp(`窗口只有 ${EXCERPT_WINDOW_CHARS} 字符`).test(out), '')
+  check('the disclaimer says the preamble is what the window starts after', /版权头与 import 之后/.test(out), '')
+  check('the disclaimer still says the preamble is what fills a file head', /常常占满文件开头/.test(out), '')
   check('the disclaimer denies the repository-level reading', /零命中不代表该仓库没有类或函数/.test(out), '')
   check('the disclaimer refuses topology claims', /推不出依赖方向、调用链或进程边界/.test(out), '')
   check('no topology conclusion is drawn', !/(依赖方向是|调用链为|进程边界是)/.test(out), out)

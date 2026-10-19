@@ -77,9 +77,13 @@ export interface SignatureHit {
   /** 声明所在行去掉首尾空白后的原文（截到 SIGNATURE_MAX_CHARS）；事实记录为空串。 */
   signature: string
   /**
-   * 声明在**源文件**中的 1-based 行号。摘录是文件头窗口且从第 1 行开始，所以窗口内
-   * 行号就是文件行号，可以直接写成 `#L{startLine}`。事实记录恒为 0（不是合法行号，
-   * 因此不会被误当成声明位置）。
+   * 声明在**源文件**中的 1-based 行号。事实记录恒为 0（不是合法行号，因此不会被误当成
+   * 声明位置）。
+   *
+   * 摘录不总是从第 1 行开始：`describeExcerpt` 会把窗口起点移到许可/import 说明之后，
+   * 以免前 1200 字符全被版权头和 import 占掉。窗口内的相对行号必须加上被跳过的行数，
+   * 否则每条 `#L` 都指向错误的位置——而一个指错位置的引用比没有引用更糟，因为它看起来
+   * 像证据。这就是 `scanSignatures` 收 `lineOffset` 的原因：行号语义归它管，不归调用方。
    */
   startLine: number
   /** 本次实际扫描的字符数，即 `excerpt.length`。 */
@@ -144,8 +148,12 @@ export const SCANNED_EXTENSIONS: readonly string[] = Object.keys(FAMILY_BY_EXT).
  *
  * 与 `src/select.ts` 的 `SELECTOR_VERSION`、`src/types.ts` 的 `SEARCH_PLAN_VERSION`
  * 是同一类东西：**契约变了，缓存必须失效，而不是靠人记得去清缓存**。
+ *
+ * 1 -> 2：扫描的**窗口**变了（不是模式）。`describeExcerpt` 现在把窗口起点移到
+ * licence/import/docstring 之后，同一份文件因此可能多扫出几十条声明，而 `startLine`
+ * 也从"窗口内行号"变成了真正的文件行号。命中集合变了，所以这个数必须动。
  */
-export const SCANNER_VERSION = 1
+export const SCANNER_VERSION = 2
 
 type Pattern = {
   re: RegExp
@@ -373,8 +381,12 @@ function buildHit(
  *
  * 覆盖外的扩展名返回**只有事实记录**的一条数组（`supported: false`），不是空数组：
  * 空数组读起来是"扫过了，没有声明"，那正好是 design.md §2.4 禁止的那种误读。
+ *
+ * `lineOffset` 是摘录之前被跳过的行数。摘录不保证从文件第 1 行开始（`describeExcerpt`
+ * 会把窗口起点移到许可/import 说明之后），而 `startLine` 承诺的是**源文件**行号。默认 0
+ * 让"摘录就是文件开头"这个最常见的情形不需要调用方多写一个参数。
  */
-export function scanSignatures(path: string, excerpt: string): SignatureHit[] {
+export function scanSignatures(path: string, excerpt: string, lineOffset = 0): SignatureHit[] {
   const excerptChars = excerpt.length
   const truncated = excerptChars >= EXCERPT_WINDOW_CHARS
   const family = FAMILY_BY_EXT[extensionOf(path)]
@@ -406,7 +418,7 @@ export function scanSignatures(path: string, excerpt: string): SignatureHit[] {
             : 'function'
           : pattern.kind
 
-      hits.push(buildHit(path, raw, kind, name, i + 1, excerptChars, truncated))
+      hits.push(buildHit(path, raw, kind, name, lineOffset + i + 1, excerptChars, truncated))
       // 一行只出一条：先命中的模式赢，输出顺序因此严格等于源码顺序。
       break
     }
