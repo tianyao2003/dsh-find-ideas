@@ -465,6 +465,66 @@ try {
       degradedReason(exploded.result) === 'plan_failed' && refused(exploded.result) && exploded.net.calls.length === 0,
       `degraded=${describe(exploded.result?.degraded ?? null)} fetch calls=${describe(exploded.net.calls)}`,
     )
+
+    // ── §5.9 the refusal names WHICH step failed, not just "add keywords" ────
+    //
+    // Measured on the A/B arm: six different translation failures — no LLM
+    // service, no model selected, timeout, provider threw, invalid output,
+    // cancelled — all rendered as the SAME sentence, because `plan_failed`'s
+    // `detail` carried only the refusal. The refusal says what the caller should
+    // DO; it says nothing about what went WRONG, so a host with no model
+    // selected was indistinguishable from a provider that threw.
+    //
+    // Each cause below is a distinct remedy, so each must reach the caller. The
+    // assertion is deliberately on the CAUSE wording, not on the refusal text:
+    // the refusal half is already pinned by §5.8 above.
+    console.log('\n--- §5.9  the refusal names the failed step ---')
+    {
+      const llmGap = degradedDetail(noLlm.result)
+      check(
+        'no LLM service names the missing service, not just the missing keywords',
+        llmGap.includes('未翻译') && llmGap.includes('LLM 服务'),
+        llmGap.slice(0, 160),
+      )
+
+      const noModelGap = degradedDetail(unselected.result)
+      check(
+        'no model selection names the model-selection step',
+        noModelGap.includes('未翻译') && noModelGap.includes('currentSelection'),
+        noModelGap.slice(0, 160),
+      )
+
+      const explodedGap = degradedDetail(exploded.result)
+      check(
+        'a throwing provider names the exception',
+        explodedGap.includes('未翻译') && explodedGap.includes('stub llm exploded'),
+        explodedGap.slice(0, 160),
+      )
+
+      const invalidGap = degradedDetail(invalid.result)
+      check(
+        'an unusable answer names the rule it broke',
+        invalidGap.includes('未翻译') && invalidGap.includes('规则：'),
+        invalidGap.slice(0, 160),
+      )
+
+      // The point of the fix is that these are now DISTINGUISHABLE, so assert
+      // that directly rather than only asserting each in isolation.
+      const gaps = [llmGap, noModelGap, explodedGap, invalidGap]
+      check(
+        'the four causes do not render as the same sentence',
+        new Set(gaps).size === gaps.length,
+        `distinct=${new Set(gaps).size}/${gaps.length}`,
+      )
+
+      // And the refusal is still there: the fix ADDS a cause, it does not
+      // replace the actionable half.
+      check(
+        'every cause still carries the actionable refusal',
+        [noLlm, unselected, exploded, invalid].every((r) => refused(r.result)),
+        [noLlm, unselected, exploded, invalid].map((r) => refused(r.result)).join(','),
+      )
+    }
   }
 } catch (error) {
   fail += 1

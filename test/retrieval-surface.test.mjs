@@ -171,5 +171,34 @@ console.log('\n=== 6. the empty-result explanation matches the corrected surface
     empty.includes('多词 AND 匹配'), empty)
 }
 
+console.log('\n=== 7. a plan failure is not a network failure ===')
+{
+  // Measured on the A/B arm: a Han-only idea with no Latin `keywords` rendered
+  // the refusal and then the GENERIC tail — "这是网络或代理问题" — which sends
+  // the reader to check the network for a failure that never opened a socket.
+  // The generic branch is the default for every unclassified reason, so the
+  // plan_failed case needs its own branch and this is what holds it.
+  const plan = explainEmpty({ reason: 'plan_failed', detail: '拒绝执行：请提供 keywords。' })
+  check('the plan-failure note says the search never started',
+    plan.includes('检索没有开始'), plan)
+  check('the plan-failure note denies the network explanation',
+    plan.includes('这不是网络问题'), plan)
+  check('the plan-failure note does NOT claim a network or proxy problem',
+    !plan.includes('网络或代理问题'), plan)
+  check('the plan-failure note still carries the underlying detail',
+    plan.includes('请提供 keywords'), plan)
+
+  // The neighbouring classified branch must not have been absorbed by the new
+  // one: rate_limited has its own remedy and its own sentence.
+  const limited = explainEmpty({ reason: 'rate_limited', detail: '配额耗尽。' })
+  check('the rate-limited note still names the quota', limited.includes('配额问题'), limited)
+
+  // And the genuinely unclassified reason must KEEP the network reading — that
+  // branch exists for exactly the failures that did reach the wire.
+  const generic = explainEmpty({ reason: 'something_else', detail: '连接被重置。' })
+  check('an unclassified failure keeps the network reading',
+    generic.includes('网络或代理问题'), generic)
+}
+
 console.log(`\n${pass} PASS / ${fail} FAIL`)
 process.exit(fail === 0 ? 0 : 1)

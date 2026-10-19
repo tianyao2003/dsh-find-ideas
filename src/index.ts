@@ -1010,7 +1010,16 @@ export function apply(ctx: Context): void {
       if (translationFailed(translation)) {
         const refusal = refuseChineseIdeaWithoutKeywords(idea, args.keywords)
         if (refusal !== null) {
-          const degraded: Degraded = { reason: 'plan_failed', detail: refusal }
+          // The refusal says what to DO; `translationNote` says what FAILED —
+          // `llm_unavailable`, `no_model_selection`, `timeout`, `llm_error`, or an
+          // invalid answer are six different causes and six different remedies.
+          // Dropping the note here (it was computed and then unused) rendered all
+          // six as one sentence, so neither the caller nor a maintainer could tell
+          // "this host has no model selected" from "the provider threw".
+          const degraded: Degraded = {
+            reason: 'plan_failed',
+            detail: translationNote === null ? refusal : `${refusal}\n\n${translationNote}`,
+          }
           return { idea, candidates: [], degraded, cached: false, tail_included: 0, low_star_in_pool: 0, query_terms: [], probe_note: '' }
         }
       }

@@ -345,6 +345,16 @@ export function explainEmpty(degraded: Degraded | null): string {
       '  这是配额问题，不是没有匹配项目。稍后重试可能成功。'
     )
   }
+  // A plan failure never reaches the network, so the generic line below is false
+  // for it. Measured: a Han-only idea with no Latin `keywords` rendered the
+  // refusal followed by "这是网络或代理问题", which sends the reader to check the
+  // network instead of supplying the keywords the refusal just asked for.
+  if (degraded.reason === 'plan_failed') {
+    return (
+      `检索没有开始，因此没有结果。${degraded.detail}\n` +
+      '  这不是网络问题，也不是没有匹配项目：计划阶段就失败了，GitHub 一次请求都没有发出。'
+    )
+  }
   return (
     `检索请求失败，因此没有结果。${degraded.detail}\n` +
     '  这是网络或代理问题，不是没有匹配项目。'
