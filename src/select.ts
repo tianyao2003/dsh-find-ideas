@@ -138,6 +138,22 @@ export function readmeMentions(readme: string): Set<string> {
 const SOURCE_EXT_RE = /\.(ts|tsx|js|jsx|mjs|cjs|rs|go|py|rb|java|kt|swift|c|cc|cpp|h|hpp|cs|php|ex|exs|erl|hs|ml|scala|clj|cljs|cljc|edn|vue|svelte|dart|lua|sh|ps1|sql)$/i
 
 /**
+ * Whether a path is source code by extension.
+ *
+ * Exported because `src/excerpts.ts` has to answer the same question when it
+ * decides whether a file's 1200-character head is evidence or noise. There is
+ * one list, in this file, and this predicate is how the other module asks it —
+ * the alternative (a second copy of the alternation) is exactly how the
+ * selector's gate and the scanner's coverage drifted apart before.
+ *
+ * @param path - repository-relative path.
+ * @returns `true` when the extension is a source language.
+ */
+export function isSourcePath(path: string): boolean {
+  return SOURCE_EXT_RE.test(path)
+}
+
+/**
  * Platform shells and asset directories: source files, but not the product.
  *
  * `android/` holding Kotlin is *source code*, so every source-based signal

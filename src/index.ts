@@ -25,9 +25,10 @@ import { cacheGet, cacheGetWithMeta, cacheSet, SOURCE_TTL_MS } from './cache.ts'
 import { GitHubSearchRateLimited, countLowStar, describeFailure, describeProbeOutcome, describeUnavailableProbeDiagnostic, getCoreQuota, getFileContent, getReadme, getTree, proxyHint, searchMerged, type AuthOptions } from './github.ts'
 import { describeLexiconMiss, describePartialFailure, describePlanFailure, describeReplayedIncompleteness, describeReplayedThinness, explainThinResult, thinResultKind, tryPlanQueries, type QueryStep, type ThinKind } from './query.ts'
 import { MANIFEST_RE, SELECTOR_VERSION, pickArchitectureFiles, treeEvidence } from './select.ts'
-import { EXCERPT_WINDOW_CHARS, SCANNER_VERSION, scanSignatures } from './skeleton.ts'
+import { SCANNER_VERSION } from './skeleton.ts'
+import { describeExcerpt, extractReadmeLead, renderReadmeExcerpt } from './excerpts.ts'
 import { termBudget, translateIdea, translationFailed, type TranslateDeps } from './translate.ts'
-import { type Inspection, renderCandidates, renderInspections, renderRanked, renderSkeleton } from './render.ts'
+import { INSPECT_FORMAT_VERSION, README_LEAD_CHARS, type Inspection, renderCandidates, renderInspections, renderRanked, renderSkeletonCard, type SkeletonCardEntry } from './render.ts'
 import {
   type Degraded,
   type RankedCandidate,
@@ -602,7 +603,7 @@ async function inspectOne(
 
   const readFiles: string[] = []
   const excerpts: string[] = []
-  const skeletons: string[] = []
+  const skeletonEntries: SkeletonCardEntry[] = []
   let manifest = ''
   for (const path of files) {
     // §2.6.4 — the README is already in hand. Slot 1 of the selector IS the root
@@ -627,22 +628,39 @@ async function inspectOne(
     if (manifest.length === 0 && MANIFEST_RE.test(path)) {
       manifest = file.text.slice(0, 600)
     }
-    // Two truncations happen to every excerpt and BOTH used to be silent, so a
-    // 1200-character head of a 200KB file was indistinguishable from a whole
-    // file. Level 3 is the read budget (`budget.readmeChars`), level 4 is the
-    // window below; the header states whichever applies, in characters, so the
-    // reader can tell how much of the file is actually in front of them.
-    const windowed = file.text.length > EXCERPT_WINDOW_CHARS
-    const coverage: string[] = []
-    if (file.truncated) coverage.push(`文件长于 ${budget.readmeChars} 字符的读取预算，已截断`)
-    if (windowed) coverage.push(`本摘录只含开头 ${EXCERPT_WINDOW_CHARS} 字符，其后内容未展示`)
-    const excerpt = file.text.slice(0, EXCERPT_WINDOW_CHARS)
-    excerpts.push(`--- ${path} ---${coverage.length > 0 ? `（${coverage.join('；')}）` : ''}\n${excerpt}`)
-    // The scanner reads the SAME window the excerpt shows. Scanning more than is
-    // displayed would let the card cite a declaration the reader cannot see, and
-    // scanning less would leave a line number pointing at nothing.
-    skeletons.push(renderSkeleton(path, scanSignatures(path, excerpt)))
+    // What this file is worth showing, decided by the one module that knows both
+    // the selector's notion of source and the scanner's language coverage.
+    //
+    // The rule is not "show less". It is "show the window when a scanner reads
+    // that window". Measured on the 12 A/B dumps: 47.5% of the whole payload was
+    // file-excerpt text, and 45.0% of that was files no scanner reads — `.md`
+    // prose, `.json`/`.toml`/`.mod` manifests — plus another 10.4% in source
+    // languages the scanner does not cover. A 1200-character head of a lockfile
+    // is not evidence about architecture, and dumping it was the single largest
+    // line item in a payload that made the plugin cost more than not using it.
+    //
+    // `fullLength` is deliberately not passed: `file.text` is what the read budget
+    // returned, and the note has always described THAT ("the file is longer than
+    // the budget") separately from the window. Passing a true file length here
+    // would make the window note appear on files the reader received whole.
+    const plan = describeExcerpt(path, { text: file.text, truncated: file.truncated }, budget.readmeChars)
+    excerpts.push(plan.block)
+    skeletonEntries.push(plan.entry)
   }
+
+  // The README's lead paragraph, extracted rather than dumped.
+  //
+  // Measured: the README section was 19.3% of the payload and the file-excerpt
+  // section repeated it, so a quarter of every card was README text. The first
+  // paragraph answers "what is this project"; the installation steps that follow
+  // it answer nothing the agent needs in order to judge borrow-worthiness, and
+  // they are the bulk. When there IS no prose the extractor says so instead of
+  // returning an empty string, because empty reads as "the README is empty".
+  const readmeExcerpt = renderReadmeExcerpt(
+    extractReadmeLead(readme.text, README_LEAD_CHARS),
+    readme.truncated,
+    budget.readmeChars,
+  )
 
   // Counted from the same entries the fetch already paid for. This replaces a
   // `[...dirs].slice(0, 20)` that was truncated with no marker — logseq's list
@@ -657,9 +675,13 @@ async function inspectOne(
     ...base,
     ok,
     files_read: readFiles,
-    readme_excerpt: readme.text,
+    readme_excerpt: readmeExcerpt,
     manifest_excerpt: manifest,
-    skeleton_summary: skeletons.length > 0 ? skeletons.join('\n\n') : '',
+    // One card-level block instead of one block per file: the framing that keeps
+    // a 1200-character window from being read as a whole file is a claim about
+    // the METHOD, so it belongs once per card. Measured: repeating it per file
+    // was 115.2KB of 140.2KB of skeleton text (82.1%), and 22.5% of the payload.
+    skeleton_summary: skeletonEntries.length > 0 ? renderSkeletonCard(skeletonEntries) : '',
     tree_summary:
       `顶层目录（${evidence.topDirs.length}）：${evidence.topDirs.length > 0 ? evidence.topDirs.join(', ') : '（无）'}\n` +
       `文件总数：${evidence.entries}${evidence.truncated ? '（GitHub 截断了列表——下面的计数是下界，缺失不等于不存在）' : ''}\n` +
@@ -1710,7 +1732,7 @@ export function apply(ctx: Context): void {
       // no request and no wall-clock, so neither refusal applies to it. Those
       // checks exist to protect NETWORK work, and a hit is not network work.
       //
-      // The key carries three things the old one did not:
+      // The key carries four things the old one did not:
       //   - `auth`, because whether a token is present changes what GitHub
       //     returns (private repos, a higher quota), so the two are different
       //     questions and must not share one entry;
@@ -1718,8 +1740,12 @@ export function apply(ctx: Context): void {
       //     picked — a cached pick from an older selector answers a question the
       //     current code no longer asks;
       //   - the SCANNER version, for the same reason about the signature evidence
-      //     derived from those file heads.
-      // Without the two versions, a rules change would keep serving the old
+      //     derived from those file heads;
+      //   - the FORMAT version, because the stored rows are RENDERED STRINGS: a
+      //     cache hit replays whatever renderer wrote the entry, so a change in
+      //     layout would otherwise come back as the old layout with nothing in
+      //     the result to say so. See `INSPECT_FORMAT_VERSION`.
+      // Without these versions, a rules change would keep serving the old
       // rules' output with nothing in the result to tell the caller.
       //
       // The explicit file list is part of the identity of the result too: serving
@@ -1731,7 +1757,8 @@ export function apply(ctx: Context): void {
       const filesKey = fileCheck.values.slice().sort().join('|')
       const cacheKey =
         `inspect:${depth}:${repos.slice().sort().join(',')}:${filesKey}` +
-        `:auth:${token !== undefined ? 1 : 0}:sel:${SELECTOR_VERSION}:scan:${SCANNER_VERSION}`
+        `:auth:${token !== undefined ? 1 : 0}:sel:${SELECTOR_VERSION}:scan:${SCANNER_VERSION}` +
+        `:fmt:${INSPECT_FORMAT_VERSION}`
       // Source reads expire in minutes, not a day: what this caches is file
       // CONTENTS, and a stale copy would make `files_read` attest to code that no
       // longer exists. See `SOURCE_TTL_MS`.
@@ -1884,7 +1911,7 @@ export function apply(ctx: Context): void {
           failedRepos,
           complete: failures.length === 0 && failedRepos.length === 0 && inspections.length === repos.length,
         },
-        `sel:${SELECTOR_VERSION}:scan:${SCANNER_VERSION}`,
+        `sel:${SELECTOR_VERSION}:scan:${SCANNER_VERSION}:fmt:${INSPECT_FORMAT_VERSION}`,
       )
 
       const degraded: Degraded | null = failures.length > 0 || failedRepos.length > 0

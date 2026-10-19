@@ -18,6 +18,177 @@ import { TERM_TOTAL_UNKNOWN } from './types.ts'
 import { MIN_RELEVANCE, SCORE_GAP_RELEVANCE, formatStars } from './types.ts'
 import { TAIL_STAR_CEILING } from './github.ts'
 import { EXCERPT_WINDOW_CHARS, MAX_HITS_PER_FILE, isDeclarationHit, type SignatureHit } from './skeleton.ts'
+import { extractReadmeLead } from './excerpts.ts'
+
+/**
+ * How many characters of a README lead paragraph the card shows.
+ *
+ * The old excerpt was the first 4000-12000 characters verbatim. Measured across
+ * the 12 A/B dumps, the README section was 114.3KB of 593.0KB (19.3%) and the
+ * README was ALSO repeated inside the file-excerpt section, so 68.9KB of that
+ * was a second copy. What a reader needs from a README is one paragraph: what
+ * the project is. Everything after that is installation steps, which the tool
+ * cannot verify and the agent does not need in order to judge borrow-worthiness.
+ */
+export const README_LEAD_CHARS = 400
+
+/**
+ * Version of the TEXT an inspection renders to. Bumping this is how a cached
+ * inspection stops being replayed.
+ *
+ * WHY THIS IS NOT `SCANNER_VERSION`
+ * ---------------------------------
+ * `SCANNER_VERSION` versions the set of declarations the scanner FINDS. This
+ * change did not touch that set: the same 1200-character window is scanned with
+ * the same patterns and yields the same hits. What changed is which of those
+ * findings get printed, how often the framing is repeated, and what the README
+ * excerpt is allowed to contain. Reporting a scan-contract change would be a
+ * false statement in the one place this codebase is most careful about false
+ * statements, and it would also invalidate scans that are still perfectly
+ * valid.
+ *
+ * WHY IT IS NEEDED AT ALL
+ * -----------------------
+ * `inspect_projects` caches whole `Inspection` records, and those records hold
+ * `readme_excerpt`, `manifest_excerpt`, `tree_summary` and `skeleton_summary`
+ * as ALREADY-RENDERED STRINGS. A cached entry therefore answers with the old
+ * renderer's bytes: the same call would return 49.4KB on a cold run and the old
+ * 49.4KB on a warm one, with nothing in the result to say which renderer wrote
+ * it. Every measurement of this change would be poisoned by whatever happened
+ * to be on disk.
+ *
+ * 1 -> 2: README excerpted once (not twice) and cut to its first real
+ * paragraph; skeleton framing stated once per card instead of once per file;
+ * unscanned and non-source files reduced to path lines.
+ */
+export const INSPECT_FORMAT_VERSION = 2
+
+/**
+ * One file's entry in the card-level skeleton block.
+ *
+ * `hits` is absent when the file's head was never scanned. That is a different
+ * claim from "scanned, zero declarations", so the type keeps them apart rather
+ * than encoding both as an empty array — an empty array is exactly what
+ * `scanSignatures` promises never to return for a scanned file, and reusing it
+ * for "not scanned" would erase the distinction the scanner exists to preserve.
+ */
+export interface SkeletonCardEntry {
+  /** Repository-relative path. */
+  path: string
+  /** Scan result for a head that WAS scanned; absent when it was not. */
+  hits?: SignatureHit[]
+  /** Why the head was not scanned, when it was not. */
+  skipped?: 'not-source' | 'unscanned-language' | 'readme-shown'
+}
+
+/**
+ * Render one repository's signature evidence as a single block.
+ *
+ * WHY THIS EXISTS
+ * ---------------
+ * `renderSkeleton` is per-file and carries five lines of framing on every file:
+ * the window size, the truncation warning, the zero-hit sentence, and the
+ * ~120-character disclaimer. Measured on the 12 dumps: 201 file entries carried
+ * 140.2KB of skeleton text, of which the disclaimer boilerplate alone was
+ * 115.2KB (82.1%) and the real declaration lines were 6.6KB (4.7%). The same
+ * five sentences, repeated 201 times, were 22.5% of the entire payload.
+ *
+ * The framing is not the problem — dropping it would let a reader mistake a
+ * 1200-character window for the file's architecture. Repeating it once per FILE
+ * is the problem: it is a claim about the METHOD, so it belongs once per CARD.
+ *
+ * @param entries - one entry per file that was read, in the order they were read.
+ * @returns a block that always carries the disclaimer, never an empty string.
+ */
+export function renderSkeletonCard(entries: SkeletonCardEntry[]): string {
+  const rows = Array.isArray(entries)
+    ? entries.filter((entry): entry is SkeletonCardEntry => entry !== null && typeof entry === 'object')
+    : []
+
+  // Three populations, counted before rendering because the counts are the
+  // summary line's whole content. `declared` counts DECLARATIONS, not entries:
+  // a file with four functions contributes four, and reporting "1" would make
+  // the count describe files while the label says declarations.
+  let withDeclarations = 0
+  let declarationCount = 0
+  let zeroDeclaration = 0
+  let notScanned = 0
+  const skippedByReason = new Map<string, number>()
+  for (const entry of rows) {
+    if (entry.hits === undefined) {
+      notScanned++
+      const reason = entry.skipped ?? 'not-source'
+      skippedByReason.set(reason, (skippedByReason.get(reason) ?? 0) + 1)
+      continue
+    }
+    const declarations = entry.hits.filter(isDeclarationHit)
+    if (declarations.length > 0) {
+      withDeclarations++
+      declarationCount += declarations.length
+    } else {
+      zeroDeclaration++
+    }
+  }
+
+  const lines: string[] = ['[骨架：文件头局部声明证据]']
+  const summary: string[] = [`本卡 ${rows.length} 个文件`]
+  if (withDeclarations > 0) summary.push(`${withDeclarations} 个有声明（共 ${declarationCount} 条）`)
+  if (zeroDeclaration > 0) summary.push(`${zeroDeclaration} 个窗口内零声明`)
+  if (notScanned > 0) summary.push(`${notScanned} 个未扫描`)
+  // The counts are a LIST, so they are separated by commas. Joining them all with
+  // `：` (the first draft) rendered "1 个窗口内零声明：3 个未扫描", which reads as a
+  // ratio rather than as two independent counts.
+  lines.push(`   ${summary[0]}${summary.length > 1 ? `：${summary.slice(1).join('，')}` : ''}。`)
+
+  for (const entry of rows) {
+    const label = typeof entry.path === 'string' && entry.path.trim().length > 0 ? entry.path.replace(/\s+/g, ' ').trim() : '(未知路径)'
+    if (entry.hits === undefined) {
+      // The distinction the whole scanner contract rests on: "not looked at"
+      // must never read as "looked at, found nothing".
+      if (entry.skipped === 'unscanned-language') {
+        lines.push(`   · ${label}（扩展名不在扫描器的语言覆盖内：这个文件根本没有被看过，不是「没有声明」）`)
+      } else if (entry.skipped === 'readme-shown') {
+        lines.push(`   · ${label}（正文已在上面单独给出，不重复扫描）`)
+      } else {
+        lines.push(`   · ${label}（非源码文件，未扫描）`)
+      }
+      continue
+    }
+    const declarations = entry.hits.filter(isDeclarationHit)
+    const fact = entry.hits.find((hit) => !isDeclarationHit(hit))
+    if (declarations.length === 0) {
+      // Same claim `renderSkeleton` makes, stated once per file instead of with
+      // a four-line preamble each time.
+      lines.push(`   · ${label}（窗口内零声明；这不等于该文件没有类/函数，窗口可能被版权头或 import 占满）`)
+      continue
+    }
+    lines.push(`   · ${label}`)
+    for (const hit of declarations) {
+      lines.push(`     ${hit.kind} \`${hit.name}\` — #L${hit.startLine}`)
+    }
+    // Per-file anomalies still have to reach the reader: a filled window and a
+    // capped hit list both mean "the list may be incomplete", and that is a
+    // claim about THIS file, not about the method.
+    const truncated = fact !== undefined && fact.truncated === true
+    const capped = entry.hits.length >= MAX_HITS_PER_FILE
+    if (truncated || capped) {
+      const reasons: string[] = []
+      if (truncated) reasons.push(`${EXCERPT_WINDOW_CHARS} 字符窗口已被填满，窗口之后没有扫描`)
+      if (capped) reasons.push(`命中达到单文件上限 ${MAX_HITS_PER_FILE} 条，多余命中已丢弃`)
+      lines.push(`     ⚠️ ${reasons.join('；')}：这个文件的列表可能不完整。`)
+    }
+  }
+
+  if (skippedByReason.size > 0) {
+    const detail = [...skippedByReason.entries()]
+      .map(([reason, count]) => `${reason === 'unscanned-language' ? '扩展名不在覆盖内' : reason === 'readme-shown' ? 'README 已单独给出' : '非源码'} ${count} 个`)
+      .join('，')
+    lines.push(`   未扫描明细：${detail}。未扫描 ≠ 没有声明，这些文件的内容没有被看过。`)
+  }
+
+  lines.push(`   说明：${SKELETON_DISCLAIMER}`)
+  return lines.join('\n')
+}
 
 /**
  * Placeholder for a value the tool does not have.
