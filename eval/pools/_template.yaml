@@ -1,0 +1,19 @@
+# 候选池模板。复制成 <ID>.yaml 再填，不要直接改这个文件。
+# 规则见同目录 README.md。实际池子由 .scratch/build-pools.mjs 生成，此文件仅作格式参考。
+
+idea_id: A1
+generated: "2026-10-19"
+provenance: "GitHub REST 直连搜索，未经被测插件"
+
+channels:
+  search: [] # 一句产品级关键词搜索，≤7 条
+  readme: [] # 同义改写 + in:readme 宽搜，≤7 条
+  memory: [] # labels.yaml 里预先登记的种子，0-5 条
+interference: [] # 2 个故意错域的查询结果，同时也要出现在 candidates 里
+
+notes: ""
+
+# 打乱后的顺序 = 标注顺序。标注时只能看 repo 和 description。
+candidates: []
+#  - repo: owner/name
+#    description: "原样复制，不改写"

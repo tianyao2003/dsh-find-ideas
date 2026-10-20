@@ -1,0 +1,60 @@
+# E1 — 做一个能接多个模型的开源 AI 聊天界面
+# 盲构造候选池：不含 star、不含任何插件输出。规则见 README.md。
+# 通道：search = 关键词搜索，readme = in:readme 宽搜，memory = 凭记忆/种子，interference = 故意的错域干扰项。
+
+idea_id: E1
+generated: "2026-10-19"
+provenance: "GitHub REST 直连搜索，未经被测插件"
+
+channels:
+  search: ["microsoft/TypeChat", "ibelick/zola", "agno-agi/agent-ui", "minimaxir/simpleaichat", "okisdev/ChatChat", "aws-samples/aws-lex-web-ui", "trendy-design/llmchat"]
+  readme: ["ollama/ollama", "langchain-ai/langchain", "vanna-ai/vanna", "langgenius/dify", "Shubhamsaboo/awesome-llm-apps", "BerriAI/litellm"]
+  memory: ["open-webui/open-webui", "LibreChat-AI/LibreChat", "lobehub/lobehub", "chatboxai/chatbox", "ChatGPTNextWeb/NextChat"]
+
+# 仅供实验者核对，不要出现在发给标注者的表格里
+interference: ["Luce-Org/lucebox", "jundot/omlx"]
+
+notes: ""
+
+# 打乱后的顺序 = 标注顺序。标注时只能看 repo 和 description。
+candidates:
+  - repo: "Shubhamsaboo/awesome-llm-apps"
+    description: "100+ AI Agents, Agent Skills and RAG Apps - Free and Open Source."
+  - repo: "ollama/ollama"
+    description: "Get up and running with Kimi, GLM, MiniMax, DeepSeek, gpt-oss, Qwen, Gemma and other models."
+  - repo: "chatboxai/chatbox"
+    description: "Powerful AI Client"
+  - repo: "ChatGPTNextWeb/NextChat"
+    description: "✨ Zero-config AI chat assistant. No API key needed — sign up and instantly chat with GPT-5, Claude 4, Gemini 2.5, DeepSeek & 100+ top models. Pay-as-you-go saves you more. Available on Web, iOS, macOS, Android, Linux, Windows."
+  - repo: "langgenius/dify"
+    description: "Build Agentic workflows, RAG pipelines, with rich AI model and tool support on one collaborative workspace. Deploy on cloud, VPC, or self-hosted, so teams move from prototype to production without rebuilding the stack."
+  - repo: "jundot/omlx"
+    description: "LLM inference server with continuous batching & SSD caching for Apple Silicon — managed from the macOS menu bar"
+  - repo: "langchain-ai/langchain"
+    description: "The agent engineering platform."
+  - repo: "BerriAI/litellm"
+    description: "The fastest, litest AI Gateway. Rust core with Python SDK. Call 100+ LLM APIs in OpenAI (or native) format with cost tracking, guardrails, load balancing, and logging [Bedrock, Azure, OpenAI, Anthropic, OpenAI, VertexAI, vLLM, Nvidia NIM]"
+  - repo: "Luce-Org/lucebox"
+    description: "LLM speculative inference server for heterogeneous hardware & consumer GPUs"
+  - repo: "aws-samples/aws-lex-web-ui"
+    description: "Sample Amazon Lex chat bot web interface"
+  - repo: "vanna-ai/vanna"
+    description: "🤖 Chat with your SQL database 📊. Accurate Text-to-SQL Generation via LLMs using Agentic Retrieval 🔄."
+  - repo: "agno-agi/agent-ui"
+    description: "A modern chat interface for AI agents built with Next.js, Tailwind CSS, and TypeScript."
+  - repo: "open-webui/open-webui"
+    description: "User-friendly AI Interface (Supports Ollama, OpenAI API, ...)"
+  - repo: "ibelick/zola"
+    description: "Open chat interface for all your models."
+  - repo: "lobehub/lobehub"
+    description: "🤯 LobeHub is your Chief Agent Operator, organizing your agents into 7×24 operations by hiring, scheduling, and reporting on your entire AI team."
+  - repo: "trendy-design/llmchat"
+    description: "Unified interface for AI chat, Agentic workflows and more ..."
+  - repo: "okisdev/ChatChat"
+    description: "Chat Chat, your own unified chat and search to AI platform, with a simple and easy to use interface."
+  - repo: "minimaxir/simpleaichat"
+    description: "Python package for easily interfacing with chat apps, with robust features and minimal code complexity."
+  - repo: "microsoft/TypeChat"
+    description: "TypeChat is a library that makes it easy to build natural language interfaces using types."
+  - repo: "LibreChat-AI/LibreChat"
+    description: "Enhanced ChatGPT Clone: Features Agents, MCP, Skills, DeepSeek, Anthropic, AWS, OpenAI, Responses API, Azure, Groq, o1, GPT-5, Mistral, OpenRouter, Vertex AI, Gemini, Artifacts, AI model switching, message search, Code Interpreter, langchain, DALL-E-3, OpenAPI Actions, Functions, Secure Multi-User Auth, Presets, open-source for self-hosting. Active"

@@ -1,0 +1,81 @@
+{
+  "baseline": "ab-v04",
+  "frozenAt": "2026-10-20T12:05:45.443Z",
+  "plugin": {
+    "name": "dsh-find-ideas",
+    "version": "0.3.0",
+    "gitSha": "a7fb7d5e0c5d38550c17e7cedb69b5c8ffd4c37e"
+  },
+  "model": {
+    "provider": "deepseek-official",
+    "model": "deepseek-flash"
+  },
+  "runtime": {
+    "node": "v24.21.0",
+    "platform": "win32"
+  },
+  "arms": {
+    "A": {
+      "description": "no plugin; pwsh + gh.cjs helper",
+      "helper": "work_space2/eval-plugin/bin/gh.cjs",
+      "helperSha256": "bb61ddb4ec97fe1e7497d322f3e849183baf45545407fb01ae8a0ba114b9bf97",
+      "toolCallCeiling": 10
+    },
+    "B": {
+      "description": "dsh-find-ideas plugin; 3 tools",
+      "toolCallCeiling": 10
+    }
+  },
+  "inputs": {
+    "ideas": "work_space2/eval-plugin/ideas.md (10 fixed ideas)",
+    "briefA": "work_space2/eval-plugin/brief-armA.md",
+    "briefB": "work_space2/eval-plugin/brief-armB.md",
+    "rubric": "work_space2/eval-plugin/rubric.md"
+  },
+  "frozenFiles": [
+    "eval/runs/ab-v04-baseline/metrics-armA-v3.json",
+    "eval/runs/ab-v04-baseline/metrics-armB-v3.json",
+    "eval/runs/ab-v04-baseline/quality-v3.json",
+    "eval/runs/ab-v04-baseline/true-payload-v3.json",
+    "eval/runs/ab-v04-baseline/final-v3-corrected.json",
+    "eval/runs/ab-v04-baseline/decode-session.cjs",
+    "eval/fixtures/inspect-golden-raw.json",
+    "eval/fixtures/inspect-golden-baseline.json"
+  ],
+  "published": {
+    "billedInputEq": {
+      "a": 27172.7,
+      "b": 32715.1,
+      "p": 0.1268
+    },
+    "wallClockSec": {
+      "a": 54.16,
+      "b": 75.01,
+      "p": 0.0319
+    },
+    "toolCalls": {
+      "a": 8.8,
+      "b": 6.3,
+      "p": 0.0199
+    },
+    "payloadBytes": {
+      "a": 44945,
+      "b": 60291,
+      "p": 0.0535
+    },
+    "quality": {
+      "a": 13.5,
+      "b": 14.1,
+      "p": 0.2789
+    },
+    "errors": {
+      "a": 0,
+      "b": 0
+    }
+  },
+  "notes": [
+    "Payload numbers come from durable session logs, not `dsh --json` (8192B clip hid 202417B).",
+    "Quality = mean of 2 raters x 4 dimensions, 16-point scale.",
+    "billedInputEq = inputTokens + 0.1 * cacheReadTokens."
+  ]
+}

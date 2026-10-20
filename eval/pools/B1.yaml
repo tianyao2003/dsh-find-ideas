@@ -1,0 +1,60 @@
+# B1 — 用 Next.js + Postgres 做一个 local-first 的笔记应用，离线可用、多端同步
+# 盲构造候选池：不含 star、不含任何插件输出。规则见 README.md。
+# 通道：search = 关键词搜索，readme = in:readme 宽搜，memory = 凭记忆/种子，interference = 故意的错域干扰项。
+
+idea_id: B1
+generated: "2026-10-19"
+provenance: "GitHub REST 直连搜索，未经被测插件"
+
+channels:
+  search: ["codexu/note-gen", "team-reflect/reflect-open", "massCodeIO/massCode", "nuttyartist/notes", "0xGG/crossnote-app", "bangle-io/bangle-io", "blueberrycongee/Lumina-Note"]
+  readme: ["yjs/yjs", "alexanderop/awesome-local-first", "nyblnet/bento", "vlcn-io/cr-sqlite", "alangibson/awesome-crdt", "yorkie-team/yorkie", "gdamdam/awesome-decentralized-web"]
+  memory: ["AppFlowy-IO/AppFlowy", "siyuan-note/siyuan", "laurent22/joplin", "automerge/automerge"]
+
+# 仅供实验者核对，不要出现在发给标注者的表格里
+interference: ["asonge/loom", "microsoft/FluidFramework"]
+
+notes: ""
+
+# 打乱后的顺序 = 标注顺序。标注时只能看 repo 和 description。
+candidates:
+  - repo: "microsoft/FluidFramework"
+    description: "Library for building distributed, real-time collaborative web applications"
+  - repo: "asonge/loom"
+    description: "A CRDT library with δ-CRDT support."
+  - repo: "codexu/note-gen"
+    description: "Capture first. Organize later. A local-first Markdown app that turns scattered records into clear notes with AI."
+  - repo: "0xGG/crossnote-app"
+    description: "📝 Local-first markdown notebook - notes live in your browser or local folders as plain markdown files, synced with in-browser git. No server, no account, works offline."
+  - repo: "nyblnet/bento"
+    description: "Bento, the office suite that fits in a file"
+  - repo: "nuttyartist/notes"
+    description: "Fast and beautiful note-taking app written in C++. Write down your thoughts."
+  - repo: "massCodeIO/massCode"
+    description: "A free, open-source developer workspace. Snippets, notes, HTTP requests, calculations, and dev tools in one local-first app."
+  - repo: "yorkie-team/yorkie"
+    description: "Document Store for collaborative applications"
+  - repo: "gdamdam/awesome-decentralized-web"
+    description: "A curated list of peer-to-peer, federated, and local-first protocols, applications, and developer tools. Excludes cryptocurrency, tokens, and AI agents."
+  - repo: "alexanderop/awesome-local-first"
+    description: "Useful Links for Everything related to LocalFirst"
+  - repo: "yjs/yjs"
+    description: "Shared data types for building collaborative software"
+  - repo: "blueberrycongee/Lumina-Note"
+    description: "Lumina Note - A modern Markdown note-taking app with live preview, bidirectional links, and AI assistant"
+  - repo: "siyuan-note/siyuan"
+    description: "An open-source, privacy-first, self-hosted knowledge workspace where humans and AI agents work together 开源、隐私优先、自托管的知识工作空间，让人与智能体在此协作"
+  - repo: "team-reflect/reflect-open"
+    description: "Open-source Reflect rewrite: A local-first AI agent-friendly Markdown note-taking app"
+  - repo: "bangle-io/bangle-io"
+    description: "A web only WYSIWYG note taking app that saves notes locally in markdown format. v2: https://app.bangle.io/"
+  - repo: "AppFlowy-IO/AppFlowy"
+    description: "Bring projects, wikis, and teams together with AI. AppFlowy is the AI collaborative workspace where you achieve more without losing control of your data. The leading open source Notion alternative."
+  - repo: "vlcn-io/cr-sqlite"
+    description: "Convergent, Replicated SQLite. Multi-writer and CRDT support for SQLite"
+  - repo: "automerge/automerge"
+    description: "A JSON-like data structure (a CRDT) that can be modified concurrently by different users, and merged again automatically."
+  - repo: "alangibson/awesome-crdt"
+    description: "A collection of awesome CRDT resources"
+  - repo: "laurent22/joplin"
+    description: "Joplin - the privacy-focused note taking app with sync capabilities for Windows, macOS, Linux, Android and iOS."

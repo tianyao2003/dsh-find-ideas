@@ -1,0 +1,60 @@
+# A2 — 把长视频自动切成短视频并加字幕
+# 盲构造候选池：不含 star、不含任何插件输出。规则见 README.md。
+# 通道：search = 关键词搜索，readme = in:readme 宽搜，memory = 凭记忆/种子，interference = 故意的错域干扰项。
+
+idea_id: A2
+generated: "2026-10-19"
+provenance: "GitHub REST 直连搜索，未经被测插件"
+
+channels:
+  search: ["ddmmbb-2/Subtitle-Driven-AI-Clipper", "yyypsc-lab/Bilibili-Obsidian-Clipper-Plus", "rhodenshofi-beep/rayden-clipper", "10291124jcjc-dotcom/subtitle-driven-video-clipper", "ujangsupriatna2/clipai-video-clipper", "Joshmens0/FFmpeg-AI-Video-Clipper-Subtitle-Generator", "zshleon/hermes-video-clipper", "Joshmens0/FFmpeg-AI-Video-Clipper-Subtitle-Generator-CLI-", "Gionov95/video-clipper-automation"]
+  readme: ["modelscope/FunClip", "calesthio/OpenMontage", "yt-dlp/yt-dlp", "lcy362/agnes-video-generator", "x007xyz/flycut-caption", "heygen-com/hyperframes", "mifi/lossless-cut"]
+  memory: ["openai/whisper", "WyattBlue/auto-editor"]
+
+# 仅供实验者核对，不要出现在发给标注者的表格里
+interference: ["kajisho5/ffmpeg-skill", "tizisdeepan/VideoEditor"]
+
+notes: ""
+
+# 打乱后的顺序 = 标注顺序。标注时只能看 repo 和 description。
+candidates:
+  - repo: "Gionov95/video-clipper-automation"
+    description: "Aplikasi otomatis untuk clipping video panjang menjadi bagian-bagian dengan subtitle, thumbnail, caption, tagar, dan hook yang menarik"
+  - repo: "x007xyz/flycut-caption"
+    description: "A complete video subtitle editing React component with AI-powered speech recognition and visual editing capabilities."
+  - repo: "lcy362/agnes-video-generator"
+    description: "Open-source, self-hosted AI video generator — completely free. Text to multi-scene video with narration, subtitles, and digital anchor via Web UI, powered by Agnes AI."
+  - repo: "WyattBlue/auto-editor"
+    description: "Effort free video editing!"
+  - repo: "modelscope/FunClip"
+    description: "FunASR-powered video transcription, subtitle generation, and LLM-assisted clipping tool with a local Gradio UI."
+  - repo: "heygen-com/hyperframes"
+    description: "Write HTML. Render video. Built for agents."
+  - repo: "yyypsc-lab/Bilibili-Obsidian-Clipper-Plus"
+    description: "Bilibili subtitle clipper for Obsidian with local Whisper transcription for videos without subtitle tracks."
+  - repo: "kajisho5/ffmpeg-skill"
+    description: "Local video editor for coding agents: 42 FFmpeg tools with a machine-readable contract and an MCP server, for Claude Code, Cursor and Codex. Cut, captions, reframe, loudness, platform exports. No cloud, no API keys."
+  - repo: "ddmmbb-2/Subtitle-Driven-AI-Clipper"
+    description: "An AI-powered tool that automates video clipping based on subtitle content analysis. It uses Whisper for transcription and leverages configurable AI models (like GPT or Ollama) to select segments according to your instructions, processed by FFmpeg."
+  - repo: "mifi/lossless-cut"
+    description: "The swiss army knife of lossless video/audio editing"
+  - repo: "yt-dlp/yt-dlp"
+    description: "A feature-rich command-line audio/video downloader"
+  - repo: "rhodenshofi-beep/rayden-clipper"
+    description: "AI Video Clipper dengan auto subtitle"
+  - repo: "zshleon/hermes-video-clipper"
+    description: "Hermes AI skill: auto-download, scene-detect, vertical crop + Chinese subtitle pipeline for Douyin/Xiaohongshu"
+  - repo: "calesthio/OpenMontage"
+    description: "World's first open-source, agentic video production system. 12 production pipelines, 100+ tools, 700+ agent skill and production-knowledge files. Turn your AI coding assistant into a full video production studio."
+  - repo: "ujangsupriatna2/clipai-video-clipper"
+    description: "AI-powered video clipper & subtitler - automatically finds best moments, creates clips with subtitles"
+  - repo: "10291124jcjc-dotcom/subtitle-driven-video-clipper"
+    description: ""
+  - repo: "Joshmens0/FFmpeg-AI-Video-Clipper-Subtitle-Generator-CLI-"
+    description: "A fast CLI tool that clips videos, transcribes audio with AI, and auto-generates subtitles using FFmpeg and OpenAI Whisper. Perfect for creators and developers who want quick, accurate, and automated video editing in one command."
+  - repo: "openai/whisper"
+    description: "Robust Speech Recognition via Large-Scale Weak Supervision"
+  - repo: "Joshmens0/FFmpeg-AI-Video-Clipper-Subtitle-Generator"
+    description: ""
+  - repo: "tizisdeepan/VideoEditor"
+    description: "FFmpeg is a powerful multimedia framework which allows us to decode, encode, transcode, stream, filter and play most of the media content available now. With the help of these tools, you can develop and application that can manipulate any form of media to the desired output. Sky is not the limit when using FFmpeg. I prefer FFmpeg-all which is a Bible for FFmpeg but it is difficult to read if you do not know what you are looking for. To make it easy, I will summarise the basics of video manipulations using FFmpeg which, then you can use in your own applications or libraries that you are working on. I have developed a simple library that enables you to trim and crop a video, additionally you can compress any video and convert it into any format that you desire."

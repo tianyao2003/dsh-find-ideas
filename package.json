@@ -36,7 +36,11 @@
     "check:peers": "node scripts/check-peers.mjs",
     "readme:sample": "node scripts/readme-sample.mjs",
     "readme:check": "node scripts/readme-sample.mjs --check",
-    "check": "npm run typecheck && npm run build && npm run readme:check"
+    "check": "npm run typecheck && npm run build && npm run readme:check",
+    "eval:golden": "node eval/harness/golden-inspect.mjs --mode=bytes",
+    "eval:metrics": "node eval/harness/ab-metrics.mjs",
+    "eval:payload": "node eval/harness/payload-truth.mjs",
+    "eval:gate": "npm run eval:golden && npm run eval:metrics && npm run eval:payload"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
