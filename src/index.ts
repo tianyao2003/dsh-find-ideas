@@ -70,11 +70,11 @@ export const inject = ['tools']
  * is present rather than trusting three hand-edited copies to stay in sync.
  */
 export const RETRIEVAL_SURFACE =
-  'RETRIEVAL SURFACE — GitHub repository search matches the repository NAME, DESCRIPTION and TOPICS ' +
-  'only. It does NOT index README bodies or file contents, so a project described only in its README ' +
-  'is missed. Adding `in:readme` does reach README text, but it widens the net rather than sharpening ' +
-  'it and does not guarantee exhaustiveness. An empty or noisy result set therefore means "this query ' +
-  'reached nothing", never "nothing like this exists".'
+  'RETRIEVAL SURFACE — GitHub search matches NAME, DESCRIPTION and TOPICS only; it does NOT index ' +
+  'README bodies or file contents, so a project described only in its README is missed. `in:readme` ' +
+  'reaches README text, but it widens the net rather than sharpening it and does not guarantee ' +
+  'exhaustiveness. An empty or noisy result set means "this query reached nothing", never "nothing ' +
+  'like this exists".'
 
 /**
  * Report what each query term matched on its own (B6, user m00929).
@@ -898,25 +898,20 @@ export function apply(ctx: Context): void {
     description:
       'STEP 1 of 2. Search GitHub for open-source projects similar to a project the user wants to build. ' +
       'Returns raw candidates (name, owner, description, stars, language, url) sorted by star count — NOT ' +
-      'ranked by relevance. Call this first when the user describes an app, tool, or library they intend to ' +
-      'build and wants to know what already exists. ' +
-      'IMPORTANT: this tool does NOT rank. After it returns, you MUST call rank_candidates (step 2) with a ' +
-      'relevance score for every candidate you consider on-topic; the ranking order and the star ratings are ' +
-      'computed by code there and cannot be set from prose. Do not present your own ordering of these raw ' +
-      'results to the user. Results are cached for 24h per normalized idea + keywords + limit, so identical ' +
-      'calls are cheap. ' +
+      'ranked. Call this when the user describes an app, tool or library they intend to build. ' +
+      'This tool does NOT rank: you MUST then call rank_candidates (step 2) with a relevance score for ' +
+      'every candidate you consider on-topic; order and star ratings are computed in code there and ' +
+      'cannot be set from prose. Do not present your own ordering of these raw results. ' +
+      'Cached 24h per normalized idea + keywords + limit, so identical calls are cheap. ' +
       RETRIEVAL_SURFACE,
     parameters: {
       idea: {
         type: 'string',
         required: true,
         description:
-          'The project the user wants to build, in their own words. Free text, any language — ' +
-          'pass the idea exactly as the user wrote it. A non-English idea can only reach a ' +
-          'same-language repo population disjoint from most well-described projects, so this ' +
-          'tool translates the idea into English search terms itself (using the session model) ' +
-          'and searches with them. You do NOT need to translate anything, and you should not ' +
-          'pre-translate the idea: the tool sees the original text plus its own translation.',
+          'The project the user wants to build, in their own words. Any language — pass it ' +
+          'exactly as written; do not pre-translate. A non-English idea is translated into ' +
+          'English search terms by the tool itself, using the session model.',
       },
       limit: {
         type: 'integer',
@@ -926,13 +921,10 @@ export function apply(ctx: Context): void {
         type: 'string',
         description:
           'OPTIONAL extra GitHub search terms (e.g. "markdown editor local-first") to sharpen recall. ' +
-          'Supply these only when the user themself named the terms to search for — the tool already ' +
-          'translates a non-English idea on its own, so you do not need to translate anything here. ' +
-          'When you do supply them they WIN over the tool\'s own translation: the terms you pass are ' +
-          'the ones searched, verbatim. Measured — a Chinese-only idea with no keywords at all used to ' +
-          'return ZERO candidates, which is why the tool now translates rather than asking you to. ' +
-          'The one remaining refusal: when the idea contains Han characters, no Latin letter is ' +
-          'supplied here, AND the tool\'s own translation is unavailable, the call is REFUSED with a ' +
+          'Supply them only when the user themself named the terms — the tool already translates a ' +
+          'non-English idea on its own. Supplied terms WIN over that translation and are searched ' +
+          'verbatim. The one refusal: if the idea has Han characters, no Latin letter is supplied ' +
+          'here, AND the tool\'s own translation is unavailable, the call is REFUSED with a ' +
           '`plan_failed` degradation before any search is sent. The tool can only check that Latin ' +
           'terms were supplied, never that they are a good translation.',
       },
@@ -1349,17 +1341,16 @@ export function apply(ctx: Context): void {
       'STEP 2 of 2, and the ONLY place a card is produced. Turn raw candidates from scout_projects into a ' +
       'ranked card. Supply a relevance score (integer 0-10) for EVERY candidate: 10 = almost exactly the same ' +
       'idea, 7-9 = same problem space with a different angle, 4-6 = partial overlap or a useful dependency, ' +
-      '3 = loosely related but worth a mention. ' +
-      'Scores below 3 are excluded by code and never appear in the card — use 1-2 for "barely related" (for ' +
-      'example a general Markdown converter or web scraper that only shares the word "markdown"), and 0 for ' +
-      'noise such as keyword-bait repos. Do not inflate a weak match just to fill the card; a short honest ' +
-      'card is the intended outcome. ' +
-      'You provide ONLY full_name and relevance. The order, the borrow-worthiness star rating, and the score ' +
+      '3 = loosely related but worth a mention. Scores below 3 are excluded by code and never appear in the ' +
+      'card — use 1-2 for "barely related" (a general Markdown converter or web scraper that only shares the ' +
+      'word "markdown"), and 0 for noise such as keyword-bait repos. Do not inflate a weak match just to fill ' +
+      'the card; a short honest card is the intended outcome. ' +
+      'You provide ONLY full_name and relevance. The order, the borrow-worthiness star rating and the score ' +
       'are all computed in code by relevance × (1 + log10(max(stars, 10) + 1)) / 2; do not attempt to order ' +
       'the list yourself, do not invent a star rating, and do not present your own ranking to the user. ' +
       'Pass every candidate you scored in one call — candidates you omit are excluded. ' +
-      'The rendered card is material for you to work with, not a finished message: you are free to re-present ' +
-      'it in your own format, grouping or wording, and to add your own commentary. ' +
+      'The card is material for you to work with, not a finished message: you are free to re-present it in ' +
+      'your own format, grouping or wording, and to add your own commentary. ' +
       'HARD LIMIT — you must NOT alter any key datum: the rank order, each row\'s relevance, stars_rating and ' +
       'score, and each repository\'s stars, owner, name and url must be reproduced exactly as the card gives ' +
       'them. Changing a number, reordering rows, dropping a row or a column, or inventing a rating is not. ' +
@@ -1381,10 +1372,10 @@ export function apply(ctx: Context): void {
         description:
           'The pool to rank. Pass the whole array through so the card can render name, owner, description, ' +
           'stars, language and url. These do NOT have to come from scout_projects: if you searched GitHub ' +
-          'yourself (for example with the qualifiers `topic:`, `in:readme`, `stars:>` or `pushed:`), pass your ' +
-          'own results here in this exact shape. The ranking arithmetic, the card, and the consistency checks ' +
-          'below all work on any pool — they never re-query GitHub. `topics` may be an empty array. If you ' +
-          'supply your own, the card reports where the pool came from so the distinction is not lost.',
+          'yourself (e.g. with `topic:`, `in:readme`, `stars:>` or `pushed:`), pass your own results here in ' +
+          'this exact shape — the arithmetic, the card and the consistency checks all work on any pool and ' +
+          'never re-query GitHub. `topics` may be an empty array. A self-supplied pool is labelled on the ' +
+          'card so its origin is not lost.',
         items: {
           type: 'object',
           additionalProperties: false,
@@ -1418,15 +1409,13 @@ export function apply(ctx: Context): void {
             note: {
               type: 'string',
               description:
-                'A one-line reason for this score, at least a short clause. This is NOT optional in practice: ' +
-                'the note is how you tell the tool "this score is deliberate", and how you tell the user why. ' +
-                'Two consistency checks read it — a high score (7+) with no note counts as an unexplained ' +
-                'judgement, and two rows with near-identical descriptions and a 5+ point gap are reported as ' +
-                'self-contradictory UNLESS both carry a note (two projects can share a description and still ' +
-                'deserve different scores; the note is what records that distinction). Kept OUT of the computed ' +
-                'card and the formula — it never enters the ranking arithmetic, and is echoed under a label that ' +
-                'says it is unverified. Use it instead of writing a rationale beside a number in your reply, ' +
-                'where it would read as if the code had produced it.',
+                'A one-line reason for this score, at least a short clause. NOT optional in practice: it is ' +
+                'how you tell the tool the score is deliberate, and the user why. Two consistency checks read ' +
+                'it — a high score (7+) with no note counts as an unexplained judgement, and two rows with ' +
+                'near-identical descriptions and a 5+ point gap are reported as self-contradictory UNLESS ' +
+                'both carry a note. Kept OUT of the card and the formula — it never enters the arithmetic and ' +
+                'is echoed under a label that says it is unverified. Use it instead of writing a rationale ' +
+                'beside a number in your reply, where it would read as if the code had produced it.',
             },
           },
         },
@@ -1632,33 +1621,27 @@ export function apply(ctx: Context): void {
     name: 'inspect_projects',
     description:
       'STEP 2 of the scouting flow. Read the actual source of the repositories the user selected — README, ' +
-      'dependency manifest, directory tree and key files — so you can judge architecture and borrow-worthiness ' +
-      'from evidence instead of a one-line description. Call this after the user picks repositories from the ' +
-      'card, and before writing any implementation plan. ' +
-      'WHY THIS RATHER THAN READING FILES YOURSELF: this returns every file in one call, and `files_read` ' +
-      'records exactly what was fetched, so the plan you write can state its evidence. Reading individual files ' +
-      'by hand costs the same API requests, loses that record, and skips the selection step below. ' +
-      'Low-star repos surfaced by the tail search often have an empty description, so this is the ONLY way to ' +
-      'know what they actually are. ' +
-      'FILE SELECTION IS AUTOMATIC AND ALREADY DONE: without `files`, this picks up to 4 files per repository ' +
-      'from the full directory tree — the root README, a frontend entry point, a native/backend entry point, ' +
-      'and a manifest or design document — so a Tauri-style project shows both its frontend and its Rust side. ' +
-      'On live repositories this selection has been right on every one tried. Pass `files` only to override ' +
-      'it, e.g. to re-read a specific path the user asked about. ' +
-      'BUDGET: reading costs GitHub API requests and anonymous access allows 10 requests/minute per public IP, ' +
-      'shared with every other process. shallow costs about 6 requests per repo, deep about 10. There is also a ' +
-      'wall-clock budget: the host terminates this call at 60 seconds and returns NOTHING when it does, not even ' +
-      'the repos already read, so a batch that cannot finish in time is refused up front instead. If the request ' +
-      'does not fit in the remaining quota or time budget the call is refused outright with the reason — you must ' +
-      'then reduce the number of repos, use shallow, or ask the user to configure GITHUB_TOKEN. Retrying the same ' +
-      'batch unchanged will fail the same way. A refusal is a normal, ' +
-      'expected outcome; it is reported to the user, not hidden. Never present an inspection you did not ' +
-      'receive. ' +
-      'REPORTING RULE: `files_read` is the exact list of files that were fetched. Judge only from the excerpts ' +
+      'dependency manifest, directory tree and key files — so you can judge architecture and ' +
+      'borrow-worthiness from evidence instead of a one-line description. Call this after the user picks ' +
+      'repositories from the card, and before writing any implementation plan. ' +
+      'WHY THIS RATHER THAN READING FILES YOURSELF: it returns every file in one call, and `files_read` ' +
+      'records exactly what was fetched, so the plan you write can state its evidence. Reading files by hand ' +
+      'costs the same requests, loses that record, and skips the selection below. Low-star repos surfaced by ' +
+      'the tail search often have an empty description, so this is the only way to learn what they are. ' +
+      'SELECTION IS AUTOMATIC: without `files`, up to 4 central files per repo are chosen from the full tree ' +
+      '(see the `files` parameter for how, and when to override it). ' +
+      'BUDGET: shallow costs about 6 requests per repo, deep about 10; anonymous access allows 10 ' +
+      'requests/minute per public IP, shared with every other process. The host also terminates this call at ' +
+      '60 seconds and returns NOTHING when it does, not even the repos already read, so a batch that cannot ' +
+      'finish is refused up front instead. If the request does not fit the remaining quota or time budget the ' +
+      'call is refused with the reason — then reduce the repo count, use shallow, or ask the user to ' +
+      'configure GITHUB_TOKEN. Retrying the same batch unchanged fails the same way. A refusal is normal and ' +
+      'reported, not hidden. Never present an inspection you did not receive. ' +
+      'REPORTING RULE: `files_read` is the exact list of files fetched. Judge only from the excerpts ' +
       'returned, and if you did not read code, say so plainly rather than describing an architecture you ' +
       'inferred from the name. ' +
-      RETRIEVAL_SURFACE + ' Reading files HERE is what closes that gap — a description that omits the idea ' +
-      'does not mean the code does, which is why an empty description is a reason to inspect, not to dismiss.',
+      RETRIEVAL_SURFACE + ' Reading files here is what closes that gap — an empty description is a reason ' +
+      'to inspect, not to dismiss.',
     parameters: {
       idea: {
         type: 'string',
@@ -1686,30 +1669,28 @@ export function apply(ctx: Context): void {
         type: 'array',
         items: { type: 'string' },
         description:
-          'Optional explicit file paths to read, e.g. ["src/main.ts","deps.edn"]. Omit it for a first pass: the ' +
-          'automatic selection picks the four most CENTRAL faces of this repo (root README, a frontend entry ' +
-          'point, a native/backend entry point, and a manifest or design document from the full directory ' +
-          'tree). Central is not always the same as most useful FOR THIS IDEA — when step 1\'s file tree or ' +
-          'the conversation has already told you which paths matter, pass them here. Explicit paths override ' +
-          'the selector including for paths it would reject, because the caller may have read something no ' +
-          'rule can see. Paths are relative to the repository root and apply to every repository in `repos`; ' +
-          'a path that cannot be read is reported, never silently skipped. Costs one extra request per path ' +
-          'per repository.',
+          'Optional explicit file paths to read, e.g. ["src/main.ts","deps.edn"]. Omit for a first pass: the ' +
+          'automatic selection picks the four most CENTRAL faces of a repo (root README, a frontend entry ' +
+          'point, a native/backend entry point, and a manifest or design document from the full tree). ' +
+          'Central is not always most useful FOR THIS IDEA — when the file tree or the conversation has ' +
+          'already told you which paths matter, pass them here. Explicit paths override the selector, ' +
+          'including for paths it would reject, because the caller may have read something no rule can see. ' +
+          'Paths are relative to the repository root and apply to every repo in `repos`; a path that cannot ' +
+          'be read is reported, never silently skipped. Costs one request per path per repository.',
       },
       budget_bytes: {
         type: 'number',
         description:
           `Byte budget for the rendered card (default ${INSPECT_BYTES_DEFAULT}, ${INSPECT_BYTES_FLOOR}–${INSPECT_BYTES_CEILING}). ` +
-          'The card already averages ~21.7 KB and peaks near 48 KB, and you pay for every byte of it. When it ' +
-          'fits, the output is byte for byte what it would have been without this parameter. When it does not, ' +
-          'the tool drops the cheapest evidence first (dependency manifest excerpt, then README excerpt, then ' +
-          'the per-file excerpts inside the structure block, and only then the signature skeleton) and states ' +
-          'at the end of the card exactly what was withheld and how to get it back. The cheapest recovery is ' +
-          'to call again with a larger budget: the budget is applied when the card is rendered and is not part ' +
-          'of the cache key, so the same reading is replayed from cache without spending another GitHub request. ' +
-          '`read_repo_files` is for when you only want specific files. Raising it above the default is a ' +
-          'deliberate request for a bigger card, not a free upgrade: the ceiling exists so one call cannot ' +
-          'return an unbounded response.',
+          'The card averages ~21.7 KB and peaks near 48 KB, and you pay for every byte. When it fits, the ' +
+          'output is byte for byte what it would have been without this parameter. When it does not, the tool ' +
+          'drops the cheapest evidence first (manifest excerpt, then README excerpt, then the per-file ' +
+          'excerpts inside the structure block, and only then the signature skeleton) and states at the end ' +
+          'of the card what was withheld and how to get it back. The cheapest recovery is to call again with ' +
+          'a larger budget: the budget is applied at render time and is not part of the cache key, so the ' +
+          'same reading is replayed from cache without another GitHub request. `read_repo_files` is for when ' +
+          'you want specific files. Raising it above the default is a deliberate request for a bigger card, ' +
+          'not a free upgrade: the ceiling exists so one call cannot return an unbounded response.',
       },
     },
     output: {
