@@ -33,6 +33,7 @@ const load = (rel) => import(pathToFileURL(join(pkgRoot, 'lib', rel)).href)
 const { apply } = await load('index.js')
 const {
   renderInspections,
+  CARD_RULE,
   INSPECT_BYTES_DEFAULT,
   INSPECT_BYTES_FLOOR,
   INSPECT_BYTES_CEILING,
@@ -98,7 +99,7 @@ const noteLine = (card, fullName) =>
 
 /** The repository's own slice of the card, between two rules. */
 const repoSection = (card, fullName) =>
-  card.split('─'.repeat(60)).find((part) => part.includes(`📦 ${fullName}`)) ?? ''
+  card.split(CARD_RULE).find((part) => part.includes(`📦 ${fullName}`)) ?? ''
 
 const cutNote = (card) => card.includes('本次返回已按 budget_bytes=')
 

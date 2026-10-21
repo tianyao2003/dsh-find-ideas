@@ -470,10 +470,10 @@ try {
         long.inspections[0]?.files_read.includes('README.md') === true,
         JSON.stringify(long.inspections[0]?.files_read))
       check('the read-budget truncation is tagged in the summary',
-        /文件长于 4000 字符的读取预算，已截断/.test(long.inspections[0]?.tree_summary ?? ''),
+        /截断@4000/.test(long.inspections[0]?.tree_summary ?? ''),
         (long.inspections[0]?.tree_summary ?? '').slice(0, 200))
       check('the excerpt-window truncation is tagged in the summary',
-        /本摘录只含开头 1200 字符，其后内容未展示/.test(long.inspections[0]?.tree_summary ?? ''),
+        /窗口1200/.test(long.inspections[0]?.tree_summary ?? ''),
         (long.inspections[0]?.tree_summary ?? '').slice(0, 200))
     } finally {
       net.restore()

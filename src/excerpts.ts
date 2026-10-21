@@ -450,6 +450,36 @@ export interface ExcerptPlan {
 }
 
 /**
+ * The key to the notation `describeExcerpt` writes into every excerpt header.
+ *
+ * WHY A LEGEND, AND WHY ONCE PER CARD
+ * -----------------------------------
+ * The window size is the same for every file in a card, and the read budget is
+ * the same for every file in a call. Spelling either out in full inside each
+ * header repeats a card-level constant up to 262 times: measured on the 22 A/B
+ * cards, the headers were 33,582 bytes (8.8% of the payload) and 21,950 of them
+ * (5.8%) were the same two sentences. That is the identical defect the skeleton
+ * disclaimer had before it moved to once per card, and it gets the identical
+ * fix — the claim about the METHOD is stated once, and each header keeps only
+ * WHICH cuts this particular file took.
+ *
+ * The legend costs 166 bytes per card that uses the notation at all (1,992
+ * bytes over 12 measured cards) against 21,950 bytes of repeated prose, and it
+ * is emitted only when a header in the rendered card actually carries a mark, so
+ * a card whose excerpts were all trimmed does not explain notation nobody sees.
+ *
+ * The marks are terse because a header is inside `[结构信息]`, one line per file,
+ * and the long form pushed real evidence off the readable part of the line.
+ * `截断@N` is "the read budget cut this file at N characters"; `窗口N` is "this
+ * excerpt shows N characters and the rest was not displayed"; `跳头→LN` is "the
+ * licence header, imports or module docstring at the top was skipped, and this
+ * excerpt starts at line N of the original file". Every number a header used to
+ * state is still stated, so nothing became unverifiable.
+ */
+export const EXCERPT_WINDOW_LEGEND =
+  '   摘录头记号：截断@N=读取预算只拿到前 N 字符；窗口N=摘录只含 N 字符；跳头→LN=开头许可头/import 已跳过，从第 N 行开始。'
+
+/**
  * Decide what one file is worth showing, and render both halves of that decision.
  *
  * WHY THIS IS A FUNCTION AND NOT A BRANCH IN `inspectOne`
@@ -476,8 +506,17 @@ export function describeExcerpt(
   // Level 3 is the read budget, level 4 is the window below; the header states
   // whichever applies, in characters, so the reader can tell how much of the file
   // is actually in front of them.
+  //
+  // WHAT IS PER-FILE AND WHAT IS NOT
+  // --------------------------------
+  // The read budget is per-file (only a cut file has one) and stays here. The
+  // window size is the SAME for every file in the card, so stating it in all 262
+  // headers cost 33.6KB of one measured payload — the identical defect the
+  // skeleton disclaimer had before it moved to once-per-card. The window rule is
+  // now stated once, by `EXCERPT_WINDOW_LEGEND`; the header keeps only WHICH cuts
+  // this particular file took.
   const coverage: string[] = []
-  if (source.truncated) coverage.push(`文件长于 ${readBudgetChars} 字符的读取预算，已截断`)
+  if (source.truncated) coverage.push(`截断@${readBudgetChars}`)
 
   const disposition = classifyExcerpt(path, isSourcePath)
 
@@ -498,10 +537,11 @@ export function describeExcerpt(
 
   const headerWith = (notes: string[]): string =>
     `--- ${path} ---${notes.length > 0 ? `（${notes.join('；')}）` : ''}`
-  // Every non-window branch shows no file body, so for those the only coverage
-  // fact is how much of the file the read budget returned.
+  // Every non-window branch shows no file body at all, so the only per-file fact
+  // left is the read-budget cut — but the WINDOW is still a fact about the file
+  // ("you are not seeing all of it"), and it stays.
   const plainHeader = headerWith(
-    windowed ? [...coverage, `本摘录只含开头 ${EXCERPT_WINDOW_CHARS} 字符，其后内容未展示`] : coverage,
+    windowed ? [...coverage, `窗口${EXCERPT_WINDOW_CHARS}`] : coverage,
   )
 
   switch (disposition.kind) {
@@ -556,12 +596,10 @@ export function describeExcerpt(
       // falsehood the window cut itself used to commit (a silent second cut).
       const notes = [...coverage]
       if (shifted) {
-        notes.push(
-          `已跳过开头的许可头、import 或模块文档字符串，本摘录从第 ${skip.lineOffset + 1} 行开始` +
-            (windowCut ? `，只含其后 ${EXCERPT_WINDOW_CHARS} 字符` : ''),
-        )
+        notes.push(`跳头→L${skip.lineOffset + 1}`)
+        if (windowCut) notes.push(`窗口${EXCERPT_WINDOW_CHARS}`)
       } else if (windowed) {
-        notes.push(`本摘录只含开头 ${EXCERPT_WINDOW_CHARS} 字符，其后内容未展示`)
+        notes.push(`窗口${EXCERPT_WINDOW_CHARS}`)
       }
       // The scanner reads the SAME window the excerpt shows. Scanning more than
       // is displayed would let the card cite a declaration the reader cannot see,

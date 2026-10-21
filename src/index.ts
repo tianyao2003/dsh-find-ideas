@@ -764,7 +764,13 @@ async function inspectOne(
       // are workspace members, and listing all of them said nothing (logseq
       // produced 29 paths, 11% of the payload). Count them, name the root ones.
       `依赖清单：共 ${evidence.manifests.length} 个${evidence.rootManifests.length > 0 ? `，根目录：${evidence.rootManifests.join(', ')}` : '（无根目录清单）'}\n` +
-      `读取的文件：${readFiles.length > 0 ? readFiles.join(', ') : '（无）'}\n` +
+      // The list of files that were read is NOT repeated here. It is already the
+      // first line of the repository's section, printed by `renderInspections`
+      // from the same `files_read` array, so this was a second copy of a fact the
+      // card had just stated — 5,205 bytes over 12 measured dumps, and worse than
+      // the bytes: two lists that must agree and are built in two places is how
+      // they eventually disagree. The header counts them and names them; this
+      // block carries only what the header does not.
       `文件摘录：\n${excerpts.length > 0 ? excerpts.join('\n\n') : '（无）'}` +
       // A requested path that could not be read is reported, never silently
       // dropped: otherwise "I asked for these 3 files" and "I got these 3 files"

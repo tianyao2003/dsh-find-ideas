@@ -247,13 +247,13 @@ console.log('\n--- describeExcerpt: the block and the skeleton entry agree ---')
   // file. The read budget and the window are DIFFERENT cuts and each says so.
   const windowOnly = describeExcerpt('src/mid.ts', { text: 'x'.repeat(2000), truncated: false }, 4000)
   const windowHeader = windowOnly.block.split('\n')[0]
-  check('a file longer than the window states the window cut', new RegExp(`本摘录只含开头 ${EXCERPT_WINDOW_CHARS} 字符`).test(windowHeader), windowHeader)
+  check('a file longer than the window states the window cut', new RegExp(`窗口${EXCERPT_WINDOW_CHARS}`).test(windowHeader), windowHeader)
   check('and does not claim a read-budget cut that did not happen', !/读取预算/.test(windowHeader), windowHeader)
 
   const both = describeExcerpt('src/big.ts', { text: 'x'.repeat(4000), truncated: true }, 4000)
   const bothHeader = both.block.split('\n')[0]
-  check('the header states the read-budget cut', /4000 字符的读取预算，已截断/.test(bothHeader), bothHeader)
-  check('and also states the window cut', new RegExp(`${EXCERPT_WINDOW_CHARS} 字符`).test(bothHeader), bothHeader)
+  check('the header states the read-budget cut', /截断@4000/.test(bothHeader), bothHeader)
+  check('and also states the window cut', new RegExp(`窗口${EXCERPT_WINDOW_CHARS}`).test(bothHeader), bothHeader)
 
   const whole = describeExcerpt('src/small.ts', { text: 'export const x = 1\n', truncated: false }, 4000)
   check('a whole small file carries no coverage caveat', !/截断|未展示/.test(whole.block.split('\n')[0]), whole.block.split('\n')[0])
@@ -373,8 +373,8 @@ console.log('\n--- C7: the window starts after the licence/import preamble ---')
   // after a shift would be the same class of falsehood the silent second cut used
   // to commit.
   const shiftedHeader = shifted.block.split('\n')[0]
-  check('the header says the window no longer starts at line 1', /已跳过开头/.test(shiftedHeader), shiftedHeader)
-  check('the header names the line the window starts at', /从第 7 行开始/.test(shiftedHeader), shiftedHeader)
+  check('the header says the window no longer starts at line 1', /跳头→L7/.test(shiftedHeader), shiftedHeader)
+  check('the header names the line the window starts at', /跳头→L7/.test(shiftedHeader), shiftedHeader)
   check('the header does not claim the excerpt is the file opening', !/本摘录只含开头/.test(shiftedHeader), shiftedHeader)
 
   // A Python module docstring is the same problem in a different syntax: the

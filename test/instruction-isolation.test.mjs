@@ -544,17 +544,21 @@ try {
   }
 
   // =========================================================================
-  console.log('\n=== I7. the licence is stated as unverified, per repository ===')
+  console.log('\n=== I7. the licence is stated as unverified, once per card ===')
   {
     const card = cardOf([inspectionRow({ readme_excerpt: 'a readme' })])
     check('an inspected repository carries the licence statement',
       card.includes('许可证未验证：可参考理念，不授权复制实现'), card)
     check('the statement says WHY it is unverified, not just that it is',
-      /没有 license 字段/.test(card) && /没有读取该仓库的 LICENSE/.test(card), card)
+      /没有 license 字段/.test(card) && /没有读取它们的 LICENSE 文件/.test(card), card)
 
+    // The fact is a property of the TOOL, not of any one repository: nothing
+    // here ever reads a LICENSE file. Repeating the sentence after every
+    // repository read as "this repository was checked and came back unverified",
+    // which is the opposite of what is true, and it was 3.6% of the payload.
     const two = cardOf([inspectionRow(), inspectionRow({ full_name: 'other/repo' })])
-    check('the statement is per repository, not once for the batch',
-      two.split('许可证未验证').length - 1 === 2, String(two.split('许可证未验证').length - 1))
+    check('the statement is stated once per card, not once per repository',
+      two.split('许可证未验证').length - 1 === 1, String(two.split('许可证未验证').length - 1))
 
     const failed = cardOf([inspectionRow({ ok: false, error: '404' })])
     check('a repository whose read failed still carries the statement',
