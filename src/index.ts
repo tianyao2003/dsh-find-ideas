@@ -29,6 +29,7 @@ import { MAX_QUERY_TERMS, describeLexiconMiss, describePartialFailure, describeP
 import { MANIFEST_RE, SELECTOR_VERSION, pickArchitectureFiles, treeEvidence } from './select.ts'
 import { SCANNER_VERSION } from './skeleton.ts'
 import { describeExcerpt, extractReadmeLead, renderReadmeExcerpt } from './excerpts.ts'
+import { mapPool } from './pool.ts'
 import { looksBinary, pickWindow } from './read.ts'
 import { termBudget, translateIdea, translationFailed, type TranslateDeps } from './translate.ts'
 import { INSPECT_BYTES_CEILING, INSPECT_BYTES_DEFAULT, INSPECT_BYTES_FLOOR, INSPECT_FORMAT_VERSION, README_LEAD_CHARS, type Inspection, type ReadFileResult, type ReadRefKind, renderCandidates, renderInspections, renderRanked, renderReadFiles, renderSkeletonCard, type SkeletonCardEntry } from './render.ts'
@@ -263,6 +264,34 @@ const INSPECT_BUDGET = {
 }
 
 type InspectDepth = keyof typeof INSPECT_BUDGET
+
+/**
+ * How many repositories `inspect_projects` reads at once.
+ *
+ * The serial loop this replaces was not a design decision, it was the absence of
+ * one: each repository costs ~4 requests, every one of them a round trip of
+ * 400-640ms, and the batch paid them one after another. Reading three
+ * repositories took the SUM of three independent latencies for no reason.
+ *
+ * Why 3, and not `repos.length`:
+ *
+ *   - The quota is shared and small. Anonymous access is 10 requests per MINUTE
+ *     per egress IP, shared with every other process behind that IP. A
+ *     five-wide fan-out of 4 requests each is 20 requests in one burst, which is
+ *     exactly how a plugin manufactures its own 429. Three keeps a burst under
+ *     the per-minute ceiling for the authenticated case and stays honest about
+ *     the anonymous one, which the up-front quota check already refuses at
+ *     `estimated > 10`.
+ *   - GitHub's secondary rate limits are about concurrency, not volume; keeping
+ *     the in-flight count in single digits is the documented way to stay under
+ *     them.
+ *
+ * This is a rollback position, not just a tuning knob: `1` makes the pool an
+ * exactly-serial loop, which is the behaviour every test in `test/` was written
+ * against. Setting it to 1 and re-running the suite must be green with no other
+ * change — that is what makes M3 revertable at runtime as well as in git.
+ */
+export const INSPECT_CONCURRENCY = 3
 
 /**
  * Wall-clock ceiling the host enforces on `inspect_projects`.
@@ -1964,12 +1993,28 @@ export function apply(ctx: Context): void {
       //      call -- which an earlier version of this check did -- would reject
       //      work that succeeds. Sickness is handled by the cap, not by
       //      pretending to forecast it.
-      const estimatedMs = repos.length * budget.msPerRepo
+      // The estimate is now per WAVE, not per repository: `INSPECT_CONCURRENCY`
+      // repositories are read at once, so the wall clock is the number of waves
+      // times the measured per-repo cost, not the sum over all of them. Leaving
+      // this as `repos.length * msPerRepo` after the pool landed would keep
+      // refusing batches the tool can now comfortably finish -- a refusal that
+      // costs the caller a retry for no reason, and one the check's own comment
+      // calls "the only refusal that is certain to be right". With
+      // `INSPECT_CONCURRENCY === 1` the arithmetic collapses back to the old
+      // sum, which is the rollback position.
+      const waves = Math.ceil(repos.length / INSPECT_CONCURRENCY)
+      const estimatedMs = waves * budget.msPerRepo
       if (estimatedMs > budgetMs) {
-        const fitsShallow = Math.floor(budgetMs / INSPECT_BUDGET.shallow.msPerRepo)
+        // Same conversion the estimate uses, in reverse: how many repositories
+        // fit in the budget at this depth AND this width.
+        const fitsShallow = Math.floor(budgetMs / INSPECT_BUDGET.shallow.msPerRepo) * INSPECT_CONCURRENCY
+        const perRepo = (budget.msPerRepo / 1000).toFixed(1)
+        const pace = INSPECT_CONCURRENCY > 1
+          ? `${repos.length} 个仓库、每次并行 ${INSPECT_CONCURRENCY} 个，约 ${waves} 轮 × ${perRepo} 秒/${depth}`
+          : `${repos.length} 个仓库 × 约 ${perRepo} 秒/${depth}`
         const detail =
           `按实测速度，本次读取约需 ${(estimatedMs / 1000).toFixed(1)} 秒` +
-          `（${repos.length} 个仓库 × 约 ${(budget.msPerRepo / 1000).toFixed(1)} 秒/${depth}），` +
+          `（${pace}），` +
           `超过了本工具 ${(budgetMs / 1000).toFixed(0)} 秒的时间预算` +
           `（宿主在 ${(INSPECT_TIMEOUT_MS / 1000).toFixed(0)} 秒处强制终止，且被终止时不会返回任何已读到的内容）` +
           `——那样你会拿不到任何结果，也不知道哪些仓库已经读过。` +
@@ -1978,34 +2023,69 @@ export function apply(ctx: Context): void {
         return { idea, cached: false, depth, requests_used: 0, inspections: [], degraded: { reason: 'time_budget_exceeded', detail } }
       }
 
+      // One outcome per repository, in the CALLER's order. A worker returns its
+      // outcome instead of throwing so that a rate limit in one lane can stop
+      // the pool from starting more repositories (see `stopAfter` below) while
+      // still reporting what the lanes that already ran actually saw.
+      type RepoOutcome =
+        | { kind: 'inspected'; inspection: Inspection }
+        | { kind: 'failed'; text: string }
+        | { kind: 'rate_limited'; text: string; detail: string }
+        | { kind: 'cancelled'; text: string }
+
+      const outcome = await mapPool<string, RepoOutcome>(
+        repos,
+        INSPECT_CONCURRENCY,
+        async (repo): Promise<RepoOutcome> => {
+          if (exec?.signal?.aborted === true) return { kind: 'cancelled', text: `${repo}: 已取消` }
+          try {
+            const inspection = await inspectOne(
+              repo,
+              budget,
+              { token, signal: exec?.signal, deadline, onRequest: countRequest },
+              fileCheck.values.length > 0 ? fileCheck.values : undefined,
+            )
+            return { kind: 'inspected', inspection }
+          } catch (error) {
+            // Rate limiting aborts the whole batch: continuing would just burn
+            // more of a quota that is already exhausted. Reported as an outcome
+            // rather than thrown so the OTHER lanes' real results are not lost
+            // with the pool's first rejection.
+            if (error instanceof GitHubSearchRateLimited) {
+              return { kind: 'rate_limited', text: `${repo}: ${error.message}`, detail: `${error.message}${withProxyHint()}` }
+            }
+            return { kind: 'failed', text: `${repo}: ${describeFailure(error)}` }
+          }
+        },
+        { stopAfter: result => result.kind === 'rate_limited' || result.kind === 'cancelled' },
+      )
+
+      // Collected in repository order, which is what the card prints and what
+      // `requestedRepos` records for a replay. A lane that never started leaves
+      // `undefined` behind: it is reported as neither read nor failed, because
+      // neither is true.
       const inspections: Inspection[] = []
       const failures: string[] = []
-
-      for (const repo of repos) {
-        try {
-          if (exec?.signal?.aborted === true) {
-            failures.push(`${repo}: 已取消`)
+      let rateLimitDetail: string | undefined
+      for (const item of outcome.results) {
+        if (item === undefined) continue
+        switch (item.kind) {
+          case 'inspected': inspections.push(item.inspection); break
+          case 'rate_limited':
+            failures.push(item.text)
+            if (rateLimitDetail === undefined) rateLimitDetail = item.detail
             break
-          }
-          inspections.push(await inspectOne(
-            repo,
-            budget,
-            { token, signal: exec?.signal, deadline, onRequest: countRequest },
-            fileCheck.values.length > 0 ? fileCheck.values : undefined,
-          ))
-        } catch (error) {
-          // Rate limiting aborts the whole batch: continuing would just burn
-          // more of a quota that is already exhausted.
-          if (error instanceof GitHubSearchRateLimited) {
-            const detail = `${error.message}${withProxyHint()}`
-            if (inspections.length === 0) {
-              return { idea, cached: false, depth, requests_used: requestsUsed, inspections: [], degraded: { reason: 'rate_limited', detail } }
-            }
-            failures.push(`${repo}: ${error.message}`)
-            break
-          }
-          failures.push(`${repo}: ${describeFailure(error)}`)
+          case 'failed':
+          case 'cancelled': failures.push(item.text); break
         }
+      }
+
+      // `rate_limited` is only the answer when nothing was read at all. With
+      // lanes running concurrently a repository AFTER the rate-limited one may
+      // already have been read, so the old "nothing before it succeeded" test
+      // would report an empty result for a call that did return evidence.
+      if (inspections.length === 0 && rateLimitDetail !== undefined) {
+        return { idea, cached: false, depth, requests_used: requestsUsed, inspections: [], degraded: { reason: 'rate_limited', detail: rateLimitDetail } }
       }
 
       if (inspections.length === 0) {
