@@ -1,0 +1,154 @@
+{
+  "perArm": {
+    "A": {
+      "runs": 10,
+      "steps": 9,
+      "stepSpanMs": 7996.7444444444445,
+      "modelMs": 4587.455555555555,
+      "toolMs": 3407.8,
+      "hostMs": 0.35555555555555557,
+      "modelShare": 0.5827452394990444,
+      "toolShare": 0.4169931677909612,
+      "sessionSpanMs": 72108.4,
+      "wallReportedMs": 73660
+    },
+    "B": {
+      "runs": 10,
+      "steps": 7.4,
+      "stepSpanMs": 9100.081081081082,
+      "modelMs": 6796.364864864865,
+      "toolMs": 2302.4189189189187,
+      "hostMs": 0.4189189189189189,
+      "modelShare": 0.6738950126297741,
+      "toolShare": 0.3259355993857076,
+      "sessionSpanMs": 67427.9,
+      "wallReportedMs": 69170
+    }
+  },
+  "perRun": {
+    "A": [
+      {
+        "id": "I01",
+        "steps": 9,
+        "total": 54939,
+        "wall": 56900
+      },
+      {
+        "id": "I02",
+        "steps": 9,
+        "total": 113351,
+        "wall": 114900
+      },
+      {
+        "id": "I03",
+        "steps": 6,
+        "total": 59486,
+        "wall": 61000
+      },
+      {
+        "id": "I04",
+        "steps": 5,
+        "total": 49338,
+        "wall": 50900
+      },
+      {
+        "id": "I05",
+        "steps": 10,
+        "total": 61819,
+        "wall": 63300
+      },
+      {
+        "id": "I06",
+        "steps": 6,
+        "total": 64801,
+        "wall": 66300
+      },
+      {
+        "id": "I07",
+        "steps": 16,
+        "total": 102676,
+        "wall": 104200
+      },
+      {
+        "id": "I08",
+        "steps": 9,
+        "total": 58867,
+        "wall": 60300
+      },
+      {
+        "id": "I09",
+        "steps": 10,
+        "total": 70250,
+        "wall": 71700
+      },
+      {
+        "id": "I10",
+        "steps": 10,
+        "total": 85557,
+        "wall": 87100
+      }
+    ],
+    "B": [
+      {
+        "id": "I01",
+        "steps": 6,
+        "total": 51101,
+        "wall": 53800
+      },
+      {
+        "id": "I02",
+        "steps": 7,
+        "total": 63723,
+        "wall": 65200
+      },
+      {
+        "id": "I03",
+        "steps": 8,
+        "total": 75547,
+        "wall": 77100
+      },
+      {
+        "id": "I04",
+        "steps": 8,
+        "total": 78896,
+        "wall": 80500
+      },
+      {
+        "id": "I05",
+        "steps": 8,
+        "total": 61341,
+        "wall": 63700
+      },
+      {
+        "id": "I06",
+        "steps": 6,
+        "total": 54061,
+        "wall": 55600
+      },
+      {
+        "id": "I07",
+        "steps": 6,
+        "total": 53495,
+        "wall": 55100
+      },
+      {
+        "id": "I08",
+        "steps": 9,
+        "total": 78856,
+        "wall": 80400
+      },
+      {
+        "id": "I09",
+        "steps": 10,
+        "total": 77663,
+        "wall": 79200
+      },
+      {
+        "id": "I10",
+        "steps": 6,
+        "total": 79596,
+        "wall": 81100
+      }
+    ]
+  }
+}

@@ -1,0 +1,245 @@
+{
+  "target": {
+    "billed": 25000,
+    "wall": 50
+  },
+  "floor": {
+    "steps": 5,
+    "calls": 4
+  },
+  "perRun": [
+    {
+      "run": "I01-A",
+      "arm": "A",
+      "calls": 15,
+      "steps": 9,
+      "billed": 24424,
+      "newPer": 1324.2222222222222,
+      "ctxPer": 13895.111111111111,
+      "wall": 56.9,
+      "floorBilled": 13568.888888888889
+    },
+    {
+      "run": "I02-A",
+      "arm": "A",
+      "calls": 14,
+      "steps": 9,
+      "billed": 27755,
+      "newPer": 1771.2222222222222,
+      "ctxPer": 13127.111111111111,
+      "wall": 114.9,
+      "floorBilled": 15419.444444444445
+    },
+    {
+      "run": "I03-A",
+      "arm": "A",
+      "calls": 14,
+      "steps": 6,
+      "billed": 38658,
+      "newPer": 4572,
+      "ctxPer": 18709.333333333332,
+      "wall": 61,
+      "floorBilled": 32215
+    },
+    {
+      "run": "I04-A",
+      "arm": "A",
+      "calls": 14,
+      "steps": 5,
+      "billed": 24936,
+      "newPer": 3484.4,
+      "ctxPer": 15027.2,
+      "wall": 50.9,
+      "floorBilled": 24936
+    },
+    {
+      "run": "I05-A",
+      "arm": "A",
+      "calls": 9,
+      "steps": 10,
+      "billed": 40568,
+      "newPer": 2193.1,
+      "ctxPer": 18636.8,
+      "wall": 63.3,
+      "floorBilled": 20284
+    },
+    {
+      "run": "I06-A",
+      "arm": "A",
+      "calls": 14,
+      "steps": 6,
+      "billed": 36245,
+      "newPer": 4257.333333333333,
+      "ctxPer": 17834.666666666668,
+      "wall": 66.3,
+      "floorBilled": 30204.166666666668
+    },
+    {
+      "run": "I07-A",
+      "arm": "A",
+      "calls": 15,
+      "steps": 16,
+      "billed": 73916,
+      "newPer": 2290.125,
+      "ctxPer": 23296,
+      "wall": 104.2,
+      "floorBilled": 23098.75
+    },
+    {
+      "run": "I08-A",
+      "arm": "A",
+      "calls": 15,
+      "steps": 9,
+      "billed": 38417,
+      "newPer": 2502.1111111111113,
+      "ctxPer": 17664,
+      "wall": 60.3,
+      "floorBilled": 21342.777777777777
+    },
+    {
+      "run": "I09-A",
+      "arm": "A",
+      "calls": 15,
+      "steps": 10,
+      "billed": 32357,
+      "newPer": 1637,
+      "ctxPer": 15987.2,
+      "wall": 71.7,
+      "floorBilled": 16178.5
+    },
+    {
+      "run": "I10-A",
+      "arm": "A",
+      "calls": 9,
+      "steps": 10,
+      "billed": 32110,
+      "newPer": 1575.2,
+      "ctxPer": 16358.4,
+      "wall": 87.1,
+      "floorBilled": 16055
+    },
+    {
+      "run": "I01-B",
+      "arm": "B",
+      "calls": 5,
+      "steps": 6,
+      "billed": 33017,
+      "newPer": 3625.5,
+      "ctxPer": 18773.333333333332,
+      "wall": 53.8,
+      "floorBilled": 27514.166666666668
+    },
+    {
+      "run": "I02-B",
+      "arm": "B",
+      "calls": 8,
+      "steps": 7,
+      "billed": 44015,
+      "newPer": 3914.4285714285716,
+      "ctxPer": 23734.85714285714,
+      "wall": 65.2,
+      "floorBilled": 31439.285714285714
+    },
+    {
+      "run": "I03-B",
+      "arm": "B",
+      "calls": 10,
+      "steps": 8,
+      "billed": 41562,
+      "newPer": 2616,
+      "ctxPer": 25792,
+      "wall": 77.1,
+      "floorBilled": 25976.25
+    },
+    {
+      "run": "I04-B",
+      "arm": "B",
+      "calls": 7,
+      "steps": 8,
+      "billed": 36191,
+      "newPer": 2255.125,
+      "ctxPer": 22688,
+      "wall": 80.5,
+      "floorBilled": 22619.375
+    },
+    {
+      "run": "I05-B",
+      "arm": "B",
+      "calls": 9,
+      "steps": 8,
+      "billed": 39341,
+      "newPer": 2674.375,
+      "ctxPer": 22432,
+      "wall": 63.7,
+      "floorBilled": 24588.125
+    },
+    {
+      "run": "I06-B",
+      "arm": "B",
+      "calls": 5,
+      "steps": 6,
+      "billed": 27555,
+      "newPer": 2593.5,
+      "ctxPer": 19989.333333333332,
+      "wall": 55.6,
+      "floorBilled": 22962.5
+    },
+    {
+      "run": "I07-B",
+      "arm": "B",
+      "calls": 5,
+      "steps": 6,
+      "billed": 27536,
+      "newPer": 2611.6666666666665,
+      "ctxPer": 19776,
+      "wall": 55.1,
+      "floorBilled": 22946.666666666668
+    },
+    {
+      "run": "I08-B",
+      "arm": "B",
+      "calls": 8,
+      "steps": 9,
+      "billed": 41022,
+      "newPer": 2101.777777777778,
+      "ctxPer": 24561.777777777777,
+      "wall": 80.4,
+      "floorBilled": 22790
+    },
+    {
+      "run": "I09-B",
+      "arm": "B",
+      "calls": 12,
+      "steps": 10,
+      "billed": 50966,
+      "newPer": 2668.4,
+      "ctxPer": 24281.6,
+      "wall": 79.2,
+      "floorBilled": 25483
+    },
+    {
+      "run": "I10-B",
+      "arm": "B",
+      "calls": 5,
+      "steps": 6,
+      "billed": 29746,
+      "newPer": 2598.1666666666665,
+      "ctxPer": 23594.666666666668,
+      "wall": 81.1,
+      "floorBilled": 24788.333333333336
+    }
+  ],
+  "observedMin": {
+    "billedB": 27536,
+    "wallB": 53.8
+  },
+  "floorCounterfactual": {
+    "billed": 25110.770238095236,
+    "wall": 47.38172619047619
+  },
+  "slackCostPerRun": 11984.32976190476,
+  "fourStep": {
+    "billed": 20088.61619047619,
+    "wall": 37.90538095238095
+  }
+}

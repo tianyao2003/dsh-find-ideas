@@ -15,10 +15,19 @@ node_modules/
 # input to it — the plugin itself never writes inside the workspace (its only
 # write is the cache file under `$DSH_HOME/cache/dsh-find-ideas`, see
 # `src/cache.ts`). Kept out of the repository so a trial run cannot end up in a
-# commit, in the published package, or on GitHub. Narrow or widen this rule if a
-# report ever needs to be committed deliberately (`git check-ignore -v <file>`
-# reports which rule matched).
+# commit, in the published package, or on GitHub.
 *报告.md
+
+# EXCEPTION: the A/B experiment reports are not trial-run output. They are the
+# human-readable half of a frozen baseline whose machine-readable half is
+# checked in under `eval/runs/ab-v04*-baseline/`, and `eval/harness/ab-wall-clock.mjs`
+# READS `v0.4.0-AB实验报告.md` to verify the retracted wall-clock claim still
+# appears as a retraction. With the blanket rule above that file is absent from a
+# fresh clone and the gate silently degrades to SKIP — a check that cannot run is
+# how the retracted column survived a 28-item green gate the first time.
+# Committed deliberately; see the commit that added this exception.
+!v0.4.0-AB实验报告.md
+!v0.4.1-AB实验报告.md
 
 # Archify run receipts under `docs/`: these record the machine that ran the
 # render — absolute paths under the user's home directory and the local node

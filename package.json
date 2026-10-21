@@ -41,7 +41,8 @@
     "eval:metrics": "node eval/harness/ab-metrics.mjs",
     "eval:wallclock": "node eval/harness/ab-wall-clock.mjs",
     "eval:payload": "node eval/harness/payload-truth.mjs",
-    "eval:gate": "npm run eval:golden && npm run eval:metrics && npm run eval:wallclock && npm run eval:payload"
+    "eval:ab-v041": "node eval/harness/ab-v041.mjs",
+    "eval:gate": "npm run eval:golden && npm run eval:metrics && npm run eval:wallclock && npm run eval:payload && npm run eval:ab-v041"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
