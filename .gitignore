@@ -36,5 +36,11 @@ docs/*.delivery.json
 .DS_Store
 Thumbs.db
 
+# The golden harness writes the baseline it is about to overwrite here
+# (`--write --force` keeps the old file beside the new one). It is a one-off
+# backup of a file that is itself tracked, so committing it would add a second
+# copy of the same 90KB on every intentional re-record.
+eval/fixtures/inspect-golden-baseline.prev.json
+
 # Tarballs produced by `npm pack` while checking what would be published.
 *.tgz

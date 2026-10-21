@@ -66,14 +66,19 @@ export const README_LEAD_CHARS = 400
  * instead of at byte 0, so the bytes of a cached record no longer describe the
  * same window; a window that was entirely preamble collapses to a note and a
  * fourth skeleton population (`preamble-only`) appears in the card.
+ *
+ * 3 -> 4: the byte cap became a constant, so the card's trim notice no longer
+ * names `budget_bytes` and no longer offers "call again with a larger budget" as
+ * the recovery path; the two surviving recovery paths are stated instead. The
+ * rendered bytes change, which is exactly what this version exists to record.
  */
-export const INSPECT_FORMAT_VERSION = 3
+export const INSPECT_FORMAT_VERSION = 4
 
 /**
- * Byte budget for one rendered inspection card: default, floor and ceiling.
+ * Byte budget for one rendered inspection card. FIXED — the caller cannot set it.
  *
- * WHY THE CARD NEEDS ONE AT ALL
- * -----------------------------
+ * WHY THE CARD NEEDS A CAP AT ALL
+ * -------------------------------
  * Measured on the 12 A/B dumps (`.scratch/probe-c10-untrimmed.cjs`, current
  * renderer, UTF-8 bytes): one card is 21,700.5 bytes on average and 48,048 at
  * the worst, and the model pays for every byte of it. The tool already refuses
@@ -83,35 +88,41 @@ export const INSPECT_FORMAT_VERSION = 3
  *
  * MEASURING THIS IS EASIER TO GET WRONG THAN IT LOOKS
  * ---------------------------------------------------
- * `renderInspections` now applies `INSPECT_BYTES_DEFAULT` when no budget is
- * passed, so measuring a card by calling it with four arguments measures a
- * TRIMMED card and can never show an overshoot. Any measurement of untrimmed
- * size has to pass `Number.POSITIVE_INFINITY`; the numbers above do.
+ * `renderInspections` applies `INSPECT_BYTES_DEFAULT` when no budget is passed,
+ * so measuring a card by calling it with four arguments measures a TRIMMED card
+ * and can never show an overshoot. Any measurement of untrimmed size has to pass
+ * `Number.POSITIVE_INFINITY`; the numbers above do.
  *
- * WHY 24000 IS NOT A DEAD PARAMETER
- * ---------------------------------
+ * WHY 24000
+ * ---------
  * 4 of those 12 cards render above it, and trimming them to it removes 38,334
- * of 260,406 bytes (14.7 %) — so the default trims real cards rather than
- * sitting above every observed value. It is deliberately above the mean, because
- * the mean card is evidence the caller asked for and should be returned whole.
+ * of 260,406 bytes (14.7 %) — so the cap trims real cards rather than sitting
+ * above every observed value. It is deliberately above the mean, because the
+ * mean card is evidence the caller asked for and should be returned whole.
  *
- * WHY THE CEILING IS 64000
- * ------------------------
- * The largest card measured is 48,048 bytes, so 64000 is reachable: a caller
- * who genuinely wants everything can ask for it and get an untrimmed card. A
- * ceiling below the observed maximum would make "no trimming" impossible to
- * request, which turns a budget into a silent quality cap. It is still a
- * CEILING — the same reason `max_bytes` has one: an unbounded limit turns one
- * call into an unbounded response.
+ * WHY IT IS NOT A PARAMETER ANY MORE (v0.4.0)
+ * -------------------------------------------
+ * The previous release exposed this as `budget_bytes` (8000–64000) and told the
+ * model that "the cheapest recovery is to call again with a larger budget".
+ * Measured on the frozen A/B baseline, that advice was a net loss:
  *
- * The floor is set above the smallest card this tool can produce for one
- * repository (framing ~1,050 bytes plus one repository block of at least ~1,850),
- * because a floor below that would advertise a budget that can never succeed —
- * the caller would be inside the documented range and still trimmed to nothing.
+ *  - Of the 12 extra `inspect_projects` calls across the 10 arm-B runs, only 3
+ *    were trim recovery (I01 raised 24000 to 60000; I02 and I06 raised 24000 to
+ *    64000). The other 9 asked for a different repository set, which no budget
+ *    change would replace.
+ *  - Raising the default to the old ceiling costs +27,006 bytes per dump
+ *    (324,068 B over 12 dumps) = +11,343 billed tokens per run, while the 3
+ *    recoveries it would save are worth at most 898 billed tokens per run.
+ *  - The 3 recoveries themselves cost 87,801 bytes over 10 runs, and each one
+ *    lands at step 4 of a 6-step run: the withheld evidence is re-bought at full
+ *    price rather than avoided.
+ *
+ * So the knob is gone and the cap is a constant. The caller still gets the two
+ * recovery paths that do not depend on a number it has to guess: point-read the
+ * file with `read_repo_files`, or send fewer repositories in the next call. Both
+ * are stated on the card when anything is withheld.
  */
 export const INSPECT_BYTES_DEFAULT = 24000
-export const INSPECT_BYTES_FLOOR = 8000
-export const INSPECT_BYTES_CEILING = 64000
 
 /**
  * The horizontal rule that separates one repository section from the next.
@@ -1276,7 +1287,7 @@ const TREE_MISSING_HEADING = '\n未能读取的指定文件：'
  * had no excerpts", and reusing it here would turn "we withheld this from you"
  * into "there was nothing to withhold".
  */
-const TREE_EXCERPTS_TRIMMED = '（本工具省略：文件摘录按 budget_bytes 裁剪，明细见文末「裁剪」说明）'
+const TREE_EXCERPTS_TRIMMED = '（本工具省略：文件摘录按卡片字节预算裁剪，明细见文末「裁剪」说明）'
 
 /** A `tree_summary` split at its excerpt heading. */
 interface TreeSummaryParts {
@@ -1429,12 +1440,13 @@ const INSPECT_TRIM_ORDER: readonly InspectTrimLevel[] = ['manifest', 'readme', '
  * @param inspections - per-repository results.
  * @param degraded - batch-level degradation, or null.
  * @param cached - whether the bundle came from cache.
- * @param budgetBytes - UTF-8 byte budget for the rendered card. When the card
- *   fits, it is returned byte for byte as it would be without a budget; when it
- *   does not, rungs are dropped from the tail of `INSPECT_TRIM_ORDER` until it
- *   does, and the card names what was withheld. Defaults to
- *   `INSPECT_BYTES_DEFAULT`, which is what makes an explicit budget of that same
- *   value indistinguishable from no budget.
+ * @param budgetBytes - UTF-8 byte budget for the rendered card. Not a tool
+ *   parameter any more: the tool always passes `INSPECT_BYTES_DEFAULT`, and the
+ *   argument survives so the trim ladder can be exercised at other widths by the
+ *   tests and by the golden harness. When the card fits, it is returned byte for
+ *   byte as it would be without a budget; when it does not, rungs are dropped
+ *   from the tail of `INSPECT_TRIM_ORDER` until it does, and the card names what
+ *   was withheld.
  * @returns a plain-text report.
  */
 export function renderInspections(
@@ -1584,25 +1596,21 @@ export function renderInspections(
     })
     if (out.length === 0) return []
     const lines: string[] = [
-      `⚠️ 本次返回已按 budget_bytes=${budgetBytes} 裁剪（未裁剪时约 ${formatBytes(fullBytes)}）：为了让一次返回装进预算，下面这些内容没有随本次返回。`,
+      `⚠️ 本次返回已按卡片字节预算裁剪（未裁剪时约 ${formatBytes(fullBytes)}）：为了让一次返回装进预算，下面这些内容没有随本次返回。`,
       ...out,
       '   这些内容本次没有返回，不要根据仓库名或「读取文件」列表推断它们的内容。',
     ]
-    // The cheapest way to get the withheld evidence back is NOT read_repo_files:
-    // `budget_bytes` is read at render time and is deliberately absent from the
-    // cache key, so re-calling with a bigger budget replays the SAME cached
-    // reading and returns the full card without spending a GitHub request. Saying
-    // only "use read_repo_files" would push the caller onto the one recovery path
-    // that costs quota when a free one exists. When the caller is already at the
-    // ceiling there is no bigger budget to ask for, so the honest advice is to
-    // split the call instead of repeating an impossible suggestion.
-    if (budgetBytes < INSPECT_BYTES_CEILING) {
-      lines.push(
-        `   最省的下一次调用：原样再调一次 inspect_projects，只把 budget_bytes 调大（上限 ${INSPECT_BYTES_CEILING}）。读取结果在缓存里，没过期就不会再消耗 GitHub 请求，上面省略的内容会完整回来；只缺某几个文件时，再用 read_repo_files 点读。`,
-      )
-    } else {
-      lines.push('   预算已经是上限；要一次看全这些仓库，请减少 repos 数量后分批调用。')
-    }
+    // There is no "call again with a bigger budget" to suggest any more: the cap
+    // is a constant, so a caller cannot name a larger one. That advice was also
+    // measured as a net loss while it existed — the three recoveries it produced
+    // in the frozen baseline re-bought 87,801 bytes at step 4 of a 6-step run,
+    // and 9 of the 12 extra calls it was blamed for were asking for a different
+    // repository set, which no budget change would have replaced. What is left
+    // are the two paths that do not require guessing a number: point-read the
+    // file, or send fewer repositories so the next card fits.
+    lines.push(
+      '   两条补读路径：只缺某几个文件时，用 read_repo_files 点读（repo + paths）；要一次看全这些仓库，请减少 repos 数量后分批调用。',
+    )
     return lines
   }
 
@@ -1653,7 +1661,7 @@ export function renderInspections(
   // Everything droppable is dropped and the card is still over budget. Say so
   // rather than hand back a card that silently exceeds the limit it was asked
   // to respect: the caller's next move is to send fewer repositories.
-  return `${attempt().text}\n\n⚠️ 即使裁到只剩结构信息，本次返回仍超过 budget_bytes=${budgetBytes}；请减少 repos 数量后重试。`
+  return `${attempt().text}\n\n⚠️ 即使裁到只剩结构信息，本次返回仍超过卡片字节预算=${budgetBytes}；请减少 repos 数量后重试。`
 }
 
 /**

@@ -358,9 +358,11 @@ for (const want of base.entries) {
         g.bytes >= full.bytes || g.cutNotices > 0,
         `card ${g.bytes}B vs untrimmed ${full.bytes}B, notices=${g.cutNotices}`)
       // Staying inside the budget is the contract; the one documented exception is
-      // a card that says out loud it could not fit.
+      // a card that says out loud it could not fit. The phrase below is bound to
+      // `src/render.ts`; it changed in v0.4.0 when the byte cap stopped being a
+      // caller-supplied parameter (`budget_bytes` -> 卡片字节预算).
       check(`${want.name}@${budget}: within budget, or says it cannot fit`,
-        g.bytes <= Number(budget) || /仍超过 budget_bytes=/.test(renderInspections(
+        g.bytes <= Number(budget) || /仍超过卡片字节预算=/.test(renderInspections(
           value.idea, value.inspections, value.degraded ?? null, value.cached ?? false, Number(budget),
         )),
         `${g.bytes}B vs budget ${budget}`)
