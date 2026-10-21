@@ -40,6 +40,21 @@ docs/*.finalize-summary.json
 docs/*.browser-check.json
 docs/*.delivery.json
 
+# Archify's own run directory — the working area that produced the three files
+# above. It holds the frozen candidate, a copy of the rendered HTML, the
+# screenshots, and the same receipts already excluded under `docs/`, so it
+# carries the same local paths. Everything worth keeping is copied into `docs/`
+# and `archify render` recreates the rest, so this is regenerable output rather
+# than an input.
+#
+# Ignoring it also matters for the test suite: `test/source-integrity.test.mjs`
+# walks the tree for U+FFFD, and these receipts legitimately contain the
+# replacement characters left by a GBK console reading UTF-8 paths. Untracked
+# but visible, that directory failed the local suite while a fresh clone — which
+# never has it — stayed green. A check that depends on whether someone happened
+# to run the renderer is not a check.
+.archify/
+
 # Local editor / OS state.
 *.log
 .DS_Store

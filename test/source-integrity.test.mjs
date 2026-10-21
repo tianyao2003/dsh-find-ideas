@@ -86,7 +86,14 @@ function check(label, cond, detail = '') {
 // a directory its own header says it does not cover, and passed on a fresh clone
 // where the directory does not exist. A check that depends on whether someone
 // happened to run a probe is not a check.
-const SKIP_DIRS = new Set(['node_modules', 'lib', '.git', 'runs', 'isolated-home', '.scratch'])
+//
+// `.archify/` failed the same way, for the same reason. It is the diagram
+// renderer's working directory, gitignored by design; its `finalize.json` and
+// `validate.json` receipts quote local paths that a GBK console had already
+// mangled, so they contain U+FFFD as recorded DATA, not as damage to this repo.
+// The three diagram artefacts that ARE committed live under `docs/` and are
+// still scanned.
+const SKIP_DIRS = new Set(['node_modules', 'lib', '.git', 'runs', 'isolated-home', '.scratch', '.archify'])
 const TEXT_EXT = /\.(ts|mjs|cjs|js|json|md|yml|yaml|txt)$/
 
 function walk(dir) {

@@ -130,6 +130,8 @@ Any test touching the cache must set a scratch `DSH_HOME` **before importing the
 | T4 | an em-dash, star or arrow immediately followed by Latin/digit without a space (`≤` deliberately excluded) |
 | T5 | loss of the measured numbers `2,528–73,328`, `0–566`, `≤100` |
 
+**T1 walks the whole package, so it must skip gitignored working directories.** `SKIP_DIRS` (`test/source-integrity.test.mjs:96`) is not a convenience list: any directory that is gitignored but present locally can fail the gate while a fresh clone — which never has it — stays green. That asymmetry has now bitten twice, once for `.scratch/` and once for `.archify/`. Both hold *recorded data* (probe dumps, renderer receipts) whose U+FFFD is legitimate, not damage to this repo. When adding a directory that a tool writes into, add it to `SKIP_DIRS` and to `.gitignore` in the same change — and keep the artefacts you actually ship outside it (`docs/` is still scanned).
+
 The header records the 2026-10-12 incident that produced it: a lossy encoding round-trip rewrote the tree, damaging one 3-byte character plus the following byte. The loud failure was `Unterminated string literal` (28 of them); the **silent** failure was a vanished space or digit — `2,528–73,328` became `2,528—3,328` and `≤100` became `≤00`, changing a measurement with no test failing.
 
 ---

@@ -32,6 +32,7 @@ dsh-find-ideas/
 ├── scripts/                # check-peers.mjs, script-env.mjs, readme-sample.mjs
 ├── lib/                    # tsc output, gitignored — TESTS IMPORT FROM HERE, NOT src/
 ├── docs/                   # the architecture diagram: HTML, PNG, and its candidate
+├── .archify/               # archify's run directory, gitignored — regenerable, never an input
 ├── .github/workflows/      # ci.yml — npm ci, then `npm run check` and `npm test`
 ├── .trellis/               # this spec layer
 └── package.json · tsconfig.json · cordis.patch.yml · AGENTS.md · README.md · LICENSE
