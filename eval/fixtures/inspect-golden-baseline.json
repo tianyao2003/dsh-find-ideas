@@ -1,15 +1,15 @@
 {
   "generatedFrom": "eval/fixtures/inspect-golden-raw.json",
   "pluginVersion": "0.3.0",
-  "formatVersion": 3,
+  "formatVersion": 4,
   "entries": [
     {
       "name": "I01-armB-inspect1.txt",
       "idea": "一个把 PDF 论文批量转成可朗读播客的流水线",
       "budgets": {
         "8000": {
-          "sha256": "86611ee5725aeb3d108a62c2aa07c22aa079a218b3509b769079e2a868d83a72",
-          "bytes": 7356,
+          "sha256": "86402369ca498114d2b029fd788c08a1d42830fd5b77ba1ddbd68f3447f381b5",
+          "bytes": 7251,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -26,11 +26,11 @@
           ],
           "treeEntries": 44,
           "skeletonHits": 4,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "12000": {
-          "sha256": "6e76953498c36b22c5967c807f1e1c72bd4b0b6509b74b5be344d49c164585b8",
-          "bytes": 9936,
+          "sha256": "973cc3f64f01971baa5443a4b12b35efc387a92113c0352255c44bd54fa15f4f",
+          "bytes": 9830,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -47,11 +47,11 @@
           ],
           "treeEntries": 64,
           "skeletonHits": 4,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "16000": {
-          "sha256": "057543247a47adf4cb51d43c2f86c991b828e3ccfadb9e3d1fb69f1ea79d5d0f",
-          "bytes": 15863,
+          "sha256": "e6f45f2087d2a62fa35080b6d2947b2bf5f70a27db0d83104fce569554eedefb",
+          "bytes": 15753,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -68,11 +68,11 @@
           ],
           "treeEntries": 172,
           "skeletonHits": 8,
-          "cutNotices": 7
+          "cutNotices": 6
         },
         "24000": {
-          "sha256": "76c435d38c2dcfd8d0313d5e2d5a1fc9e200855db24d493752473159262983ee",
-          "bytes": 23849,
+          "sha256": "f87178d1ddeecdd0ee096d293e7220c0e40ff69bd24be9bd955a85574b0a6ba3",
+          "bytes": 23731,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -89,11 +89,11 @@
           ],
           "treeEntries": 390,
           "skeletonHits": 8,
-          "cutNotices": 5
+          "cutNotices": 4
         },
         "28000": {
-          "sha256": "b6dcb55752991d60aeb7634eee4b2d023d6b3a04247d6944d5b3e0ad9a9b708f",
-          "bytes": 26740,
+          "sha256": "e52f0563ade2e7eecd004ed3e3d31ad370af78dc436bbb5636a24b1e0d6609f3",
+          "bytes": 26622,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -110,7 +110,7 @@
           ],
           "treeEntries": 452,
           "skeletonHits": 8,
-          "cutNotices": 5
+          "cutNotices": 4
         },
         "40000": {
           "sha256": "fc5e23f8ee1dbef639c8890ee1e897c0d78aeed71178be37addc2e958aabc634",
@@ -182,8 +182,8 @@
       "idea": "一个把 PDF 论文批量转成可朗读播客的流水线",
       "budgets": {
         "8000": {
-          "sha256": "4513ece607721024185a6abf148bced90dbec2e33a01c2336d00af516d51c323",
-          "bytes": 6193,
+          "sha256": "8cc1b1bd5301d8eb11c6550113f1e8447446086d3fd0f2dad0f204e75044ddec",
+          "bytes": 6084,
           "repos": 2,
           "filesRead": [
             "README.md",
@@ -196,11 +196,11 @@
           ],
           "treeEntries": 33,
           "skeletonHits": 2,
-          "cutNotices": 6
+          "cutNotices": 5
         },
         "12000": {
-          "sha256": "027f56ac1f2cc4a27963acd23cc971c08fec0f7a8b77a3bc489ed4018b956606",
-          "bytes": 8887,
+          "sha256": "fd936bafa7df11fb4b91bc211d080c4801f75609db67bdf0660c1ac8d85b2c16",
+          "bytes": 8777,
           "repos": 2,
           "filesRead": [
             "README.md",
@@ -213,11 +213,11 @@
           ],
           "treeEntries": 54,
           "skeletonHits": 3,
-          "cutNotices": 6
+          "cutNotices": 5
         },
         "16000": {
-          "sha256": "0ab52360dae98b2296a001da4087e92f066511fa15404d75af75a9e8dd43ef09",
-          "bytes": 13143,
+          "sha256": "ab8ee6b075d9b1cd08c631b200354cc48ba88180bc04e5f05548cedd9e89f87a",
+          "bytes": 13029,
           "repos": 2,
           "filesRead": [
             "README.md",
@@ -230,7 +230,7 @@
           ],
           "treeEntries": 167,
           "skeletonHits": 3,
-          "cutNotices": 5
+          "cutNotices": 4
         },
         "24000": {
           "sha256": "162a845a4c8fb4bab3303284557b4580e1327c0c95f51d509f9c1bba857dd434",
@@ -324,8 +324,8 @@
       "idea": "用 Go 写一个自托管的 cron 任务调度面板，带 Web UI 和失败告警",
       "budgets": {
         "8000": {
-          "sha256": "6fb41e8d0bc4eb18c3065112cffeb23c640012db90807e276e6b3bddea10ef96",
-          "bytes": 7023,
+          "sha256": "f4b0eaab521e6abb911af26bbdb3d5181188d395e7d7631c17af3bc4fc948ff3",
+          "bytes": 6926,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -351,11 +351,11 @@
           ],
           "treeEntries": 35,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "12000": {
-          "sha256": "a5823d53069f273a5e834844df8f0f95531ce1b1f36e561a87ed29c3ba5711db",
-          "bytes": 9769,
+          "sha256": "f7aa5194635ce3ec07c79f9677dc0ad51e691e0e956ccdd5294ac531c0d53874",
+          "bytes": 9671,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -381,11 +381,11 @@
           ],
           "treeEntries": 60,
           "skeletonHits": 3,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "16000": {
-          "sha256": "a7be54b4a9b58bad363a633cd5b6a5b3b6ede439c7a4edee25703c7579daae79",
-          "bytes": 15449,
+          "sha256": "4c7a207e48ed5602390db85952828677e3637571f66487fc3004e8901fc1068f",
+          "bytes": 15351,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -411,11 +411,11 @@
           ],
           "treeEntries": 108,
           "skeletonHits": 7,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "24000": {
-          "sha256": "342d3077163696bfc16261414ce17d7dc7e96c5b6efa3bba6081542e008ba290",
-          "bytes": 22137,
+          "sha256": "f9b08bd2495c83ff532bb80831255b683c4161cb15c8e6bca252cf18c84f8916",
+          "bytes": 22039,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -441,11 +441,11 @@
           ],
           "treeEntries": 174,
           "skeletonHits": 21,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "28000": {
-          "sha256": "0b119f0305d6bf2411376704dfe2a204c3119f8aa51fd75e8c9d03b3dbb8f09b",
-          "bytes": 27287,
+          "sha256": "ef7b64316778fe0ca5cd0823b6a7c22de063e50fff535fcd76bc8736c366aac2",
+          "bytes": 27185,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -471,11 +471,11 @@
           ],
           "treeEntries": 340,
           "skeletonHits": 21,
-          "cutNotices": 11
+          "cutNotices": 10
         },
         "40000": {
-          "sha256": "47fbb3952fa2491c98f6ed2a73b66f68b6314478ee8a59e5d397f824abee781a",
-          "bytes": 38989,
+          "sha256": "43c3235f570e659e7d04f85e381db239ebcdac1e8c09ad711e34dc2373f911f2",
+          "bytes": 38879,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -501,11 +501,11 @@
           ],
           "treeEntries": 655,
           "skeletonHits": 21,
-          "cutNotices": 9
+          "cutNotices": 8
         },
         "60000": {
-          "sha256": "011fb128de7e5a2dcceede15eb6ddd4e7b3aa62c31f33d22258b90902716268d",
-          "bytes": 58921,
+          "sha256": "0232ff7cad8065f513fa052654059fe58588cc1016491c6ab2d28728966598d3",
+          "bytes": 58803,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -531,7 +531,7 @@
           ],
           "treeEntries": 1129,
           "skeletonHits": 21,
-          "cutNotices": 7
+          "cutNotices": 6
         },
         "64000": {
           "sha256": "e77e18b6c1e63133e2b7d64ef3234a24e476ce3fe03e3ca23edc220f2abcbe5f",
@@ -570,8 +570,8 @@
       "idea": "给 Neovim 写一个 AI 补全插件，接本地模型",
       "budgets": {
         "8000": {
-          "sha256": "f8932ee28f0bfb5f0a9917e7d91a5fd4300520fe7052acb219de2412f6fe3b7b",
-          "bytes": 7291,
+          "sha256": "cddb4df011caa8359a755ca62ecb670cbec03841e40aa953c17147e9dc02a955",
+          "bytes": 7194,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -597,11 +597,11 @@
           ],
           "treeEntries": 35,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "12000": {
-          "sha256": "64e559d84430787ba87abcbcbeac6d03836f23eab2a164c20a07b3c8329da090",
-          "bytes": 9922,
+          "sha256": "8032d06eb10594f90027a0a7124dac0d14b7f3cdb6e659de6eb6a2253d250483",
+          "bytes": 9824,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -627,11 +627,11 @@
           ],
           "treeEntries": 54,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "16000": {
-          "sha256": "b867408de63b08b7a19dc01580daab145f3751bf9779a0c6d38ad415c166fa32",
-          "bytes": 15190,
+          "sha256": "d2e7905bccb805723f572b9896c5abe5b78ee0cb550711e23daed1e85b134802",
+          "bytes": 15092,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -657,11 +657,11 @@
           ],
           "treeEntries": 92,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "24000": {
-          "sha256": "3a77fc2481f1c11f6400aea1768e5a2f2345d17913c45fea7846e54ab9ea8cb0",
-          "bytes": 20481,
+          "sha256": "954b8c59cd64988d5df76ceea25c8d4a945a062940a7b75e337080204bded30d",
+          "bytes": 20383,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -687,11 +687,11 @@
           ],
           "treeEntries": 130,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "28000": {
-          "sha256": "567af5f79ba87d938a2241e16e368e158a08d5be70df511ed205dd9d7bf25843",
-          "bytes": 24973,
+          "sha256": "43e455a9cc4fac8d8ca8bfa2967439bf347f4acf76fe63e624470ff9baa22ee1",
+          "bytes": 24871,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -717,11 +717,11 @@
           ],
           "treeEntries": 238,
           "skeletonHits": 0,
-          "cutNotices": 11
+          "cutNotices": 10
         },
         "40000": {
-          "sha256": "251927088f32b1182803e43dd97232d7500120fd43a700a4468b89958bf08db4",
-          "bytes": 36340,
+          "sha256": "6d4d32b3e671e75ffa194d94db541ef2b8086822f0d241e83b4e70a1f8148005",
+          "bytes": 36230,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -747,11 +747,11 @@
           ],
           "treeEntries": 543,
           "skeletonHits": 0,
-          "cutNotices": 9
+          "cutNotices": 8
         },
         "60000": {
-          "sha256": "5a8d8e61fd995b8d38f20fddaf04aade5abc744dc5c8c12e84da9d9531347137",
-          "bytes": 58447,
+          "sha256": "0366ae5c455d0e3fd26dd86e70b4504d33b0ad8440e059e34989764497afaf5e",
+          "bytes": 58329,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -777,7 +777,7 @@
           ],
           "treeEntries": 932,
           "skeletonHits": 0,
-          "cutNotices": 4
+          "cutNotices": 3
         },
         "64000": {
           "sha256": "2a167f616b211be1c8686769b0533543fc3db47d7d4533a5abecead92e6d5ab9",
@@ -816,8 +816,8 @@
       "idea": "一个团队用的「周报自动生成器」，从 GitHub PR/issue 里抽工作项",
       "budgets": {
         "8000": {
-          "sha256": "b05524d662ffdff19e19383878fd4d406670c94de8cea088bd8804baad170ee7",
-          "bytes": 7197,
+          "sha256": "d995a5599feec0bb9a4f56b8d6badbaa932773b6c64e8dabab6ffba8e2778d20",
+          "bytes": 7100,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -842,11 +842,11 @@
           ],
           "treeEntries": 35,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "12000": {
-          "sha256": "b71c286a43ec9b085ba4391180cc28d5e61908a88f091dcdb6340bfb38e14008",
-          "bytes": 11829,
+          "sha256": "c7ae735b9aa8ae05ffc639d1d2cb989fe1b3bb512bb4da386239d8253a5a4674",
+          "bytes": 11731,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -871,11 +871,11 @@
           ],
           "treeEntries": 73,
           "skeletonHits": 3,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "16000": {
-          "sha256": "029318c066fac714287868a821b0565563cb24c2d3dbafabf81a7e972a09d149",
-          "bytes": 14486,
+          "sha256": "ff39d7358e299348c16578c959559ba774bfcccdd4b111dbf294f68ffa739eb6",
+          "bytes": 14388,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -900,11 +900,11 @@
           ],
           "treeEntries": 92,
           "skeletonHits": 3,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "24000": {
-          "sha256": "0ada69fb8d15a6b397cbbb7e3c022b5a42181f8966f259c3db9e7e96f8927cc9",
-          "bytes": 20737,
+          "sha256": "565672523472a8019a3a6a2b6b8e5d37fea55e04939c9f189e6b77c40605b157",
+          "bytes": 20639,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -929,11 +929,11 @@
           ],
           "treeEntries": 148,
           "skeletonHits": 12,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "28000": {
-          "sha256": "554a85a0a77d5e00626897a9789f1fe139bb7b2fac23d6dd008c8a105d408148",
-          "bytes": 24517,
+          "sha256": "ca2f903e847d7bebafd0430b2e5150d802eec16f2b872d3c89d8a5e29191d7b4",
+          "bytes": 24415,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -958,11 +958,11 @@
           ],
           "treeEntries": 288,
           "skeletonHits": 12,
-          "cutNotices": 11
+          "cutNotices": 10
         },
         "40000": {
-          "sha256": "ccb258ec239f863f91e2a60a10e31527fb0cc05dda0dd09d9847031edecb721e",
-          "bytes": 38706,
+          "sha256": "52541a78de646ac2ead64640d3fae8c72b49257195e45884fc802f4649fa0ff5",
+          "bytes": 38592,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -987,7 +987,7 @@
           ],
           "treeEntries": 688,
           "skeletonHits": 12,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "60000": {
           "sha256": "3b7e49b3f7fcbdc8892779d3d1584b4bc17dedb505354445b49b12a347ecd379",
@@ -1054,8 +1054,8 @@
       "idea": "一个桌面剪贴板历史管理器，支持搜索和固定常用片段",
       "budgets": {
         "8000": {
-          "sha256": "a7ae7bcb3d370911304002046c60c2f4193224474fb882119a3b53c4898d288f",
-          "bytes": 7733,
+          "sha256": "206445e0ae310f4695f617d4d98bccba4143af272cb269195dcdf6f0b7066f59",
+          "bytes": 7628,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -1073,11 +1073,11 @@
           ],
           "treeEntries": 40,
           "skeletonHits": 0,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "12000": {
-          "sha256": "8925fbf4c5bd152e62644482019cff6ade9f46c4e770ef5792dd9a87585c61d4",
-          "bytes": 10374,
+          "sha256": "9bf98f243ea5c078fc71f1f59be3fcd69ad742177282d5f1bafd96306e127606",
+          "bytes": 10268,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -1095,11 +1095,11 @@
           ],
           "treeEntries": 59,
           "skeletonHits": 0,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "16000": {
-          "sha256": "7e79979cdf809b7540ceec63d0b1a547bab4088741db328cad77d56a28b102cb",
-          "bytes": 13062,
+          "sha256": "6cb61be35f343f9da44e49ac6b9e16c848c5f6c747e6e76ecee691ef5ac4f640",
+          "bytes": 12956,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -1117,11 +1117,11 @@
           ],
           "treeEntries": 82,
           "skeletonHits": 2,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "24000": {
-          "sha256": "40ad1adb9772cbff82a9b8055ce1dfa7c5dc1daa9b91fc6b53b8902633f71975",
-          "bytes": 21915,
+          "sha256": "21c7ca55993a23b528721d4d79383598259c7acb2136d5224c85a39cd5f27ecc",
+          "bytes": 21801,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -1139,11 +1139,11 @@
           ],
           "treeEntries": 259,
           "skeletonHits": 2,
-          "cutNotices": 6
+          "cutNotices": 5
         },
         "28000": {
-          "sha256": "cb5ca5095203814308d34f7f62cb1205690231a42d3370b9584c72721ce056cb",
-          "bytes": 26795,
+          "sha256": "34300e5fb73b27d647691fa04ef102d3674debaf1ce3518c3f534043eb61d35e",
+          "bytes": 26677,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -1161,7 +1161,7 @@
           ],
           "treeEntries": 358,
           "skeletonHits": 2,
-          "cutNotices": 5
+          "cutNotices": 4
         },
         "40000": {
           "sha256": "7aa99d6e64089ef69979f787b12b4f09a1c72837fe9c03116133ecb429e96074",
@@ -1236,8 +1236,8 @@
       "idea": "一个开源的轻量 feature flag 服务，带管理后台和 SDK",
       "budgets": {
         "8000": {
-          "sha256": "73441ee6f8d36d6bbd75399a7dd9cae75b72788fe7e62004c6d2536c5258c2c9",
-          "bytes": 7591,
+          "sha256": "cb804f191d71007321ac577fb5e55e06310eb2708463e831eba718d08e33d389",
+          "bytes": 7494,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1263,11 +1263,11 @@
           ],
           "treeEntries": 35,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "12000": {
-          "sha256": "a55d4799bb4320adb4b49d0735da3e16be04e0bb6435269a4288d4ebb0529d1b",
-          "bytes": 10083,
+          "sha256": "e589b15a431c8c4dc269cb3f605cba9ce9e93035cb2a5a56719435b52ac97a5d",
+          "bytes": 9985,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1293,11 +1293,11 @@
           ],
           "treeEntries": 55,
           "skeletonHits": 1,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "16000": {
-          "sha256": "7ee3388a41c088a49621f9c4171535764889d7c20cf8ea2a226e5761401793f8",
-          "bytes": 15510,
+          "sha256": "ac2db7faa0fa3fef291b28f5440945cf229fa176a1d880c07be11bb697eb5f3f",
+          "bytes": 15412,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1323,11 +1323,11 @@
           ],
           "treeEntries": 99,
           "skeletonHits": 4,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "24000": {
-          "sha256": "963c66ed71f3bac93104d85304d93d9d567b597bf0542c910c1f421f7511a60c",
-          "bytes": 21703,
+          "sha256": "3f73687f6a0625b8deb2f361f44ba0940b763055f0f43e7e34152083a13c16e2",
+          "bytes": 21605,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1353,11 +1353,11 @@
           ],
           "treeEntries": 157,
           "skeletonHits": 15,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "28000": {
-          "sha256": "7925b636a556219f29fb4670d05a3bcd605e1e72af8589ef7b2e77ffc998dabc",
-          "bytes": 24502,
+          "sha256": "7ccf541c536bfe86b423e8019733653439fe1dda7a603de46c79b1b4fe804c9a",
+          "bytes": 24400,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1383,11 +1383,11 @@
           ],
           "treeEntries": 222,
           "skeletonHits": 15,
-          "cutNotices": 11
+          "cutNotices": 10
         },
         "40000": {
-          "sha256": "94454f4eca3e635bb19ee0260fef9c446c587c06cd0ec1735f01f47427dda122",
-          "bytes": 39050,
+          "sha256": "d5925960303ecc95b77157619e74230cef1eccba9a661d19c28fb1db7810f2b8",
+          "bytes": 38936,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1413,11 +1413,11 @@
           ],
           "treeEntries": 606,
           "skeletonHits": 15,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "60000": {
-          "sha256": "aca140e5bf93ecf2745ceeea27716946deaeb243d8e4789b77eff5977f9314b9",
-          "bytes": 59730,
+          "sha256": "036968ee7c6de033875559d43ef88ec2fba902b39829d1c2de9ab6e6f77eeffd",
+          "bytes": 59612,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1443,7 +1443,7 @@
           ],
           "treeEntries": 979,
           "skeletonHits": 15,
-          "cutNotices": 5
+          "cutNotices": 4
         },
         "64000": {
           "sha256": "9d545cf6d493e0b4e32ce1a8b153d92f2973ea8f5a44b743209c5834cecad4b6",
@@ -1482,8 +1482,8 @@
       "idea": "把会议录音转成结构化纪要（谁说了什么、决议、待办）",
       "budgets": {
         "8000": {
-          "sha256": "c0bdff5e0aaac81e0babf37b6c4c18e4f40e678645157d732df9e17346316a74",
-          "bytes": 6401,
+          "sha256": "bda970c56516950f0211b89378af7e3cee09c5e2cdabf63604056d8d4c84b205",
+          "bytes": 6300,
           "repos": 4,
           "filesRead": [
             "README.md",
@@ -1505,11 +1505,11 @@
           ],
           "treeEntries": 28,
           "skeletonHits": 0,
-          "cutNotices": 10
+          "cutNotices": 9
         },
         "12000": {
-          "sha256": "b85875aa65f5994c95a342e57016f600eae67cb2bc456ed2bdf45ac0413e1a21",
-          "bytes": 11969,
+          "sha256": "d31d3e1d579160fcee7a84804024d756060dd72133a7db0fe7f4bfd39cde5603",
+          "bytes": 11867,
           "repos": 4,
           "filesRead": [
             "README.md",
@@ -1531,11 +1531,11 @@
           ],
           "treeEntries": 72,
           "skeletonHits": 2,
-          "cutNotices": 10
+          "cutNotices": 9
         },
         "16000": {
-          "sha256": "e3cee41b33e0b0a74e1c30336b2e37155350509043faca8110672b76ea188ab9",
-          "bytes": 14959,
+          "sha256": "1871865032b1cd73a0149aced99145f5f4e97e8abe8d1c7194394887acc04649",
+          "bytes": 14857,
           "repos": 4,
           "filesRead": [
             "README.md",
@@ -1557,11 +1557,11 @@
           ],
           "treeEntries": 99,
           "skeletonHits": 6,
-          "cutNotices": 10
+          "cutNotices": 9
         },
         "24000": {
-          "sha256": "88672dafe8b5939cfa0bb570a7bea3d90b7b3045448ab2bdcfe0a76148352e2c",
-          "bytes": 22600,
+          "sha256": "a6dced85693ffc0e9a4577ff4255849fdc4b0f44f6a22c09d9368b979e2fee12",
+          "bytes": 22494,
           "repos": 4,
           "filesRead": [
             "README.md",
@@ -1583,11 +1583,11 @@
           ],
           "treeEntries": 253,
           "skeletonHits": 11,
-          "cutNotices": 9
+          "cutNotices": 8
         },
         "28000": {
-          "sha256": "ebd086afa8af78b5c54e906ebf0b4d30d6aae00673a6b9cf0a4cc1b91eb76591",
-          "bytes": 27289,
+          "sha256": "3d9290a14f9a248ecb09b2e3b89fb0c7d0d2dfd7b48598eff90140fba93ec73a",
+          "bytes": 27179,
           "repos": 4,
           "filesRead": [
             "README.md",
@@ -1609,11 +1609,11 @@
           ],
           "treeEntries": 374,
           "skeletonHits": 11,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "40000": {
-          "sha256": "5b757d8e948a9e6cc18e22601061b508c55afd5748f62b08782bd5324ada0683",
-          "bytes": 39707,
+          "sha256": "9b5f2e9d255714c5fd72d40653ece8327280052ec43f788a8a33a08d6c44dcd5",
+          "bytes": 39589,
           "repos": 4,
           "filesRead": [
             "README.md",
@@ -1635,7 +1635,7 @@
           ],
           "treeEntries": 653,
           "skeletonHits": 11,
-          "cutNotices": 6
+          "cutNotices": 5
         },
         "60000": {
           "sha256": "3145ff9deafa2160ecec23c88781ed7f2e2d2a113ecc61c4811bff0e5743178c",
@@ -1696,8 +1696,8 @@
       "idea": "一个可视化的 SQL 查询构建器，给不写 SQL 的人用",
       "budgets": {
         "8000": {
-          "sha256": "a6f096b496e9d45ae1e5ead045a2122e33ffedda24a03347ff280bb56c1b7b9f",
-          "bytes": 8719,
+          "sha256": "8e38dcad2768ba459c10367ce77892621f0810db3fddfea0b52c02441880f753",
+          "bytes": 8627,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1743,11 +1743,11 @@
           ],
           "treeEntries": 35,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "12000": {
-          "sha256": "f81dafb290f04f85e01cb235b8483feb78d7b919c4f20f13b6bc635b40e9d812",
-          "bytes": 8602,
+          "sha256": "b346e03bc39db73c0ffb6c857ef64303d6d4109ef27e9fa37fccebb9d846042f",
+          "bytes": 8504,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1793,11 +1793,11 @@
           ],
           "treeEntries": 35,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "16000": {
-          "sha256": "5fed0584b7d48dfb18aa732f1a457dab78bca75abc7c1f440e0d7433dea1ce6a",
-          "bytes": 14139,
+          "sha256": "ecf8da9830d86c98c1fe6f7f86b20800c63aeab39417d51da338326ca3526550",
+          "bytes": 14041,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1843,11 +1843,11 @@
           ],
           "treeEntries": 79,
           "skeletonHits": 1,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "24000": {
-          "sha256": "8d62a5ee45f08c6e78c1947ae0f62ee28f84cf9a1ec2bcf7ecd77953504e1aae",
-          "bytes": 19860,
+          "sha256": "5da21728e4d1fe9e288897665cdf452751304a1cd4421272d2a14b4011365e0f",
+          "bytes": 19762,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1893,11 +1893,11 @@
           ],
           "treeEntries": 127,
           "skeletonHits": 4,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "28000": {
-          "sha256": "9a0c6f6efa5ebdfa0e201c2c4c97f3faaf4c20d0a53c86e3c8b108a259fd4a23",
-          "bytes": 25855,
+          "sha256": "c200e725ccd8016e50b4adfa89a34b9f1256ab0208d6022485d31c267a08bb33",
+          "bytes": 25757,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1943,11 +1943,11 @@
           ],
           "treeEntries": 180,
           "skeletonHits": 10,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "40000": {
-          "sha256": "bb97fc5b86d0c9e478f7c849677b8d049e78f1d370b13d3ce43c79d1e783b35d",
-          "bytes": 38657,
+          "sha256": "7ad03c66096b6f273d65ae924d1f14fc01782cba2fad5986b69e02cbd696a107",
+          "bytes": 38559,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -1993,11 +1993,11 @@
           ],
           "treeEntries": 300,
           "skeletonHits": 29,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "60000": {
-          "sha256": "20cc1272cc753caf002b25561affeeed9bd6ccb6959d7d55d7ae91cd33c121da",
-          "bytes": 55889,
+          "sha256": "ea120c1423a11e0462e48d4f1a9f7f7d91d6785d111d08aee15f7e1cf6485816",
+          "bytes": 55783,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -2043,11 +2043,11 @@
           ],
           "treeEntries": 737,
           "skeletonHits": 29,
-          "cutNotices": 10
+          "cutNotices": 9
         },
         "64000": {
-          "sha256": "32c588f7d69b1803028d625398501a137caf903ef187286e1ec826f4591467ea",
-          "bytes": 55702,
+          "sha256": "ea120c1423a11e0462e48d4f1a9f7f7d91d6785d111d08aee15f7e1cf6485816",
+          "bytes": 55783,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -2102,8 +2102,8 @@
       "idea": "把国产智能家居设备接进 Home Assistant 的集成插件",
       "budgets": {
         "8000": {
-          "sha256": "80cb91caf3164bea32be231dac1007ede6e2b3939de874d5ae218d546bf929dd",
-          "bytes": 6013,
+          "sha256": "8168e073e4b079dee4c51e71c3fe6a01af1203389026e2f17fd85663d1971c73",
+          "bytes": 5908,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2132,11 +2132,11 @@
           ],
           "treeEntries": 22,
           "skeletonHits": 0,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "12000": {
-          "sha256": "d1d2d7939080b3b5ae7ce48d09bac5614d7127170c930e8f2391a88b15aaa8c5",
-          "bytes": 10751,
+          "sha256": "d1eb7bc880ca579cd876c364f45e5267c5c61a09beabe0388a36efaccdf86db2",
+          "bytes": 10645,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2165,11 +2165,11 @@
           ],
           "treeEntries": 73,
           "skeletonHits": 11,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "16000": {
-          "sha256": "d0bc1bff09a04534accd5aee94cfda0278b3320bc47e19ca22259490e274d951",
-          "bytes": 10751,
+          "sha256": "d1eb7bc880ca579cd876c364f45e5267c5c61a09beabe0388a36efaccdf86db2",
+          "bytes": 10645,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2198,11 +2198,11 @@
           ],
           "treeEntries": 73,
           "skeletonHits": 11,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "24000": {
-          "sha256": "d1b17ea32f1fffc2613b9bfa8d5afea256a33c405412d4623bc9146ecf88e404",
-          "bytes": 22405,
+          "sha256": "1d37992da358a1b38e86b32d00c1af7475a0f188cb9dbc233fd76b6456c7b20a",
+          "bytes": 22299,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2231,11 +2231,11 @@
           ],
           "treeEntries": 167,
           "skeletonHits": 13,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "28000": {
-          "sha256": "d685a61d403e6aae5f095aa331dff16affa6d64c41a3a0b6b146dfeecc3dc035",
-          "bytes": 22405,
+          "sha256": "1d37992da358a1b38e86b32d00c1af7475a0f188cb9dbc233fd76b6456c7b20a",
+          "bytes": 22299,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2264,11 +2264,11 @@
           ],
           "treeEntries": 167,
           "skeletonHits": 13,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "40000": {
-          "sha256": "aeefd0eb3e370cdbcb7bd8136b222da8122ab98963f4a663a77afc13548de234",
-          "bytes": 30335,
+          "sha256": "0f9fa5ec522000ca16fc87aede56d7d7f025eece506aefa92c1f8ca71c5634cd",
+          "bytes": 30225,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2297,7 +2297,7 @@
           ],
           "treeEntries": 430,
           "skeletonHits": 13,
-          "cutNotices": 7
+          "cutNotices": 6
         },
         "60000": {
           "sha256": "23f071b078b2425575d3aeb519cdbd582c70f7df2c86eaf1296ab9372d2ef99b",
@@ -2372,8 +2372,8 @@
       "idea": "把国产智能家居设备接进 Home Assistant 的集成插件",
       "budgets": {
         "8000": {
-          "sha256": "b38565a14e92b41c8ba97cd56210913805b36a1d71ac576662b29e326556772a",
-          "bytes": 5710,
+          "sha256": "37ad6f9223dda9a385d3fd902fd3273dce0c9848e6a37ae8560d11806d294ec1",
+          "bytes": 5605,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2388,11 +2388,11 @@
           ],
           "treeEntries": 25,
           "skeletonHits": 0,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "12000": {
-          "sha256": "c7f486b8e587b013b3c9394e6fab0f6b333636ab454ae753d2d9d5fb19f96509",
-          "bytes": 11159,
+          "sha256": "ff1d81338024f829ada35de9dc1a6108e44da914ad066309343d13b424d3f0c5",
+          "bytes": 11053,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2407,11 +2407,11 @@
           ],
           "treeEntries": 66,
           "skeletonHits": 0,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "16000": {
-          "sha256": "faf73f455f1f572e801d08fdce985497e7b51dd89f97d4272399bb40b055cde9",
-          "bytes": 12376,
+          "sha256": "a85de59448635988b1e8f04ec4747bee2bd93960cbc9e08de3e88295245fa9f8",
+          "bytes": 15943,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2424,13 +2424,13 @@
             "app.py",
             "README.md"
           ],
-          "treeEntries": 82,
+          "treeEntries": 167,
           "skeletonHits": 0,
-          "cutNotices": 7
+          "cutNotices": 5
         },
         "24000": {
-          "sha256": "d3f486e828eaf0e52a7e8470ba33576e6e44c2df99356cc8a723fa52ae06869b",
-          "bytes": 22067,
+          "sha256": "1ab5632bbb9c9061f0fd4975c922bd7b51e7a4705f06673f59a561b9dfa9a1b7",
+          "bytes": 21949,
           "repos": 3,
           "filesRead": [
             "README.md",
@@ -2445,7 +2445,7 @@
           ],
           "treeEntries": 316,
           "skeletonHits": 0,
-          "cutNotices": 4
+          "cutNotices": 3
         },
         "28000": {
           "sha256": "4a233c4072f34b9eeba2fa3410b0e8bf3d61519948c121d7240417ea755fe1ce",
@@ -2530,8 +2530,8 @@
       "idea": "一个自托管的家庭照片管理服务，带人脸聚类和自然语言搜索",
       "budgets": {
         "8000": {
-          "sha256": "f1e4b6040566a435160e65fdeaa5070b51272f12309f4312e7def1fa0f58727a",
-          "bytes": 7555,
+          "sha256": "79f2620519eefe67602c989af7aed5be1072bcb31cbca3837fa2b17c6e85ce49",
+          "bytes": 7458,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -2557,11 +2557,11 @@
           ],
           "treeEntries": 35,
           "skeletonHits": 0,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "12000": {
-          "sha256": "361c3eab6ece2a00b10f1e1bea24a9a1a0a1c0442e387697ed21eed8189eaf70",
-          "bytes": 10073,
+          "sha256": "a481b5d8d45d0374a0633104a2a154912769f991c47e178ea872249ed089f6c1",
+          "bytes": 9975,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -2587,11 +2587,11 @@
           ],
           "treeEntries": 55,
           "skeletonHits": 1,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "16000": {
-          "sha256": "0da7abf93773f311d34047dc51c5b537c44242439827e411f2e95073bc571915",
-          "bytes": 15253,
+          "sha256": "9ca5059acc43761c83ee8188af18ea108704c77bda46bb7e869b40bed049024f",
+          "bytes": 15155,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -2617,11 +2617,11 @@
           ],
           "treeEntries": 96,
           "skeletonHits": 3,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "24000": {
-          "sha256": "bc1510164c22440b17e552a083b7a525b39a3d77d09bdbccb9dd6feaa608924b",
-          "bytes": 20857,
+          "sha256": "cb61ab7949c2cfba78c4aeba23f8c146de925184daa702d241ce042f58e02cf7",
+          "bytes": 20759,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -2647,11 +2647,11 @@
           ],
           "treeEntries": 141,
           "skeletonHits": 5,
-          "cutNotices": 12
+          "cutNotices": 11
         },
         "28000": {
-          "sha256": "badc9ca585b6a0fa91cf34a7dd1e4f2d171778349c7ba7b3a8d0ea531deb5f6d",
-          "bytes": 24781,
+          "sha256": "c5f3bc6f4e630be31689fd79341a5981d8c0398bdbf473d0637d4b2d3e832395",
+          "bytes": 24679,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -2677,11 +2677,11 @@
           ],
           "treeEntries": 250,
           "skeletonHits": 5,
-          "cutNotices": 11
+          "cutNotices": 10
         },
         "40000": {
-          "sha256": "5660c06f1559884c4b109e7d1fee3b3345ba2d4b7b9fd8c4c668fed734487849",
-          "bytes": 39172,
+          "sha256": "cd0e89542dba1724297a7effad552e156ba54ddf4f492fcee58e437bae929d36",
+          "bytes": 39058,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -2707,11 +2707,11 @@
           ],
           "treeEntries": 596,
           "skeletonHits": 5,
-          "cutNotices": 8
+          "cutNotices": 7
         },
         "60000": {
-          "sha256": "a109980d737b260caf3baeb18bc45c1ac6238322d90916b5e5b4344e6fe7d333",
-          "bytes": 56243,
+          "sha256": "a90159a424b5a08f559656d50b463ca89ce958959d52dbedf0c7208b7654f7b6",
+          "bytes": 56125,
           "repos": 5,
           "filesRead": [
             "README.md",
@@ -2737,7 +2737,7 @@
           ],
           "treeEntries": 843,
           "skeletonHits": 5,
-          "cutNotices": 7
+          "cutNotices": 6
         },
         "64000": {
           "sha256": "5935dab5efe7ac5c7d398f513d84e47379e2743cc21d260e9cfdc9ef190f33bb",

@@ -1,26 +1,30 @@
-// Regressions for `budget_bytes`, the response-size half of the byte-budget work.
+// Regressions for the card's byte cap, the response-size half of the byte-budget work.
 //
 // WHY THIS FILE EXISTS
 // --------------------
-// Before this change the plugin bounded how many GitHub requests it spends but not
+// Before that work the plugin bounded how many GitHub requests it spends but not
 // how many bytes it returns, and the model pays for every returned byte on every
-// later turn. `budget_bytes` puts a ceiling on the card. A ceiling that is applied
-// carelessly would be worse than none at all, so the properties pinned here are:
+// later turn. The cap puts a ceiling on the card. A ceiling applied carelessly
+// would be worse than none at all, so the properties pinned here are:
 //
-//   * AC4.2 — a card that fits is returned BYTE FOR BYTE as it would be without
-//     the parameter. A budget the caller did not need must cost nothing.
+//   * the cap is a CONSTANT, not a caller-supplied parameter. v0.4.0 removed
+//     `budget_bytes` because the frozen A/B baseline showed the advice attached
+//     to it ("call again with a larger budget") was a net loss: 3 of 12 extra
+//     calls were trim recovery, 9 asked for a different repository set, and
+//     raising the default to the old ceiling cost ~11,343 billed tokens per run
+//     to save at most 898. A stale caller that still passes the argument must be
+//     ignored, not honoured and not broken.
+//   * a card that fits is returned BYTE FOR BYTE as it would be with no cap at
+//     all. A cap the caller never hits must cost nothing.
 //   * the trimming ladder is ordered by what is cheapest to lose, and the
 //     signature skeleton (the evidence the tool exists to produce) goes last;
 //   * nothing is withheld silently: the card states the count, names paths it can
-//     name, and gives the call that fetches them back — including the FREE one
-//     (re-calling with a bigger budget replays the same cached reading), because
-//     pointing only at `read_repo_files` would spend quota when it need not;
+//     name, and gives the recovery paths that do not require guessing a number —
+//     point-read the file, or send fewer repositories;
 //   * an excerpt block is ONE block even when its source window contains blank
 //     lines. `split('\n\n')` shattered blocks and swallowed the next block's
 //     `--- path ---` header, which made the withholding note under-report how much
-//     evidence was removed — an under-report is a silent loss of evidence;
-//   * an out-of-range budget is refused before any request is spent, and the
-//     refusal says so.
+//     evidence was removed — an under-report is a silent loss of evidence.
 //
 // Run: node test/inspect-budget.test.mjs   (NOT `node --test`)
 
@@ -31,13 +35,8 @@ const pkgRoot = dirname(dirname(fileURLToPath(import.meta.url)))
 const load = (rel) => import(pathToFileURL(join(pkgRoot, 'lib', rel)).href)
 
 const { apply } = await load('index.js')
-const {
-  renderInspections,
-  CARD_RULE,
-  INSPECT_BYTES_DEFAULT,
-  INSPECT_BYTES_FLOOR,
-  INSPECT_BYTES_CEILING,
-} = await load('render.js')
+const { renderInspections, CARD_RULE, INSPECT_BYTES_DEFAULT } = await load('render.js')
+const renderModule = await load('render.js')
 
 let pass = 0
 let fail = 0
@@ -101,43 +100,40 @@ const noteLine = (card, fullName) =>
 const repoSection = (card, fullName) =>
   card.split(CARD_RULE).find((part) => part.includes(`📦 ${fullName}`)) ?? ''
 
-const cutNote = (card) => card.includes('本次返回已按 budget_bytes=')
+// The trim notice no longer names a parameter, so this is anchored on the phrase
+// that is still the card's own claim: the budget is a byte budget for the card.
+const cutNote = (card) => card.includes('本次返回已按卡片字节预算裁剪')
 
 try {
   const defs = toolDefs()
   const inspect = defs.get('inspect_projects')
 
   // =========================================================================
-  console.log('\n=== B1. The budget constants are the ones the documentation claims ===')
+  console.log('\n=== B1. The cap is a constant, and the caller cannot set it ===')
   {
-    check('the default is 24000 bytes', INSPECT_BYTES_DEFAULT === 24000, `${INSPECT_BYTES_DEFAULT}`)
-    check('the floor is 8000 bytes', INSPECT_BYTES_FLOOR === 8000, `${INSPECT_BYTES_FLOOR}`)
-    check('the ceiling is 64000 bytes', INSPECT_BYTES_CEILING === 64000, `${INSPECT_BYTES_CEILING}`)
-    check('the floor is below the default and the default below the ceiling',
-      INSPECT_BYTES_FLOOR < INSPECT_BYTES_DEFAULT && INSPECT_BYTES_DEFAULT < INSPECT_BYTES_CEILING,
-      `${INSPECT_BYTES_FLOOR} < ${INSPECT_BYTES_DEFAULT} < ${INSPECT_BYTES_CEILING}`)
+    check('the fixed cap is 24000 bytes', INSPECT_BYTES_DEFAULT === 24000, `${INSPECT_BYTES_DEFAULT}`)
+    // The floor and ceiling only existed to bound a parameter. With the parameter
+    // gone they would be dead constants advertising a range nothing enforces.
+    check('no floor constant survives', renderModule.INSPECT_BYTES_FLOOR === undefined,
+      String(renderModule.INSPECT_BYTES_FLOOR))
+    check('no ceiling constant survives', renderModule.INSPECT_BYTES_CEILING === undefined,
+      String(renderModule.INSPECT_BYTES_CEILING))
 
-    // A caller reads the default off the parameter description before deciding
-    // whether to pass it; a promise there that the code does not keep is a lie
-    // the model acts on.
-    const described = inspect.parameters.properties.budget_bytes
-    check('the tool exposes budget_bytes as an optional number',
-      described !== undefined && described.type === 'number' && described.required !== true,
-      JSON.stringify(described))
-    const text = described?.description ?? ''
-    check('the parameter states the default it applies', text.includes('24000'), text.slice(0, 120))
-    check('the parameter states the floor it enforces', text.includes('8000'), text.slice(0, 120))
-    check('the parameter states the ceiling it enforces', text.includes('64000'), text.slice(0, 120))
-    check('the parameter says a fitting card is unchanged',
-      text.includes('byte for byte') || text.includes('逐字节'), text.slice(0, 300))
-    check('the parameter states what is dropped first', text.includes('manifest'), text.slice(0, 400))
-    check('budget_bytes is not part of the output schema (it is a request, not evidence)',
+    // The parameter itself must be gone: a schema that still advertises it is the
+    // same failure in a different place, because the model reads the schema.
+    const properties = inspect.parameters.properties
+    check('the tool no longer exposes budget_bytes',
+      properties.budget_bytes === undefined, JSON.stringify(Object.keys(properties)))
+    check('the four remaining parameters are the ones the tool actually reads',
+      JSON.stringify(Object.keys(properties).sort()) === JSON.stringify(['depth', 'files', 'idea', 'repos']),
+      JSON.stringify(Object.keys(properties).sort()))
+    check('budget_bytes is not part of the output schema either (it is a request, not evidence)',
       inspect.output.schema.properties.budget_bytes === undefined,
       JSON.stringify(Object.keys(inspect.output.schema.properties)))
   }
 
   // =========================================================================
-  console.log('\n=== B2. AC4.2: a card that fits is unchanged, to the byte ===')
+  console.log('\n=== B2. A card that fits is unchanged, to the byte ===')
   {
     const rows = [row({
       readme_excerpt: '# Owner/repo\n\nA small tool.',
@@ -151,25 +147,21 @@ try {
     const idea = 'a local-first note app'
     const noArgument = renderInspections(idea, rows, null, false)
     const explicitDefault = renderInspections(idea, rows, null, false, INSPECT_BYTES_DEFAULT)
-    const huge = renderInspections(idea, rows, null, false, INSPECT_BYTES_CEILING)
+    const huge = renderInspections(idea, rows, null, false, 64000)
 
-    check('an explicit default budget is byte-identical to passing none',
+    check('an explicit budget equal to the cap is byte-identical to passing none',
       noArgument === explicitDefault, `${bytes(noArgument)} vs ${bytes(explicitDefault)}`)
     check('a budget far above the card size is byte-identical too',
       noArgument === huge, `${bytes(noArgument)} vs ${bytes(huge)}`)
     check('a fitting card carries no withholding note', !cutNote(noArgument), noArgument.slice(-200))
-    check('a fitting card is under the default budget',
+    check('a fitting card is under the cap',
       bytes(noArgument) <= INSPECT_BYTES_DEFAULT, `${bytes(noArgument)} bytes`)
 
-    // The same guarantee through the tool's own projection, which is where the
-    // budget is read: `render` is handed the validated args, so `{}` means "no
-    // budget" and must land on the default.
+    // The same guarantee through the tool's own projection.
     const value = { idea, cached: false, depth: 'shallow', requests_used: 1, inspections: rows, degraded: null }
     const viaRender = inspect.output.render({}, value)[0].text
-    const viaRenderExplicit = inspect.output.render({ budget_bytes: INSPECT_BYTES_DEFAULT }, value)[0].text
-    check('the tool projection agrees with the renderer on the default',
-      viaRender === noArgument && viaRenderExplicit === noArgument,
-      `${bytes(viaRender)} / ${bytes(viaRenderExplicit)} / ${bytes(noArgument)}`)
+    check('the tool projection renders the same card the renderer does',
+      viaRender === noArgument, `${bytes(viaRender)} / ${bytes(noArgument)}`)
   }
 
   // =========================================================================
@@ -288,12 +280,12 @@ try {
       everything !== undefined && everything.dropped[3], everything && noteLine(everything.card, 'owner/repo'))
     const noBudget = renderInspections('x', [oneRow], null, false, 1)
     check('a card that cannot fit even trimmed says so instead of silently exceeding',
-      noBudget.includes(`即使裁到只剩结构信息，本次返回仍超过 budget_bytes=1`),
+      noBudget.includes('即使裁到只剩结构信息，本次返回仍超过卡片字节预算=1'),
       noBudget.slice(-200))
   }
 
   // =========================================================================
-  console.log('\n=== B4. Nothing is withheld silently, and the free recovery is named ===')
+  console.log('\n=== B4. Nothing is withheld silently, and both recovery paths are named ===')
   {
     const blocks = [
       { path: 'src/alpha.ts', body: bodyOf('alpha', 30) },
@@ -319,22 +311,31 @@ try {
     check('the note gives a read_repo_files call with the repo and paths',
       /read_repo_files\(repo="owner\/repo", paths=\[/.test(line), line)
 
-    // The cheapest recovery is NOT read_repo_files: budget_bytes is read at render
-    // time and is absent from the cache key, so a bigger budget replays the same
-    // cached reading for free. Suggesting only the paid path would be a real cost.
-    check('the note names the free recovery (re-call with a bigger budget)',
-      trimmed.includes('最省的下一次调用') && trimmed.includes('只把 budget_bytes 调大'),
-      trimmed.slice(-400))
-    check('the note says the cached reading is reused rather than re-fetched',
-      trimmed.includes('缓存') && trimmed.includes('不会再消耗 GitHub 请求'),
+    // v0.4.0: the "re-call with a bigger budget" advice is GONE, because there is
+    // no bigger budget to name. What remains are the two paths that do not need a
+    // number: point-read the file, or send fewer repositories.
+    check('the note names the point-read recovery',
+      trimmed.includes('read_repo_files 点读'), trimmed.slice(-400))
+    check('the note names the fewer-repositories recovery',
+      trimmed.includes('减少 repos 数量后分批调用'), trimmed.slice(-400))
+    check('the note no longer tells the caller to raise a budget that does not exist',
+      !trimmed.includes('budget_bytes') && !trimmed.includes('调大'),
       trimmed.slice(-400))
     check('the note warns against inferring what was not returned',
       trimmed.includes('不要根据仓库名或「读取文件」列表推断'), trimmed.slice(-300))
 
-    // At the ceiling there is no bigger budget to ask for, so the advice has to
-    // change: repeating "raise the budget" would be an impossible instruction.
-    // This needs a card that is still over budget AT the ceiling — a small card
-    // at the ceiling just fits, and then there is no note to read.
+    // A card that is still over its budget after every rung has fallen must say so
+    // rather than silently exceed it. This branch is what the golden harness's
+    // `--mode=info` fifth check reads, so the wording is load-bearing.
+    //
+    // It is REACHABLE ONLY AT A SYNTHETIC WIDTH: the untrimmable part of a card —
+    // the framing, the untrusted-content declaration, the repository headers and
+    // the tree summary prefix — is a few KB, and the fixed cap is 24,000. Measured
+    // worst case for the largest batch the tool accepts (5 repositories, every
+    // droppable field enormous): 8,687 bytes with everything dropped. So the
+    // branch cannot fire through the tool, and asserting it on the fixed cap would
+    // be asserting a card production cannot produce. It is pinned at budget 1
+    // instead, which is where B3 also reads it.
     const huge = row({
       manifest_excerpt: 'manifest '.repeat(400),
       readme_excerpt: 'readme '.repeat(3000),
@@ -345,24 +346,29 @@ try {
       skeleton_summary: 'skeleton '.repeat(2500),
     })
     const hugeFull = renderInspections('x', [huge], null, false, UNTRIMMED)
-    check('the ceiling fixture really does exceed the ceiling untrimmed',
-      bytes(hugeFull) > INSPECT_BYTES_CEILING, `${bytes(hugeFull)} vs ${INSPECT_BYTES_CEILING}`)
+    check('the oversized fixture really does exceed the cap untrimmed',
+      bytes(hugeFull) > INSPECT_BYTES_DEFAULT, `${bytes(hugeFull)} vs ${INSPECT_BYTES_DEFAULT}`)
 
-    const atCeiling = renderInspections('x', [huge], null, false, INSPECT_BYTES_CEILING)
-    check('a card that still exceeds at the ceiling is trimmed, not returned oversized',
-      cutNote(atCeiling) && bytes(atCeiling) <= INSPECT_BYTES_CEILING,
-      `${bytes(atCeiling)} bytes; note=${cutNote(atCeiling)}`)
-    check('when already at the ceiling the advice is to send fewer repositories',
-      atCeiling.includes('预算已经是上限') && atCeiling.includes('减少 repos 数量后分批调用'),
-      atCeiling.slice(-400))
-    check('at the ceiling it does not tell the caller to raise a budget that is already maxed',
-      !atCeiling.includes('只把 budget_bytes 调大'), atCeiling.slice(-400))
+    const overCap = renderInspections('x', [huge], null, false, 1)
+    check('a card that still exceeds its budget after every drop says so out loud',
+      /仍超过卡片字节预算=1/.test(overCap), overCap.slice(-300))
 
-    // The free-recovery advice is only correct BELOW the ceiling: there it is
-    // literally one re-call away, and it costs no request.
-    check('below the ceiling the free recovery is named instead',
-      trimmed.includes('最省的下一次调用') && !trimmed.includes('预算已经是上限'),
-      trimmed.slice(-400))
+    // The other half of the same property: at the FIXED cap the worst batch the
+    // tool accepts still fits once trimmed, so the branch above never fires in
+    // production and no caller can receive an over-cap card.
+    const worst = Array.from({ length: 5 }, (_, i) => row({
+      full_name: `owner-with-a-long-name/repository-with-a-long-name-${i}`,
+      url: `https://github.com/owner-with-a-long-name/repository-with-a-long-name-${i}`,
+      files_read: ['src/a.ts', 'src/b.ts', 'src/c.ts', 'src/d.ts'],
+      manifest_excerpt: 'manifest '.repeat(400),
+      readme_excerpt: 'readme '.repeat(3000),
+      tree_summary: treeWith([{ path: 'src/a.ts', body: bodyOf('alpha', 150) }]),
+      skeleton_summary: 'skeleton '.repeat(2500),
+    }))
+    const worstAtCap = renderInspections('x', worst, null, false, INSPECT_BYTES_DEFAULT)
+    check('the largest batch the tool accepts fits the fixed cap once trimmed',
+      bytes(worstAtCap) <= INSPECT_BYTES_DEFAULT && !/仍超过/.test(worstAtCap),
+      `${bytes(worstAtCap)} bytes at cap ${INSPECT_BYTES_DEFAULT}`)
   }
 
   // =========================================================================
@@ -401,66 +407,60 @@ try {
   }
 
   // =========================================================================
-  console.log('\n=== B6. An unusable budget is refused before a single request ===')
+  console.log('\n=== B6. A stale budget_bytes argument is ignored, not honoured and not fatal ===')
   {
-    const rejections = [
-      ['below the floor', 7999],
-      ['above the ceiling', 64001],
+    // The parameter is gone from the schema, and the framework's property-map
+    // compiler does not set `additionalProperties`, so an unknown key is dropped
+    // before the handler runs. That is the behaviour a caller from the previous
+    // release meets: their call still works, at the fixed cap, with no request
+    // spent on explaining a parameter that no longer exists.
+    const stale = [
+      ['below the old floor', 7999],
+      ['above the old ceiling', 64001],
       ['zero', 0],
       ['negative', -1],
+      ['a string', '64000'],
+      ['null', null],
+      ['the old default', 24000],
     ]
-    for (const [label, value] of rejections) {
+    for (const [label, value] of stale) {
       const result = await inspect.execute(
-        { idea: 'a local-first note app', repos: ['owner/repo'], budget_bytes: value },
+        { idea: 'a local-first note app', repos: [], budget_bytes: value },
         {},
       )
-      check(`${label}: reported as invalid_budget_bytes`, result.degraded?.reason === 'invalid_budget_bytes',
-        JSON.stringify(result.degraded))
-      const detail = result.degraded?.detail ?? ''
-      check(`${label}: the detail states the range and the received value`,
-        detail.includes('8000') && detail.includes('64000') && detail.includes(String(value)), detail)
-      check(`${label}: the detail says no request was spent`,
-        detail.includes('本次没有发出任何请求'), detail)
+      // `repos: []` is the first refusal, so reaching it proves the budget
+      // argument neither raised nor crashed anything on the way in.
+      check(`${label}: ignored, and the call proceeds to its normal validation`,
+        result.degraded?.reason === 'no_repos', JSON.stringify(result.degraded))
       check(`${label}: nothing was read`, result.inspections.length === 0 && result.requests_used === 0,
         `${result.inspections.length} rows, ${result.requests_used} requests`)
     }
 
-    // A non-finite value never even reaches the handler: the tool framework
-    // validates the JSON schema first and throws. Pinned because the two layers
-    // are what stop an Infinity budget — `requestedBudgetBytes` also refuses it,
-    // but only the framework path is observable from here.
-    let frameworkRefused = false
-    try {
-      await inspect.execute(
-        { idea: 'a local-first note app', repos: ['owner/repo'], budget_bytes: Number.POSITIVE_INFINITY },
-        {},
-      )
-    } catch (error) {
-      frameworkRefused = error?.code === 'INVALID_ARGS'
-    }
-    check('a non-finite budget is refused by the framework before the handler runs',
-      frameworkRefused, 'expected an INVALID_ARGS throw for budget_bytes=Infinity')
-
-    // A budget at the boundaries is valid and must NOT be refused.
-    for (const [label, value] of [['the floor', 8000], ['the ceiling', 64000]]) {
-      const result = await inspect.execute(
-        { idea: 'a non-existent idea that never reaches the network', repos: [], budget_bytes: value },
-        {},
-      )
-      // `repos: []` refuses on `no_repos`, which is reached BEFORE the budget
-      // check — so this proves the budget itself was not the reason.
-      check(`${label} is accepted rather than refused as invalid_budget_bytes`,
-        result.degraded?.reason !== 'invalid_budget_bytes', JSON.stringify(result.degraded))
+    // Non-finite values are refused even earlier — by the framework's JSON
+    // round-trip check, before the schema is consulted. Pinned because it is the
+    // only remaining path that throws rather than returns.
+    for (const [label, value] of [['Infinity', Number.POSITIVE_INFINITY], ['NaN', Number.NaN]]) {
+      let frameworkRefused = false
+      try {
+        await inspect.execute(
+          { idea: 'a local-first note app', repos: ['owner/repo'], budget_bytes: value },
+          {},
+        )
+      } catch (error) {
+        frameworkRefused = error?.code === 'INVALID_ARGS'
+      }
+      check(`${label} is refused by the framework before the handler runs`,
+        frameworkRefused, `expected an INVALID_ARGS throw for budget_bytes=${label}`)
     }
   }
 
   // =========================================================================
-  console.log('\n=== B7. The projection cannot be talked into a bigger card ===')
+  console.log('\n=== B7. The projection cannot be talked into a different card ===')
   {
-    // `render` receives `args` typed as unknown; `execute` already refused
-    // out-of-range values, so anything unusable here must fall back to the
-    // DEFAULT — a smaller card. Guessing high would return more bytes than were
-    // asked for, which is the one direction that cannot be undone.
+    // `render` used to read `budget_bytes` off its args. It no longer reads any
+    // argument at all, so every args object must produce the same card — this is
+    // the property that makes the cap a constant rather than a parameter with a
+    // default.
     const big = row({
       manifest_excerpt: 'manifest '.repeat(50),
       readme_excerpt: 'readme '.repeat(300),
@@ -468,21 +468,23 @@ try {
       skeleton_summary: 'skeleton '.repeat(200),
     })
     const value = { idea: 'x', cached: false, depth: 'shallow', requests_used: 1, inspections: [big], degraded: null }
-    const atDefault = inspect.output.render({}, value)[0].text
-    const fallbacks = [
+    const atCap = inspect.output.render({}, value)[0].text
+    const probes = [
+      ['a huge number', 999999],
+      ['a tiny number', 1],
+      ['the old cap', INSPECT_BYTES_DEFAULT],
       ['a string', '64000'],
       ['null', null],
-      ['an out-of-range number', 999999],
       ['NaN', Number.NaN],
       ['a missing object', undefined],
     ]
-    for (const [label, budget] of fallbacks) {
+    for (const [label, budget] of probes) {
       const rendered = inspect.output.render({ budget_bytes: budget }, value)[0].text
-      check(`${label} falls back to the default card`,
-        rendered === atDefault, `${bytes(rendered)} vs ${bytes(atDefault)}`)
+      check(`${label} renders the same card`,
+        rendered === atCap, `${bytes(rendered)} vs ${bytes(atCap)}`)
     }
-    check('the default card is within the default budget',
-      bytes(atDefault) <= INSPECT_BYTES_DEFAULT, `${bytes(atDefault)} bytes`)
+    check('the rendered card is within the fixed cap',
+      bytes(atCap) <= INSPECT_BYTES_DEFAULT, `${bytes(atCap)} bytes`)
   }
 } finally {
   // Nothing global is mutated here (no fetch stub, no cache), but the suite runs

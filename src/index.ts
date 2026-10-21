@@ -32,7 +32,7 @@ import { describeExcerpt, extractReadmeLead, renderReadmeExcerpt } from './excer
 import { mapPool } from './pool.ts'
 import { looksBinary, pickWindow } from './read.ts'
 import { termBudget, translateIdea, translationFailed, type TranslateDeps } from './translate.ts'
-import { INSPECT_BYTES_CEILING, INSPECT_BYTES_DEFAULT, INSPECT_BYTES_FLOOR, INSPECT_FORMAT_VERSION, README_LEAD_CHARS, type Inspection, type ReadFileResult, type ReadRefKind, renderCandidates, renderInspections, renderRanked, renderReadFiles, renderSkeletonCard, type SkeletonCardEntry } from './render.ts'
+import { INSPECT_FORMAT_VERSION, README_LEAD_CHARS, type Inspection, type ReadFileResult, type ReadRefKind, renderCandidates, renderInspections, renderRanked, renderReadFiles, renderSkeletonCard, type SkeletonCardEntry } from './render.ts'
 import {
   type Degraded,
   type RankedCandidate,
@@ -909,24 +909,6 @@ function collectValidated<T extends string>(
   return { values: [...new Set(values)], refusals }
 }
 
-/**
- * The byte budget a `render` call was asked for.
- *
- * `args` arrives at the `render` layer typed as `unknown`, and `execute` has
- * already refused anything out of range — so this is a second line of defence,
- * not the validation. Anything unusable falls back to the default, which renders
- * a SMALLER card than the caller asked for. Guessing high would hand back a card
- * bigger than the request, and that is the one direction that cannot be undone
- * once the bytes are on the wire.
- */
-function requestedBudgetBytes(args: unknown): number {
-  if (typeof args !== 'object' || args === null) return INSPECT_BYTES_DEFAULT
-  const raw = (args as { budget_bytes?: unknown }).budget_bytes
-  if (typeof raw !== 'number' || !Number.isFinite(raw)) return INSPECT_BYTES_DEFAULT
-  if (raw < INSPECT_BYTES_FLOOR || raw > INSPECT_BYTES_CEILING) return INSPECT_BYTES_DEFAULT
-  return Math.floor(raw)
-}
-
 export function apply(ctx: Context): void {
   ctx.tools.register(defineTool({
     name: 'scout_projects',
@@ -1713,20 +1695,6 @@ export function apply(ctx: Context): void {
           'Paths are relative to the repository root and apply to every repo in `repos`; a path that cannot ' +
           'be read is reported, never silently skipped. Costs one request per path per repository.',
       },
-      budget_bytes: {
-        type: 'number',
-        description:
-          `Byte budget for the rendered card (default ${INSPECT_BYTES_DEFAULT}, ${INSPECT_BYTES_FLOOR}–${INSPECT_BYTES_CEILING}). ` +
-          'The card averages ~21.7 KB and peaks near 48 KB, and you pay for every byte. When it fits, the ' +
-          'output is byte for byte what it would have been without this parameter. When it does not, the tool ' +
-          'drops the cheapest evidence first (manifest excerpt, then README excerpt, then the per-file ' +
-          'excerpts inside the structure block, and only then the signature skeleton) and states at the end ' +
-          'of the card what was withheld and how to get it back. The cheapest recovery is to call again with ' +
-          'a larger budget: the budget is applied at render time and is not part of the cache key, so the ' +
-          'same reading is replayed from cache without another GitHub request. `read_repo_files` is for when ' +
-          'you want specific files. Raising it above the default is a deliberate request for a bigger card, ' +
-          'not a free upgrade: the ceiling exists so one call cannot return an unbounded response.',
-      },
     },
     output: {
       schema: {
@@ -1772,14 +1740,11 @@ export function apply(ctx: Context): void {
           },
         },
       },
-      // The budget is read HERE, not in `execute`, because it changes only the
-      // projection: the stored rows are the same evidence either way, so putting
-      // it in `execute` would either split the cache by a rendering preference or
-      // store an already-trimmed row that a later call cannot untrim. `args` is
-      // `unknown` at this layer, so the read is defensive — an out-of-range value
-      // was already refused by `execute`, and if it reaches here anyway the
-      // default is the safe answer (a smaller card, not a bigger one).
-      render: (args, value) => [
+      // The card's byte cap is a constant now, so `render` no longer reads an
+      // argument to pick it: the stored rows are the same evidence either way,
+      // and a rendering preference is the one thing that must never split the
+      // cache or store an already-trimmed row a later call cannot untrim.
+      render: (_args, value) => [
         {
           type: 'text',
           text: renderInspections(
@@ -1787,7 +1752,6 @@ export function apply(ctx: Context): void {
             value.inspections as Inspection[],
             value.degraded,
             value.cached,
-            requestedBudgetBytes(args),
           ),
         },
       ],
@@ -1836,21 +1800,6 @@ export function apply(ctx: Context): void {
       if (repos.length === 0) {
         const detail = '没有提供任何仓库名。请传入形如 "owner/repo" 的字符串数组。'
         return { idea, cached: false, depth, requests_used: 0, inspections: [], degraded: { reason: 'no_repos', detail } }
-      }
-
-      // The byte budget is validated HERE, before the token probe and before any
-      // request: it changes only how much of the result is RENDERED, so an
-      // out-of-range value must not spend a request to be told so. Checked after
-      // the repo validations because a bad repo list is the more actionable
-      // error -- the caller must fix that first regardless of the budget.
-      const rawBytes = args.budget_bytes
-      if (rawBytes !== undefined && (!Number.isFinite(rawBytes) || rawBytes < INSPECT_BYTES_FLOOR || rawBytes > INSPECT_BYTES_CEILING)) {
-        const detail =
-          `budget_bytes 必须是 ${INSPECT_BYTES_FLOOR}–${INSPECT_BYTES_CEILING} 之间的字节数，收到 ${JSON.stringify(rawBytes)}。` +
-          `它是一次返回的总字节预算，不是"要一个更大的响应"的请求：超过上限的卡会被裁剪，` +
-          `低于下限连卡框（未信任声明、仓库头、结构信息）都装不下，裁剪后只会剩下骨架和一句裁剪说明。` +
-          `本次没有发出任何请求，也没有读取任何文件——请修正后重新调用。`
-        return { idea, cached: false, depth, requests_used: 0, inspections: [], degraded: { reason: 'invalid_budget_bytes', detail } }
       }
 
       const estimated = repos.length * budget.requestsPerRepo
