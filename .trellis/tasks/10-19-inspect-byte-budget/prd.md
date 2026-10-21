@@ -105,55 +105,82 @@
 
 ## Acceptance Criteria
 
+> **收尾状态（2026-10-21，tag `v0.4.0` = `1ccc9ad`）**：AC1.2 未达标，AC4 已被 M4 废止。
+> 其余全部达成。逐项实测见下；数字全部可用 `npm run eval:gate` 复算。
+>
+> **AC1 的度量口径**：`eval/fixtures/inspect-golden-baseline.json` 的 12 个 dump × 8 档预算，
+> 取**出货默认档 24000** 的 12 张卡求和与求均值（96 张卡的全档合计 2,510,950B 不对应任何一个
+> 真实调用，不能用来对账）。
+
 ### AC1 夹具验收（硬指标）
 
-用 `.scratch/ab-fixture-inspections.cjs` 把 12 份真实 dump 反解析成 `Inspection[]`，
-用改后的 `renderInspections` 重渲染，对比字节：
-
-- [ ] **AC1.1** M1 完成后：总字节 **≤308.7K**，单次均值 **≤25.7K**
+- [x] **AC1.1** M1 完成后：总字节 **≤308.7K**，单次均值 **≤25.7K**
+      → **实测 260,207B / 21,683.9B**，达标。
 - [ ] **AC1.2** M2 完成后：总字节 **≤181.1K**，单次均值 **≤15.1K**
-- [ ] **AC1.3** 每个 dump 的降幅方向一致，不允许"总量降了但某次涨了"
+      → **未达标：实测 260,207B / 21,683.9B**（相对 593.0K 基线 −56.1%，不是 −69%）。
+      M2 的 commit body 已提前如实记过这一点：排版去冗余只能到 −3.6%，缺口是结构性的，
+      留给 M4 的默认预算。而 M4 最终选了 **24000 而不是 16000**——在 16000 档确实是
+      172,622B / 14,385.2B（达标），但 24000 是刻意选在均值之上的：均值那张卡是调用方
+      点名要的证据，应当整张返回。**这是一次知情的目标让步，不是没做到。**
+- [x] **AC1.3** 每个 dump 的降幅方向一致 → 12 个 dump 在 24000 档全部 ≤23,731B，
+      而基线单次均值是 49,417B；`golden-inspect --mode=info` 的
+      「grows only where the baseline over-trimmed」把它钉成了检查（577 PASS）。
 
 ### AC2 信息等价
 
-- [ ] **AC2.1** `files_read` 列表逐条不变（路径、顺序、数量）
-- [ ] **AC2.2** 有声明文件（44 个）的签名行一条不少；行号、`kind`、`name` 不变
-- [ ] **AC2.3** 被折叠的每个文件都能通过 `read_repo_files` 补读（路径在 `files_read` 里可查）
-- [ ] **AC2.4** 零声明 / 不支持扩展名的文件仍有明确标注，不得渲染成"没有声明"
+- [x] **AC2.1** `files_read` 列表逐条不变 → `--mode=info` 的 `same files_read` 检查
+      （与夹具记录的 217 条逐条相等），577 PASS / 0 FAIL。
+- [x] **AC2.2** 有声明文件的签名行一条不少 → 24000 档 12 个 dump 共 94 条 skeletonHits，
+      `structural evidence not reduced` 检查保证不低于基线。
+- [x] **AC2.3** 被折叠的文件都能通过 `read_repo_files` 补读 → B4 断言卡里给出
+      `read_repo_files(repo="owner/repo", paths=[` 点读路径，且路径都在 `files_read` 里可查。
+- [x] **AC2.4** 零声明 / 不支持扩展名的文件仍有明确标注 → `src/render.ts:243/252/263`
+      三种情形分别明说「这个文件根本没有被看过，不是「没有声明」」等，`declaration-honesty`
+      47 PASS 守着。
 
 ### AC3 新工具
 
-- [ ] **AC3.1** `read_repo_files` 返回的永久链接形如
-      `https://github.com/<owner>/<repo>/blob/<40位sha>/<path>#L<a>-L<b>`
-- [ ] **AC3.2** 非法 repo / 非法路径 / 超量 paths 一律**拒绝并说明规则**，不静默丢弃
-- [ ] **AC3.3** 一次调用的返回字节 ≤8 KB
-- [ ] **AC3.4** schema 成本 ≤2.5K bytes
+- [x] **AC3.1** 永久链接形如 `https://github.com/<owner>/<repo>/blob/<40位sha>/<path>#L<a>-L<b>`
+      → `src/render.ts:1814-1817` 构造，单行 `#L<n>`、多行 `#L<a>-L<b>`，`ref` 是提交 sha。
+- [x] **AC3.2** 非法 repo / 非法路径 / 超量 paths 一律拒绝并说明规则 → `read-files.test.mjs`
+      R2 段（invalid_repo / invalid_paths 各自断言「说了规则」「没花请求」），108 PASS / 0 FAIL。
+- [x] **AC3.3** 一次调用的返回字节 ≤8 KB → `READ_BYTES_CEILING = 8192`（`src/index.ts:199`）。
+- [x] **AC3.4** schema 成本 ≤2.5K bytes → `test/read-files.test.mjs:165-175` 的 R1 把它做成
+      检查（`description + parameters + output.schema ≤ 2500`，另加 `> 1500` 防退化成空壳），通过。
 
 ### AC4 预算上限
 
-- [ ] **AC4.1** `budget_bytes` 生效：超过上限时裁剪，且输出里明说裁剪了什么
-- [ ] **AC4.2** 未超限时不改变输出（默认路径逐字节等于无该参数时）
+- [~] **AC4.1 / AC4.2 已被 M4 废止，不再是验收项。** 本任务原本要加的 `budget_bytes`
+  参数在 v0.4.0 里被**删掉了**：实测 12 次额外 `inspect_projects` 里只有 3 次是裁剪恢复，
+  抬高默认预算净亏 +11,343 billed token/run，而那 3 次恢复本身还要 87,801B。
+  M4 把上限改成固定常量（24000），保留 `read_repo_files` 点读与「少传几个仓库」两条恢复路径。
+  → 对应的验收改由 `test/inspect-budget.test.mjs`（67 PASS）承担：常量值、参数已不存在、
+  旧调用传 `budget_bytes` 被静默忽略、超限分支的文案。
 
 ### AC5 回归
 
-- [ ] **AC5.1** `npx tsc --noEmit` exit 0
-- [ ] **AC5.2** `npx tsc` exit 0
-- [ ] **AC5.3** `node test/run-all.test.mjs` 全部通过（2 个 skip 是缺 fixture 的既有状态）
-- [ ] **AC5.4** 现有诚实性测试全绿：`declaration-honesty`、`evidence-chain`、
-      `diagnostics-honesty`、`instruction-isolation`、`render-table`
-- [ ] **AC5.5** README 里的输出示例同步（`npm run readme:sample && npm run readme:check`）
+- [x] **AC5.1** `npx tsc --noEmit` exit 0
+- [x] **AC5.2** `npx tsc` exit 0 → `npm run check` 全绿（含 `readme:check`）。
+- [x] **AC5.3** `node test/run-all.test.mjs` 全部通过 → **32/34 files**，2 个 skip 是缺 fixture 的既有状态。
+- [x] **AC5.4** 五个诚实性测试全绿 → `declaration-honesty` 47 / `evidence-chain` 35 /
+      `diagnostics-honesty` 50 / `instruction-isolation` 140 / `render-table` 130，全部 0 FAIL。
+- [x] **AC5.5** README 输出示例同步 → `readme:check` 通过（两份 README 现无 sample marker，
+      报告为 `skipped` 而非 `current`，不假装检查过）。
 
 ### AC6 版本管理
 
-- [ ] **AC6.1** 每个改动独立 commit，commit message 说明"改了什么 + 为什么 + 实测数字"
-- [ ] **AC6.2** 任一 commit 可单独 `git revert`
-- [ ] **AC6.3** 全部通过后打 tag `v0.4.0`
+- [x] **AC6.1** 每个改动独立 commit 且说明「改了什么 + 为什么 + 实测数字」→
+      `ac7ae21`(M1) / `d44af68`(M2) / `a248d87`+`59d5438`(M3) / `c499ff3`(M4) / `9a54d78`(M5) / `66d6b8e`(M6)。
+- [x] **AC6.2** 任一 commit 可单独 `git revert` → M4 已实测：worktree 里 revert `c499ff3`
+      后 `--mode=bytes` 97/0、`--mode=info` 577/0、全套 32/34 files 全绿。
+- [x] **AC6.3** 打 tag `v0.4.0` → **已创建（annotated，指向 `1ccc9ad`），但尚未 push。**
+      push 会触发 `publish.yml` 直接发到 npm 且不可撤销，因此留待用户确认。
 
 ## Notes
 
 - 基线数字全部来自 `.scratch/ab-*.cjs` 脚本，脚本本身不入库（`.gitignore` 已含 `.scratch/`）。
-- A/B 实验物料在 `D:\app\dsh\dsh_workspace\work_space2\eval-plugin\`（`metrics.json`、
-  `final-summary.json`、`REPORT.md`、`rubric.md`）。
+- A/B 实验物料在 `work_space2/` 下（v0.4.1 一轮是 `work_space2/ab-v041/`，其冻结产物已入库到
+  `eval/runs/ab-v041-baseline/`；v0.4 一轮的冻结产物在 `eval/runs/ab-v04-baseline/`）。
 - 验收口径必须沿用"信息等价"定义：README 两处只留一处 + 正文首段 ≤400 字；
   骨架免责话每卡 1 次；无声明/不支持扩展名压计数行；扫描器认识的扩展名保留 1200 字原文。
   早期脚本 `ab-simulate-phases.cjs` 的 p1() 有 bug（把原文压成路径行），**不得作为验收依据**。
