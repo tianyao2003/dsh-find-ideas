@@ -1,12 +1,19 @@
-// Reproduce the six headline numbers of the v0.4.0 A/B run from frozen inputs.
+// Reproduce the headline numbers of the v0.4.0 A/B run from frozen inputs.
 //
 // WHY THIS EXISTS
 // ---------------
-// The v0.4.0 report quotes: billed-input-equivalent, wall clock, tool calls,
-// payload bytes, quality score, and error count. Every later task in the v0.4.1
-// cost work is judged as a delta against those numbers, so they have to be
-// recomputable by anyone from checked-in data — otherwise "we improved billed
-// input by 24%" is a claim about a spreadsheet nobody can open.
+// The v0.4.0 report quotes: billed-input-equivalent, tool calls, payload bytes,
+// quality score, and error count. Every later task in the v0.4.1 cost work is
+// judged as a delta against those numbers, so they have to be recomputable by
+// anyone from checked-in data — otherwise "we improved billed input by 24%" is a
+// claim about a spreadsheet nobody can open.
+//
+// Wall clock used to be the sixth metric here and has been removed: the frozen
+// `wallClockSec` column was not measured on these runs (see the comment above
+// `metrics` below, and eval/runs/ab-v04-baseline/wall-clock-correction.json).
+// Its replacement gate is eval/harness/ab-wall-clock.mjs. Removing it makes this
+// script verify five metrics instead of six — that is the honest count, not a
+// regression.
 //
 // The inputs are frozen copies of the run's own outputs:
 //   eval/runs/ab-v04-baseline/metrics-armA-v3.json   per-run usage, arm A
@@ -67,12 +74,19 @@ if (ids.length !== armA.length || ids.length !== armB.length) {
 const a = (f) => ids.map((id) => f(aById.get(id)))
 const b = (f) => ids.map((id) => f(bById.get(id)))
 
-// The six headline metrics. `billedInputEq` is input + 0.1 * cacheRead, which is
-// the provider's own billing model: a cache hit is charged a tenth of a fresh
-// input token.
+// The headline metrics. `billedInputEq` is input + 0.1 * cacheRead, which is the
+// provider's own billing model: a cache hit is charged a tenth of a fresh input
+// token.
+//
+// Wall clock is deliberately NOT here. The `wallClockSec` column in
+// metrics-arm{A,B}-v3.json was never measured on these runs -- it was carried
+// over from an earlier batch by aggregate.mjs, which harvests wall clock from
+// runner logs because wall clock is not in the event stream. Pairing it here
+// made this script self-consistently verify a number that was never true. The
+// retraction, its evidence, and the corrected +3.00s/+4.5% (p=0.684) live in
+// wall-clock-correction.json and are checked by eval/harness/ab-wall-clock.mjs.
 const metrics = {
   billedInputEq: paired(a((r) => r.billedInputEq), b((r) => r.billedInputEq)),
-  wallClockSec: paired(a((r) => r.wallClockSec), b((r) => r.wallClockSec)),
   toolCalls: paired(a((r) => r.toolCalls), b((r) => r.toolCalls)),
   inputTokens: paired(a((r) => r.inputTokens), b((r) => r.inputTokens)),
   cacheReadTokens: paired(a((r) => r.cacheReadTokens), b((r) => r.cacheReadTokens)),
@@ -149,7 +163,6 @@ const near = (x, y, tol) => Math.abs(x - y) <= Math.max(tol, Math.abs(y) * tol)
 // re-keying the frozen data, so the check is against the report as published.
 const CN = {
   billedInputEq: '计费输入当量',
-  wallClockSec: '墙钟秒',
   toolCalls: '工具调用次数',
   inputTokens: '输入 token',
   cacheReadTokens: '缓存读取 token',

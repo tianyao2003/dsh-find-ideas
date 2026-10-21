@@ -11,19 +11,21 @@ v0.4.0 的报告犯过两次度量错误，两次都不是代码错，而是"数
 
 ---
 
-## 四个脚本
+## 五个脚本
 
 | 脚本 | 回答的问题 | 通过标准 |
 |---|---|---|
 | `golden-inspect.mjs` | 改动之后，卡片内容变了吗？ | `--mode=bytes` 97 项全等；`--mode=info` 577 项全等 |
 | `golden-inspect-selftest.mjs` | 上面那个脚本的检查，真的能失败吗？ | 7 个植入回归全部被捕获，恢复构建后 577 项全绿 |
-| `ab-metrics.mjs` | 报告里那六个数字，能从冻结的原始行重算出来吗？ | 28 项全等（含配对 t 值） |
+| `ab-metrics.mjs` | 报告里那几个数字，能从冻结的原始行重算出来吗？ | 25 项全等（含配对 t 值；墙钟已撤出，见下） |
+| `ab-wall-clock.mjs` | 墙钟撤回有证据吗？修正后的数可复算吗？ | 30 项全等；`--selftest` 的 14 个变异全部被捕获 |
 | `payload-truth.mjs` | 载荷字节能从持久会话日志重建吗？ | 46 项全等（逐 run、逐 arm、裁剪计数、budget 参数） |
 
 ```bash
 node eval/harness/golden-inspect.mjs --mode=bytes
 node eval/harness/golden-inspect-selftest.mjs
 node eval/harness/ab-metrics.mjs
+node eval/harness/ab-wall-clock.mjs
 node eval/harness/payload-truth.mjs
 ```
 
@@ -93,12 +95,13 @@ node eval/harness/golden-inspect.mjs --write --force   # 旧文件先备份成 i
 
 | 文件 | 内容 |
 |---|---|
-| `metrics-armA-v3.json` / `metrics-armB-v3.json` | 每 run 的 token、墙钟、调用数、错误 |
+| `metrics-armA-v3.json` / `metrics-armB-v3.json` | 每 run 的 token、调用数、错误（**墙钟列已撤回，见下**） |
 | `quality-v3.json` | 2 名评分员 × 20 份输出的四维打分 |
 | `true-payload-v3.json` | 每次调用的真实载荷字节（来自持久日志） |
-| `final-v3-corrected.json` | 已发布报告里的配对统计表 |
+| `final-v3-corrected.json` | 已发布报告里的配对统计表（**保持原样，作为审计痕迹**） |
 | `decode-session.cjs` | 多帧 zstd 会话日志解码器 |
-| `manifest.json` | 环境与口径：git sha、模型 id、A 臂 helper 的 sha256、发布数字 |
+| `manifest.json` | 环境与口径：git sha、模型 id、A 臂 helper 的 sha256、发布数字、`corrections[]` 撤回记录 |
+| `wall-clock-correction.json` | 墙钟撤回的完整证据：20 run 的假值/真值/span/overhead、根因、修正后的配对统计 |
 
 **只追加，不覆盖。** 新实验另建 `ab-v04.1-*`，旧基线永远保持可复算——否则"提升了 24%"就变成一个谁也无法复核的说法。
 
@@ -107,13 +110,30 @@ node eval/harness/golden-inspect.mjs --write --force   # 旧文件先备份成 i
 | 指标 | A（直接查） | B（插件） | 变化 | p |
 |---|---:|---:|---:|---:|
 | 计费输入当量 | 27,172.7 | 32,715.1 | +20.4% | 0.127 |
-| 墙钟秒 | 54.16 | 75.01 | +38.5% | 0.032 |
 | 工具调用 | 8.8 | 6.3 | −28.4% | 0.020 |
 | 载荷字节 | 44,945 | 60,291 | +34.1% | 0.054 |
 | 质量（16 分制） | 13.50 | 14.10 | +0.6 | 0.279 |
 | 错误数 | 0/10 | 0/10 | — | — |
+| ~~墙钟秒~~ **已撤回** | ~~54.16~~ 66.49 | ~~75.01~~ 69.49 | ~~+38.5%~~ +4.5% | ~~0.032~~ 0.684 |
 
 计费口径：`billedInputEq = inputTokens + 0.1 × cacheReadTokens`（缓存命中按十分之一计价）。
+
+### 墙钟一栏为什么被撤回
+
+冻结的 `metrics-arm{A,B}-v3.json` 里那一列墙钟**不是这 20 个 run 测出来的**。
+
+`work_space2/ab-v04/aggregate.mjs` 从 `events/*.jsonl` 重算所有数值型指标，但墙钟不在事件流里，于是它用正则从 runner 日志抓 `wall=[\d.]+s`，按 mtime 排序后"后来的日志赢"。而 v3 那批的两个日志 `runA-v3.log` / `runB-v3.log` **一条 `[done]` 行都没有**（0 行匹配），所以 v2 那批的墙钟被逐字贴到了 v3 的行上。
+
+证据（都在 `wall-clock-correction.json`，由 `ab-wall-clock.mjs` 校验）：
+
+- **假列与 v2 逐值相同 19/20**（arm A 10/10、arm B 9/10；唯一不同的 I04 恰是 v2 里 `exit=1` 重跑的那一轮），而**两批 sessionId 共享 0/20** —— 十个不同的 run 重新测量，绝不可能精确到 0.1s 全部相同。
+- **真值来自 runner 自己写的未命名 `metrics-arm{A,B}.json`**（比 v3 早 12 秒，被 aggregate 覆写前存活），它与冻结 v3 的 **sessionId 共享 20/20**、token 总量 20/20 精确相等。
+- **overhead 判据**：真列 `wall − session span` 20/20 落在 **1.79–2.36s**（均值 2.02，负值 0），正是进程启停开销；假列 `−31.2 ~ +43.16`（均值 −1.38，**负值 12/20**）—— 一个物理上不可能的分布。
+- 同批配对 t 检验：**66.49 → 69.49，d=+3.00s（+4.5%），t=0.419，p=0.684，不显著**。
+
+**影响**：此前"墙钟 +20.9 秒（+38.5%，p=0.032，显著）"的说法作废。50s 墙钟目标要按 69.49s 重算，不是 75.01s。
+
+**教训**：跨批次聚合的指标必须绑 `sessionId`，不能绑 `I01-armB` 这种可复用的标签——否则不同批的 run 会被合并成一行，token 来自 A 批、墙钟来自 B 批。而"检查自洽通过"不等于"数字正确"：`ab-metrics.mjs` 曾用这列假数据跑了 28 项全等、全绿。
 
 ## 已知的基线缺陷，必须在下一轮修掉
 
@@ -124,7 +144,9 @@ node eval/harness/golden-inspect.mjs --write --force   # 旧文件先备份成 i
 - A 臂的载荷和 token 被**低估**（它想读但没读成）；
 - A 臂的墙钟被**低估**（少做的部分不花时间）。
 
-所以 `+20.4%` 的计费差和 `+38.5%` 的墙钟差，都是在一个 A 臂被截断的条件下测出来的。**下一轮（M5）必须把 A 臂上限放宽到 15，并记录每个 run 是否仍触顶。** 在修掉之前，这两个数字只能当方向参考，不能当"插件比直接查贵 20%"的定论。
+所以 `+20.4%` 的计费差是在一个 A 臂被截断的条件下测出来的。**下一轮（M5）必须把 A 臂上限放宽到 15，并记录每个 run 是否仍触顶。** 在修掉之前，这个数字只能当方向参考，不能当"插件比直接查贵 20%"的定论。
+
+（墙钟一行不在这里讨论——它已整体撤回，见上一节。撤回后的真值 66.49 → 69.49 同样是在 A 臂被截断的条件下测的，所以同样只能当方向参考。）
 
 ---
 

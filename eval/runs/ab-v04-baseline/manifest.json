@@ -51,7 +51,9 @@
     "wallClockSec": {
       "a": 54.16,
       "b": 75.01,
-      "p": 0.0319
+      "p": 0.0319,
+      "retracted": true,
+      "retractedReason": "see corrections[] -- this column was carried over from an earlier batch and was never measured on these runs"
     },
     "toolCalls": {
       "a": 8.8,
@@ -73,9 +75,38 @@
       "b": 0
     }
   },
+  "corrections": [
+    {
+      "metric": "wallClockSec",
+      "status": "retracted",
+      "retractedAt": "2026-10-21",
+      "published": {
+        "a": 54.16,
+        "b": 75.01,
+        "d": 20.85,
+        "t": 2.5356,
+        "p": 0.0319,
+        "ratioPct": 138.5
+      },
+      "corrected": {
+        "a": 66.49,
+        "b": 69.49,
+        "d": 3.0,
+        "t": 0.41926,
+        "p": 0.68486,
+        "ratioPct": 104.512
+      },
+      "evidence": "eval/runs/ab-v04-baseline/wall-clock-correction.json",
+      "gate": "eval/harness/ab-wall-clock.mjs",
+      "rootCause": "work_space2/ab-v04/aggregate.mjs re-derives numeric metrics from events/*.jsonl, but wall clock is not in the event stream; it harvests wall from runner logs by regex and lets later logs win. The v3 logs have no [done] lines, so the v2 batch's wall clocks were copied onto the v3 rows.",
+      "impact": "The published claim 'wall clock 54.16s -> 75.01s, +38.5%, p=0.032' does not hold. The same-batch paired difference is +3.00s (+4.5%), p=0.684, not significant. The 50s wall-clock target must be re-based on 69.49s, not 75.01s."
+    }
+  ],
   "notes": [
     "Payload numbers come from durable session logs, not `dsh --json` (8192B clip hid 202417B).",
     "Quality = mean of 2 raters x 4 dimensions, 16-point scale.",
-    "billedInputEq = inputTokens + 0.1 * cacheReadTokens."
+    "billedInputEq = inputTokens + 0.1 * cacheReadTokens.",
+    "The wallClockSec entry under `published` is RETRACTED; see `corrections` and wall-clock-correction.json.",
+    "final-v3-corrected.json is kept byte-for-byte as an audit trail of what was published. Do not edit it; read `corrections` instead."
   ]
 }
