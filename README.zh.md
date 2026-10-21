@@ -24,8 +24,6 @@ dsh plugin --profile web add github:tianyao2003/dsh-find-ideas
 dsh plugin --profile web add /path/to/dsh-find-ideas
 ```
 
-npm 包下载 391 KB，解包 805 KB、28 个文件，没有运行时依赖。从 GitHub 装会在安装时跑一次构建，需要 pnpm 放行构建脚本；从 npm 装拿到的是编译好的产物，没有这一步。
-
 ### 配置 GitHub token（推荐）
 
 GitHub 对未认证的搜索请求限制为**每个公网 IP 每分钟 10 次**，而且同一个出口 IP 背后的所有人共用这份额度。配置 token 后提升到**每分钟 30 次**，按账号计算。
@@ -57,9 +55,9 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 - **`inspect_projects`**：最多读 5 个仓库，包括 README、依赖清单、目录树摘要和几个关键文件。返回的卡片固定封顶 24 KB：装得下的卡片逐字节原样返回；装不下的按「最便宜的损失优先」裁剪（依赖清单 → README → 逐文件摘录 → 声明骨架），并附一行说明，写清被扣掉的是什么、以及怎么拿回来。没有可调的预算参数：两条补读路径是用 `read_repo_files` 点读，或者下次少传几个仓库。
 - **`read_repo_files`**：在**同一个提交**上点读一个仓库里的最多 4 个文件，返回一段行窗口（`focus` 会把窗口落在命中词所在行附近）以及带提交号和行范围的永久链接。它读多少就只返回多少：字节预算是上限，不是建议值。
 
-### 怎么看这张卡片
+### 返回的结果结构
 
-- 固定八列，顺序固定，每一行都保留全部列。
+- 固定八列，顺序固定（序号、项目链接、最近更新时间、relevance、star数、综合得分、开发语言、一句话简介）
 - `relevance` 是 agent 给出的 0–10 判断；`score` 由它和 star 数算出，所以顺序没法用一句话指定。
 - 没测到的数量不会写成 `0`：查询词没单独测过显示「未知（未测得）」，归档数量缺失显示「数据缺失」。
 - 仓库里的文字一律当数据引用，README 里的一行没法冒充卡片结构；能作为链接输出的只有 `github.com` 和 `raw.githubusercontent.com`。
@@ -101,7 +99,7 @@ npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
 
 ## 贡献
 
-欢迎 issue 和 PR！
+欢迎 Issue 和 PR！
 
 - **报问题 / 提需求**：开 issue，写清你输入的想法、期望的结果和实际结果。
 - **改代码**：fork → 从 `master` 切分支 → 改代码并补测试 → `npm run check && npm test` 全绿 → 提 pull request。CI 在 Node 22 和 24 上跑的也是这两条命令。
@@ -109,4 +107,4 @@ npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
 
 ## 许可证
 
-MIT，见 [LICENSE](LICENSE)。
+MIT [LICENSE](LICENSE)。
