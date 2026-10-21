@@ -83,7 +83,8 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 | 版本 | 更新 |
 | --- | --- |
-| 0.3.0（当前） | 缓存与包体。简介按 512 字符存储而不是无限长，内存缓存上限 64 条，磁盘缓存会清理过期条目并保持在 64 MB 以内，发布包里不再包含 `src/`、`test/`、`scripts/` 和 source map——解包 805 KB，原来是 2.07 MB。工具名、参数和输出都没变。 |
+| 0.4.0（当前） | 第四个工具 `read_repo_files`，以及有上限的卡片。`inspect_projects` 的返回固定封顶 24 KB，超限时按"最便宜的取证先丢"的顺序裁剪（依赖清单 → README → 每文件摘录 → 声明骨架），并在卡片里明说扣下了什么、以及两条补读路径：用 `read_repo_files` 点读，或少传几个仓库。没有可调的预算参数。四个工具的 schema 小了 1.7 KB，仓库改成三个一批并行读，卡片只声明一次版式而不再逐文件重复。对同样十个想法与"不用插件"对照实测：**工具调用少 44.8%**（13.4 → 7.4，p=0.0003）、**工具结果载荷少 10.8%**（63.7 KB → 56.8 KB）、**计费输入持平**（+0.4%，p=0.979）——插件是拿很多次裸调用换少而准的调用，在当前设计下并不比手工查更省。质量持平（16 分制 14.10 vs 13.70，p=0.259）。完整实验与算术见 `eval/runs/ab-v041-baseline/`。 |
+| 0.3.0 | 缓存与包体。简介按 512 字符存储而不是无限长，内存缓存上限 64 条，磁盘缓存会清理过期条目并保持在 64 MB 以内，发布包里不再包含 `src/`、`test/`、`scripts/` 和 source map——解包 805 KB，原来是 2.07 MB。工具名、参数和输出都没变。 |
 | 0.2.1 | 发布到 npm，功能与 0.2.0 相同。 |
 | 0.2.0 | 卡片标出每行被几个查询命中、榜上有多少行是归档仓库。 |
 | 0.1.0 | 首个可用版本：`scout_projects` → `rank_candidates` → `inspect_projects` 三工具链路。 |
@@ -98,7 +99,7 @@ npm run typecheck     # tsc --noEmit
 npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
 ```
 
-`test/` 下有 30 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身之外的 29 个，其中两个（`baseline`、`stage2`）因为 `eval/runs/` 下录好的测试数据从未移植过来而跳过——所以本地完整跑一遍是 **27 个文件、6463 条断言**。跳过的会列在 `skipped (fixture absent, NOT verified)` 下面，绝不算作通过。
+`test/` 下有 35 个 `*.test.mjs`。`test/run-all.test.mjs` 跑除自身之外的 34 个，其中两个（`baseline`、`stage2`）因为 `eval/runs/` 下录好的测试数据从未移植过来而跳过——所以本地完整跑一遍是 **32 个文件、6823 条断言**。跳过的会列在 `skipped (fixture absent, NOT verified)` 下面，绝不算作通过。
 
 ## 贡献
 

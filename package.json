@@ -1,7 +1,7 @@
 {
   "name": "dsh-find-ideas",
   "description": "Prior-art search for a development idea: search GitHub for similar projects, rank them by relevance weighted with stars, then read the repositories you pick and report what their code actually says.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

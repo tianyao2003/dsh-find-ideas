@@ -83,7 +83,8 @@ Requires Node ≥ 22. The `@deepseek-ai/dsh-tools` peer range accepts every publ
 
 | Version | What changed |
 | --- | --- |
-| 0.3.0 (current) | Cache and package footprint. Descriptions are stored at 512 characters instead of unbounded, the in-memory cache is capped at 64 entries, the disk cache sweeps expired entries and stays under 64 MB, and the published package no longer ships `src/`, `test/`, `scripts/` or source maps — 805 KB unpacked instead of 2.07 MB. Tool names, parameters and output are unchanged. |
+| 0.4.0 (current) | A fourth tool, `read_repo_files`, and a bounded card. `inspect_projects` now caps its return at a fixed 24 KB and trims cheapest-evidence-first (manifest, then README, then per-file excerpts, then the signature skeleton), stating in the card exactly what was withheld and the two ways to get it back: point-read the file, or send fewer repositories. There is no budget parameter. The four tools' schemas are 1.7 KB smaller, repositories are read three at a time, and the card states its framing once instead of per file. Measured against the same ten ideas with no plugin: **44.8% fewer tool calls** (13.4 → 7.4, p=0.0003), **10.8% less tool-result payload** (63.7 KB → 56.8 KB), **billed input unchanged** (+0.4%, p=0.979) — the plugin trades many raw calls for few curated ones and does not, in this design, cost less than searching by hand. Quality was level (14.10 vs 13.70 of 16, p=0.259). Full experiment and its arithmetic in `eval/runs/ab-v041-baseline/`. |
+| 0.3.0 | Cache and package footprint. Descriptions are stored at 512 characters instead of unbounded, the in-memory cache is capped at 64 entries, the disk cache sweeps expired entries and stays under 64 MB, and the published package no longer ships `src/`, `test/`, `scripts/` or source maps — 805 KB unpacked instead of 2.07 MB. Tool names, parameters and output are unchanged. |
 | 0.2.1 | Published to npm. Same functionality as 0.2.0. |
 | 0.2.0 | The card shows how many query channels found each row and how many rows are archived repositories. |
 | 0.1.0 | First usable version: the `scout_projects` → `rank_candidates` → `inspect_projects` chain. |
@@ -98,7 +99,7 @@ npm run typecheck     # tsc --noEmit
 npm run check:peers   # check the peer range against the current DSH versions
 ```
 
-`test/` holds 30 `*.test.mjs` files. `test/run-all.test.mjs` runs the 29 that are not itself, and two of those (`baseline`, `stage2`) skip because the recorded test data under `eval/runs/` was never ported — so a full local run is **27 files and 6463 assertions**. Skips are listed under `skipped (fixture absent, NOT verified)` and never counted as passes.
+`test/` holds 35 `*.test.mjs` files. `test/run-all.test.mjs` runs the 34 that are not itself, and two of those (`baseline`, `stage2`) skip because the recorded test data under `eval/runs/` was never ported — so a full local run is **32 files and 6823 assertions**. Skips are listed under `skipped (fixture absent, NOT verified)` and never counted as passes.
 
 ## Contributing
 

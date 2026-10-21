@@ -1,7 +1,7 @@
 # What this workflow is for
 # -------------------------
 # `npm run check` runs the typecheck, the build and the README sample check. It
-# does NOT run the test suite: the 6463 assertions under `test/` are a separate
+# does NOT run the test suite: the 6823 assertions under `test/` are a separate
 # script. A CI that stopped at `check` would report green on a tree whose
 # behaviour is broken, so the suite runs here too — after `check`, which is what
 # produces the `lib/` build output those tests import.
