@@ -79,6 +79,30 @@ const raw = JSON.parse(readFileSync(FIXTURE, 'utf8'))
  * chain: dropping a file from it would be a real loss even if the card got
  * smaller.
  */
+// Every pattern below is anchored on the exact bytes the renderer emits, and each
+// one was checked against the fixture's own recorded content before being trusted.
+// Three earlier versions were vacuous or inverted and still reported PASS:
+//   - `line.includes('📝')` never matched: section headers print `📦`.
+//   - `/^\s{2,}(?:class|interface|…)` never matched: declaration rows are
+//     `     method \`x\` — #L12`, and inside the quoted block they gain a `  │ `
+//     gutter, so the kind is never at the start of the line.
+//   - `line.includes('📦')` over-counted: a README excerpt can itself contain a
+//     📦 bullet, so the header must be anchored at column 0.
+// A check that cannot fail is worse than no check: it certifies the thing it never
+// looked at. Each pattern is therefore paired with `assertPatternsStillMatch()`,
+// which refuses to run if the current renderer stops producing matching lines.
+const PATTERN = {
+  repoHeader: /^📦 \S/,
+  filesRead: /读取文件（(\d+)）：(.+)$/,
+  // Quoted-block body lines: the `  │ ` gutter plus the tree glyphs it wraps. The
+  // baseline's recorded values for this field are valid (the regex always worked),
+  // so the field keeps its historical name and stays comparable.
+  treeLine: /^\s{2,}[│├└]|^\s{2,}[\w.\-/]+\/$/,
+  // Declaration rows, current format and the older per-file format both.
+  declaration: /^\s*(?:│\s*)?(?:·\s*)?(?:class|interface|enum|type|function|method|struct|trait|impl|const)\s+`/,
+  cutNotice: /裁剪|省略|dropped|trimmed/,
+}
+
 function signature(card) {
   const lines = card.split('\n')
   const filesRead = []
@@ -87,15 +111,14 @@ function signature(card) {
   let cutNotices = 0
   let repos = 0
   for (const line of lines) {
-    if (line.includes('📝')) repos++
-    const read = /读取文件（(\d+)）：(.+)$/.exec(line)
+    if (PATTERN.repoHeader.test(line)) repos++
+    const read = PATTERN.filesRead.exec(line)
     if (read !== null) {
       filesRead.push(...read[2].split(', ').map((s) => s.trim()))
     }
-    // Tree lines are the ones that look like a path at the start of a bullet.
-    if (/^\s{2,}[│├└]|^\s{2,}[\w.\-/]+\/$/.test(line)) treeEntries++
-    if (/^\s{2,}(?:function|class|interface|type|const|export|def|fn|struct)\s/.test(line)) skeletonHits++
-    if (/裁剪|省略|dropped|trimmed/.test(line)) cutNotices++
+    if (PATTERN.treeLine.test(line)) treeEntries++
+    if (PATTERN.declaration.test(line)) skeletonHits++
+    if (PATTERN.cutNotice.test(line)) cutNotices++
   }
   return {
     bytes: Buffer.byteLength(card, 'utf8'),
@@ -104,6 +127,59 @@ function signature(card) {
     treeEntries,
     skeletonHits,
     cutNotices,
+  }
+}
+
+/**
+ * What the fixture says the card must contain, derived from the recorded
+ * `inspections` rather than from a previously rendered card.
+ *
+ * This is the only part of the harness that cannot go stale when the renderer
+ * changes: `files_read` is data the tool returned, `inspections.length` is how many
+ * repositories were read, and the declaration rows are already present in the
+ * stored `skeleton_summary` string (the renderer only re-wraps them).
+ */
+function fixtureTruth(value) {
+  const filesRead = []
+  let declarations = 0
+  for (const inspection of value.inspections) {
+    if (!inspection.ok) continue
+    filesRead.push(...inspection.files_read)
+    for (const line of String(inspection.skeleton_summary ?? '').split('\n')) {
+      if (PATTERN.declaration.test(line)) declarations++
+    }
+  }
+  return { repos: value.inspections.length, filesRead, declarations }
+}
+
+/**
+ * Guards against the failure mode this harness already had: a regex that silently
+ * matches nothing, so the check comparing its count to itself passes forever.
+ */
+function assertPatternsStillMatch() {
+  const problems = []
+  let repos = 0
+  let declarations = 0
+  let tree = 0
+  let files = 0
+  for (const key of Object.keys(raw)) {
+    const value = raw[key].value
+    const card = renderInspections(value.idea, value.inspections, value.degraded ?? null, value.cached ?? false, Number.POSITIVE_INFINITY)
+    const s = signature(card)
+    repos += s.repos
+    declarations += s.skeletonHits
+    tree += s.treeEntries
+    files += s.filesRead.length
+  }
+  if (repos === 0) problems.push('repoHeader never matched a section header')
+  if (declarations === 0) problems.push('declaration never matched a signature row')
+  if (tree === 0) problems.push('treeLine never matched a quoted body line')
+  if (files === 0) problems.push('filesRead never matched a read-files line')
+  if (problems.length > 0) {
+    console.error('the signature patterns no longer describe the renderer:')
+    for (const p of problems) console.error('  - ' + p)
+    console.error('fix the patterns (and re-check them against the fixture) before trusting any result')
+    process.exit(2)
   }
 }
 
@@ -159,11 +235,33 @@ function currentFormatVersion() {
 const now = build()
 now.formatVersion = currentFormatVersion()
 
+// Before ANY output, including a freshly recorded baseline: recording counts from
+// patterns that no longer match would freeze the vacuity into the baseline itself,
+// which is exactly how the original `repos`/`skeletonHits` fields became constants.
+assertPatternsStillMatch()
+
 if (flag('write')) {
+  // The baseline is the ONLY byte-level record of what the model saw before M1/M2.
+  // Re-recording it silently would erase the evidence that those tasks changed
+  // nothing but layout: after a re-record, `--mode=bytes` compares the new renderer
+  // to itself and always passes. So it takes an explicit flag, and the previous
+  // baseline is kept beside it.
+  if (!flag('force')) {
+    console.error('refusing to overwrite the baseline without --force')
+    console.error(`  ${BASELINE}`)
+    console.error('  this file is the frozen record of the pre-M1/M2 bytes; overwriting it')
+    console.error('  makes --mode=bytes compare the renderer to itself, which cannot fail.')
+    console.error('  pass --force if the change to what the model sees is intended and recorded.')
+    process.exit(2)
+  }
+  if (existsSync(BASELINE)) {
+    writeFileSync(BASELINE.replace(/\.json$/, '.prev.json'), readFileSync(BASELINE))
+  }
   writeFileSync(BASELINE, JSON.stringify(now, null, 2) + '\n', 'utf8')
   const cards = now.entries.reduce((s, e) => s + Object.keys(e.budgets).length, 0)
   console.log(`wrote ${BASELINE}`)
   console.log(`  entries=${now.entries.length} cards=${cards} formatVersion=${now.formatVersion}`)
+  console.log(`  previous baseline kept at ${BASELINE.replace(/\.json$/, '.prev.json')}`)
   process.exit(0)
 }
 
@@ -180,6 +278,14 @@ if (!existsSync(BASELINE)) {
 const mode = opt('mode', 'bytes')
 const base = JSON.parse(readFileSync(BASELINE, 'utf8'))
 
+// What the card must contain, according to the recorded tool output rather than to
+// any previously rendered card. Two of the baseline's fields are unusable
+// (`repos` was counted with a `📝` that never appears, `skeletonHits` with a regex
+// that never matched), so the truth for those two comes from here instead.
+const truthByEntry = new Map(
+  Object.values(raw).map((entry) => [entry.name, fixtureTruth(entry.value)]),
+)
+
 let pass = 0
 let fail = 0
 const failures = []
@@ -192,15 +298,33 @@ function check(label, cond, detail = '') {
   }
 }
 
+// `assertPatternsStillMatch()` already ran above, before the --write/--report
+// exits: repeating it here would only re-render all 96 cards to reach the same
+// conclusion.
+
 check('same number of fixture entries', now.entries.length === base.entries.length,
   `${now.entries.length} vs ${base.entries.length}`)
-
 for (const want of base.entries) {
   const got = now.entries.find((e) => e.name === want.name)
   if (got === undefined) {
     check(`${want.name}: entry still renders`, false, 'entry missing')
     continue
   }
+  const truth = truthByEntry.get(want.name)
+  if (truth === undefined) {
+    check(`${want.name}: fixture still carries this entry`, false, 'not in fixture')
+    continue
+  }
+  // The untrimmed render of the same input, used as the "nothing was dropped"
+  // reference. Comparing a card to its own untrimmed form is renderer-independent:
+  // it holds whether the renderer got smaller or larger, which is exactly what the
+  // old baseline-relative checks got wrong.
+  const value = Object.values(raw).find((entry) => entry.name === want.name).value
+  const full = signature(renderInspections(
+    value.idea, value.inspections, value.degraded ?? null, value.cached ?? false,
+    Number.POSITIVE_INFINITY,
+  ))
+
   for (const budget of Object.keys(want.budgets)) {
     const w = want.budgets[budget]
     const g = got.budgets[budget]
@@ -213,22 +337,41 @@ for (const want of base.entries) {
         g.sha256 === w.sha256,
         `bytes ${w.bytes} -> ${g.bytes}`)
     } else if (mode === 'info') {
+      // The evidence chain. Checked against the recorded tool output, so this stays
+      // meaningful no matter how the card is laid out or how often the baseline is
+      // re-recorded.
       check(`${want.name}@${budget}: same files_read`,
-        JSON.stringify(g.filesRead) === JSON.stringify(w.filesRead),
-        `${w.filesRead.length} -> ${g.filesRead.length}`)
-      check(`${want.name}@${budget}: same repo count`, g.repos === w.repos,
-        `${w.repos} -> ${g.repos}`)
-      // A smaller card may drop tree lines and skeleton signatures, but it must
-      // say so: every drop has to raise a cut notice.
-      const lostTree = w.treeEntries - g.treeEntries
-      const lostSkeleton = w.skeletonHits - g.skeletonHits
-      const lostBlocks = lostTree + lostSkeleton
+        JSON.stringify(g.filesRead) === JSON.stringify(truth.filesRead),
+        `${truth.filesRead.length} -> ${g.filesRead.length}`)
+      check(`${want.name}@${budget}: every inspected repo still has a section`,
+        g.repos === truth.repos,
+        `${truth.repos} -> ${g.repos}`)
+      // Structural evidence may not shrink below what the baseline already showed.
+      // The baseline's treeEntries count is valid (that regex always worked); its
+      // skeletonHits is 0 for every card, so only the tree half can be compared.
+      const baselineInfo = w.treeEntries + w.skeletonHits
+      check(`${want.name}@${budget}: structural evidence not reduced`,
+        g.treeEntries + g.skeletonHits >= baselineInfo,
+        `${baselineInfo} -> ${g.treeEntries + g.skeletonHits}`)
+      // Anything dropped relative to this card's own untrimmed form must be named.
       check(`${want.name}@${budget}: every dropped block is announced`,
-        lostBlocks <= 0 || g.cutNotices > w.cutNotices,
-        `lost=${lostBlocks} notices ${w.cutNotices} -> ${g.cutNotices}`)
-      check(`${want.name}@${budget}: no growth`,
-        g.bytes <= w.bytes,
-        `${w.bytes} -> ${g.bytes}`)
+        g.bytes >= full.bytes || g.cutNotices > 0,
+        `card ${g.bytes}B vs untrimmed ${full.bytes}B, notices=${g.cutNotices}`)
+      // Staying inside the budget is the contract; the one documented exception is
+      // a card that says out loud it could not fit.
+      check(`${want.name}@${budget}: within budget, or says it cannot fit`,
+        g.bytes <= Number(budget) || /仍超过 budget_bytes=/.test(renderInspections(
+          value.idea, value.inspections, value.degraded ?? null, value.cached ?? false, Number(budget),
+        )),
+        `${g.bytes}B vs budget ${budget}`)
+      // Growth is allowed ONLY where the baseline itself had over-trimmed: the
+      // smaller untrimmed card then stops one rung earlier on the trim ladder and
+      // carries more. An untrimmed card growing is a real regression, and is what
+      // this catches. (The old `no growth` check failed in exactly this case: it
+      // fired on the 25 cards the baseline had trimmed, and passed on nothing else.)
+      check(`${want.name}@${budget}: grows only where the baseline over-trimmed`,
+        g.bytes <= w.bytes || w.cutNotices > 0,
+        `${w.bytes} -> ${g.bytes} (baseline cut notices=${w.cutNotices})`)
     } else {
       console.error(`unknown --mode=${mode}`)
       process.exit(2)

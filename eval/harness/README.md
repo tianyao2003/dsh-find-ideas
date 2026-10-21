@@ -11,19 +11,47 @@ v0.4.0 的报告犯过两次度量错误，两次都不是代码错，而是"数
 
 ---
 
-## 三个脚本
+## 四个脚本
 
 | 脚本 | 回答的问题 | 通过标准 |
 |---|---|---|
-| `golden-inspect.mjs` | 改动之后，卡片内容变了吗？ | `--mode=bytes` 97 项全等；`--mode=info` 385 项全等 |
+| `golden-inspect.mjs` | 改动之后，卡片内容变了吗？ | `--mode=bytes` 97 项全等；`--mode=info` 577 项全等 |
+| `golden-inspect-selftest.mjs` | 上面那个脚本的检查，真的能失败吗？ | 7 个植入回归全部被捕获，恢复构建后 577 项全绿 |
 | `ab-metrics.mjs` | 报告里那六个数字，能从冻结的原始行重算出来吗？ | 28 项全等（含配对 t 值） |
 | `payload-truth.mjs` | 载荷字节能从持久会话日志重建吗？ | 46 项全等（逐 run、逐 arm、裁剪计数、budget 参数） |
 
 ```bash
 node eval/harness/golden-inspect.mjs --mode=bytes
+node eval/harness/golden-inspect-selftest.mjs
 node eval/harness/ab-metrics.mjs
 node eval/harness/payload-truth.mjs
 ```
+
+## 为什么需要一个自检脚本
+
+第一版 `golden-inspect.mjs` 有三项检查**永远不会失败**，而它们全都报 PASS：
+
+- `repos` 数的是 `📝`，真实段头是 `📦` → 恒 0 对 0；
+- `skeletonHits` 的正则匹配 `function foo(...)` 这种行，真实声明行是 `     method \`x\` — #L12` → 恒 0 对 0；
+- `no growth` 写成了体积不变量，但**渲染器变好**会让未裁剪卡更小、裁剪阶梯少降一档、最终卡反而更大 → 它只在基线被过度裁剪的 25 张上失败，在其余 71 张上通过，方向是反的。
+
+一个不能变红的检查比没有检查更糟：它给的是"已验证"的错觉。所以现在有两道防线：
+
+1. `assertPatternsStillMatch()` 在**任何输出之前**（包括 `--write`）先渲染 12 个夹具，任一 signature 正则的总计数为 0 就 exit 2。顺序很重要——先写基线再守卫，等于把空转冻进基线。
+2. `golden-inspect-selftest.mjs` 向 `lib/render.js` 植入 7 个真实回归（删行、改标记、截断列表、重复段头、吞掉裁剪提示、无视预算、删掉某仓库骨架），要求每个都被抓到，然后恢复构建。守卫会抢占检查，所以每条检查都配了一个"正则仍匹配、只改数据"的变异，否则无法证明该检查本身能失败。
+
+## `--mode=info` 的六项检查
+
+| 检查 | 判据 | 为什么是这个判据 |
+|---|---|---|
+| `same files_read` | 与**夹具记录的** `files_read` 逐条相等 | 证据链。卡片变小可以，少一条"读过哪个文件"不行 |
+| `every inspected repo still has a section` | 段头数 = `inspections.length` | 丢一个仓库等于丢一整块证据 |
+| `structural evidence not reduced` | `treeEntries + skeletonHits` ≥ 基线 | 目录树与声明行是"结构信息"的全部 |
+| `every dropped block is announced` | 卡比自己的未裁剪渲染小 ⇒ 必须有裁剪提示 | 判据是**同一输入的未裁剪渲染**，与渲染器版本无关 |
+| `within budget, or says it cannot fit` | 字节 ≤ 预算，或卡尾明说装不下 | 唯一允许的例外必须自己说出来 |
+| `grows only where the baseline over-trimmed` | 变大 ⇒ 基线那张 `cutNotices > 0` | 未裁剪卡变大是真回归；裁剪卡变大是信息变多 |
+
+前四项的参照物都不是旧基线，而是夹具数据或本次渲染，所以重录基线也不会让它们失去意义。
 
 `payload-truth.mjs` 需要本机的 `~/.dsh/sessions/` 还在。换机器或工作区搬过家时用 `--sessions=<dir>` 指过去；找不到日志会直接 exit 2 并说明缺什么，不会静默算出一个空结果。
 
@@ -34,7 +62,7 @@ node eval/harness/payload-truth.mjs
 改动分两类，验收标准不同：
 
 - **`--mode=bytes`**：卡片必须逐字节不变。适用于 M1（schema 文案）和 M3（并行读）——这两个任务的目的不是改输出，是改成本和时序。输出变了就是副作用。
-- **`--mode=info`**：卡片可以变小，但不能丢失它没有声明丢弃的信息。适用于 M2 和 M4（预算与体积）——变小正是目的。判据是：`files_read` 逐条不变、仓库数不变、任何被裁掉的块都要在裁剪提示里出现、且不得变大。
+- **`--mode=info`**：卡片可以变小，但不能丢失它没有声明丢弃的信息。适用于 M2 和 M4（预算与体积）——变小正是目的。判据是：`files_read` 逐条不变、仓库数不变、结构信息不减、任何被裁掉的块都要在裁剪提示里出现、不超预算、且只在基线本就被裁剪过的地方才允许变大。
 
 对 M2 用 `--mode=bytes` 会全红，学不到东西；对 M1 用 `--mode=info` 会在 schema 悄悄变化时照样通过。每个任务在任务书里写明自己必须满足哪一种。
 
@@ -44,7 +72,14 @@ node eval/harness/payload-truth.mjs
 
 它是签入的，不是现场生成的。现场生成会得到一个**不是同一个夹具**的夹具：那些仓库已经往前走了，而一个输入随 GitHub 漂移的回归测试，测的是 GitHub 不是这段代码。
 
-`inspect-golden-baseline.json` 是 `--write` 产出的快照，包含每个夹具 × 8 个预算档的 sha256 与结构签名。改渲染逻辑后重新 `--write` 会覆盖它——**覆盖前先确认这是有意的**，否则等于把"变了"记成"没变"。
+`inspect-golden-baseline.json` 是 `--write` 产出的快照，包含每个夹具 × 8 个预算档的 sha256 与结构签名。它**是 M1/M2 之前模型所见字节的唯一记录**，所以 `--write` 现在默认拒绝执行：
+
+```bash
+node eval/harness/golden-inspect.mjs --write           # exit 2：refusing to overwrite the baseline without --force
+node eval/harness/golden-inspect.mjs --write --force   # 旧文件先备份成 inspect-golden-baseline.prev.json
+```
+
+理由：静默重录会让 `--mode=bytes` 变成"渲染器和自己比"，永不可能失败——这恰好是第一版基线里 `repos`/`skeletonHits` 两个字段变成常量的同一种事故。确实要改输出时才 `--force`，并且同一次提交里说明这是有意的。
 
 ## 预算档位
 
