@@ -8,9 +8,9 @@
       "idea": "一个把 PDF 论文批量转成可朗读播客的流水线",
       "budgets": {
         "8000": {
-          "sha256": "d9eac28664ba66113a07bc5c5513b0200b3d594778773af695e1a20ef1baf8c3",
-          "bytes": 5823,
-          "repos": 0,
+          "sha256": "86611ee5725aeb3d108a62c2aa07c22aa079a218b3509b769079e2a868d83a72",
+          "bytes": 7356,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "shared/setup.py",
@@ -24,14 +24,14 @@
             "main.py",
             "description.md"
           ],
-          "treeEntries": 22,
-          "skeletonHits": 0,
+          "treeEntries": 44,
+          "skeletonHits": 4,
           "cutNotices": 8
         },
         "12000": {
-          "sha256": "018ed10dfc4b96a0541d749d407851289eb70de5d437fa8aa35881b5c52e01ce",
-          "bytes": 10691,
-          "repos": 0,
+          "sha256": "6e76953498c36b22c5967c807f1e1c72bd4b0b6509b74b5be344d49c164585b8",
+          "bytes": 9936,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "shared/setup.py",
@@ -46,13 +46,13 @@
             "description.md"
           ],
           "treeEntries": 64,
-          "skeletonHits": 0,
+          "skeletonHits": 4,
           "cutNotices": 8
         },
         "16000": {
-          "sha256": "efd38eed8a17bbb8d172982cd6f600ed6511148b72f8351d6f2a096865b92c7a",
-          "bytes": 13646,
-          "repos": 0,
+          "sha256": "057543247a47adf4cb51d43c2f86c991b828e3ccfadb9e3d1fb69f1ea79d5d0f",
+          "bytes": 15863,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "shared/setup.py",
@@ -66,14 +66,14 @@
             "main.py",
             "description.md"
           ],
-          "treeEntries": 91,
-          "skeletonHits": 0,
-          "cutNotices": 8
+          "treeEntries": 172,
+          "skeletonHits": 8,
+          "cutNotices": 7
         },
         "24000": {
-          "sha256": "1f00dddf9ef5e8f2b5846d2e478b3754f5d1012ba9884f431a73d1afa5e659ce",
-          "bytes": 20468,
-          "repos": 0,
+          "sha256": "76c435d38c2dcfd8d0313d5e2d5a1fc9e200855db24d493752473159262983ee",
+          "bytes": 23849,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "shared/setup.py",
@@ -87,14 +87,14 @@
             "main.py",
             "description.md"
           ],
-          "treeEntries": 293,
-          "skeletonHits": 0,
-          "cutNotices": 6
+          "treeEntries": 390,
+          "skeletonHits": 8,
+          "cutNotices": 5
         },
         "28000": {
-          "sha256": "57360fb64ecfcb12f767b3aa909bf0455513ed2c5093f7e5a9c09bdad22eb3cd",
-          "bytes": 27883,
-          "repos": 0,
+          "sha256": "b6dcb55752991d60aeb7634eee4b2d023d6b3a04247d6944d5b3e0ad9a9b708f",
+          "bytes": 26740,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "shared/setup.py",
@@ -109,13 +109,13 @@
             "description.md"
           ],
           "treeEntries": 452,
-          "skeletonHits": 0,
+          "skeletonHits": 8,
           "cutNotices": 5
         },
         "40000": {
-          "sha256": "24978de0a7eb7b50408f251c5b911fe41dce25c1097e3b25e7df1fa19bff4f30",
-          "bytes": 31897,
-          "repos": 0,
+          "sha256": "fc5e23f8ee1dbef639c8890ee1e897c0d78aeed71178be37addc2e958aabc634",
+          "bytes": 30669,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "shared/setup.py",
@@ -130,13 +130,13 @@
             "description.md"
           ],
           "treeEntries": 537,
-          "skeletonHits": 0,
+          "skeletonHits": 8,
           "cutNotices": 0
         },
         "60000": {
-          "sha256": "24978de0a7eb7b50408f251c5b911fe41dce25c1097e3b25e7df1fa19bff4f30",
-          "bytes": 31897,
-          "repos": 0,
+          "sha256": "fc5e23f8ee1dbef639c8890ee1e897c0d78aeed71178be37addc2e958aabc634",
+          "bytes": 30669,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "shared/setup.py",
@@ -151,13 +151,13 @@
             "description.md"
           ],
           "treeEntries": 537,
-          "skeletonHits": 0,
+          "skeletonHits": 8,
           "cutNotices": 0
         },
         "64000": {
-          "sha256": "24978de0a7eb7b50408f251c5b911fe41dce25c1097e3b25e7df1fa19bff4f30",
-          "bytes": 31897,
-          "repos": 0,
+          "sha256": "fc5e23f8ee1dbef639c8890ee1e897c0d78aeed71178be37addc2e958aabc634",
+          "bytes": 30669,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "shared/setup.py",
@@ -172,7 +172,7 @@
             "description.md"
           ],
           "treeEntries": 537,
-          "skeletonHits": 0,
+          "skeletonHits": 8,
           "cutNotices": 0
         }
       }
@@ -182,9 +182,9 @@
       "idea": "一个把 PDF 论文批量转成可朗读播客的流水线",
       "budgets": {
         "8000": {
-          "sha256": "14e6110e40c6eca0aaa14633ac6fa0b3bece555ab0b84bedc69f1ada9da59cf6",
-          "bytes": 6646,
-          "repos": 0,
+          "sha256": "4513ece607721024185a6abf148bced90dbec2e33a01c2336d00af516d51c323",
+          "bytes": 6193,
+          "repos": 2,
           "filesRead": [
             "README.md",
             "requirements.txt",
@@ -195,13 +195,13 @@
             "kokoro_tts/__main__.py"
           ],
           "treeEntries": 33,
-          "skeletonHits": 0,
+          "skeletonHits": 2,
           "cutNotices": 6
         },
         "12000": {
-          "sha256": "b5f696f2029cedbe9fcaa909e929fc2c7dd17fe89d5335b4961279b8c92dc374",
-          "bytes": 9361,
-          "repos": 0,
+          "sha256": "027f56ac1f2cc4a27963acd23cc971c08fec0f7a8b77a3bc489ed4018b956606",
+          "bytes": 8887,
+          "repos": 2,
           "filesRead": [
             "README.md",
             "requirements.txt",
@@ -212,13 +212,13 @@
             "kokoro_tts/__main__.py"
           ],
           "treeEntries": 54,
-          "skeletonHits": 0,
+          "skeletonHits": 3,
           "cutNotices": 6
         },
         "16000": {
-          "sha256": "45b168aa39c9984ab1ace2d544dcb0c1855644d13583df5b7f5e153656f5ab6b",
-          "bytes": 13730,
-          "repos": 0,
+          "sha256": "0ab52360dae98b2296a001da4087e92f066511fa15404d75af75a9e8dd43ef09",
+          "bytes": 13143,
+          "repos": 2,
           "filesRead": [
             "README.md",
             "requirements.txt",
@@ -229,13 +229,13 @@
             "kokoro_tts/__main__.py"
           ],
           "treeEntries": 167,
-          "skeletonHits": 0,
+          "skeletonHits": 3,
           "cutNotices": 5
         },
         "24000": {
-          "sha256": "846be2e36834e891712260d9d7f7e9ae5a55d5cd5739d6d6f667c6b93bc5d5cc",
-          "bytes": 23573,
-          "repos": 0,
+          "sha256": "162a845a4c8fb4bab3303284557b4580e1327c0c95f51d509f9c1bba857dd434",
+          "bytes": 22746,
+          "repos": 2,
           "filesRead": [
             "README.md",
             "requirements.txt",
@@ -246,13 +246,13 @@
             "kokoro_tts/__main__.py"
           ],
           "treeEntries": 407,
-          "skeletonHits": 0,
+          "skeletonHits": 3,
           "cutNotices": 0
         },
         "28000": {
-          "sha256": "846be2e36834e891712260d9d7f7e9ae5a55d5cd5739d6d6f667c6b93bc5d5cc",
-          "bytes": 23573,
-          "repos": 0,
+          "sha256": "162a845a4c8fb4bab3303284557b4580e1327c0c95f51d509f9c1bba857dd434",
+          "bytes": 22746,
+          "repos": 2,
           "filesRead": [
             "README.md",
             "requirements.txt",
@@ -263,13 +263,13 @@
             "kokoro_tts/__main__.py"
           ],
           "treeEntries": 407,
-          "skeletonHits": 0,
+          "skeletonHits": 3,
           "cutNotices": 0
         },
         "40000": {
-          "sha256": "846be2e36834e891712260d9d7f7e9ae5a55d5cd5739d6d6f667c6b93bc5d5cc",
-          "bytes": 23573,
-          "repos": 0,
+          "sha256": "162a845a4c8fb4bab3303284557b4580e1327c0c95f51d509f9c1bba857dd434",
+          "bytes": 22746,
+          "repos": 2,
           "filesRead": [
             "README.md",
             "requirements.txt",
@@ -280,13 +280,13 @@
             "kokoro_tts/__main__.py"
           ],
           "treeEntries": 407,
-          "skeletonHits": 0,
+          "skeletonHits": 3,
           "cutNotices": 0
         },
         "60000": {
-          "sha256": "846be2e36834e891712260d9d7f7e9ae5a55d5cd5739d6d6f667c6b93bc5d5cc",
-          "bytes": 23573,
-          "repos": 0,
+          "sha256": "162a845a4c8fb4bab3303284557b4580e1327c0c95f51d509f9c1bba857dd434",
+          "bytes": 22746,
+          "repos": 2,
           "filesRead": [
             "README.md",
             "requirements.txt",
@@ -297,13 +297,13 @@
             "kokoro_tts/__main__.py"
           ],
           "treeEntries": 407,
-          "skeletonHits": 0,
+          "skeletonHits": 3,
           "cutNotices": 0
         },
         "64000": {
-          "sha256": "846be2e36834e891712260d9d7f7e9ae5a55d5cd5739d6d6f667c6b93bc5d5cc",
-          "bytes": 23573,
-          "repos": 0,
+          "sha256": "162a845a4c8fb4bab3303284557b4580e1327c0c95f51d509f9c1bba857dd434",
+          "bytes": 22746,
+          "repos": 2,
           "filesRead": [
             "README.md",
             "requirements.txt",
@@ -314,7 +314,7 @@
             "kokoro_tts/__main__.py"
           ],
           "treeEntries": 407,
-          "skeletonHits": 0,
+          "skeletonHits": 3,
           "cutNotices": 0
         }
       }
@@ -324,9 +324,9 @@
       "idea": "用 Go 写一个自托管的 cron 任务调度面板，带 Web UI 和失败告警",
       "budgets": {
         "8000": {
-          "sha256": "fd0c103df8a0fd224f02474e16b2c686daabe774d2c150a2e4baf53482b8b9e7",
-          "bytes": 8409,
-          "repos": 0,
+          "sha256": "6fb41e8d0bc4eb18c3065112cffeb23c640012db90807e276e6b3bddea10ef96",
+          "bytes": 7023,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "internal/modules/app/app.go",
@@ -354,9 +354,9 @@
           "cutNotices": 12
         },
         "12000": {
-          "sha256": "10c4bd5949d37ff04eb8fb4b1e3e1f6c7c0ddc9b7808b66f07858b6f956c7b7b",
-          "bytes": 11062,
-          "repos": 0,
+          "sha256": "a5823d53069f273a5e834844df8f0f95531ce1b1f36e561a87ed29c3ba5711db",
+          "bytes": 9769,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "internal/modules/app/app.go",
@@ -380,13 +380,13 @@
             "internal/audit/entry.go"
           ],
           "treeEntries": 60,
-          "skeletonHits": 0,
+          "skeletonHits": 3,
           "cutNotices": 12
         },
         "16000": {
-          "sha256": "482e7090325c2432c3e5552c3f5d41c66d0c6c9a53bf2bd582addf8245dd013b",
-          "bytes": 13835,
-          "repos": 0,
+          "sha256": "a7be54b4a9b58bad363a633cd5b6a5b3b6ede439c7a4edee25703c7579daae79",
+          "bytes": 15449,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "internal/modules/app/app.go",
@@ -409,14 +409,14 @@
             "go.mod",
             "internal/audit/entry.go"
           ],
-          "treeEntries": 81,
-          "skeletonHits": 0,
+          "treeEntries": 108,
+          "skeletonHits": 7,
           "cutNotices": 12
         },
         "24000": {
-          "sha256": "8d58cc6ac1a6b8d39750ad42ea39f41fb3af775e0b8f8f7b20ca0576badf2849",
-          "bytes": 23544,
-          "repos": 0,
+          "sha256": "342d3077163696bfc16261414ce17d7dc7e96c5b6efa3bba6081542e008ba290",
+          "bytes": 22137,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "internal/modules/app/app.go",
@@ -440,13 +440,13 @@
             "internal/audit/entry.go"
           ],
           "treeEntries": 174,
-          "skeletonHits": 0,
+          "skeletonHits": 21,
           "cutNotices": 12
         },
         "28000": {
-          "sha256": "4ad2bce975e1c2707a3da03d75c60e037788cb2329ed8687efd058c37368a507",
-          "bytes": 23544,
-          "repos": 0,
+          "sha256": "0b119f0305d6bf2411376704dfe2a204c3119f8aa51fd75e8c9d03b3dbb8f09b",
+          "bytes": 27287,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "internal/modules/app/app.go",
@@ -469,14 +469,14 @@
             "go.mod",
             "internal/audit/entry.go"
           ],
-          "treeEntries": 174,
-          "skeletonHits": 0,
-          "cutNotices": 12
+          "treeEntries": 340,
+          "skeletonHits": 21,
+          "cutNotices": 11
         },
         "40000": {
-          "sha256": "4c769d2d7edebcf9f87960d9a48d06d2b99890225c4486adf068c8ab856172b4",
-          "bytes": 34799,
-          "repos": 0,
+          "sha256": "47fbb3952fa2491c98f6ed2a73b66f68b6314478ee8a59e5d397f824abee781a",
+          "bytes": 38989,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "internal/modules/app/app.go",
@@ -499,14 +499,14 @@
             "go.mod",
             "internal/audit/entry.go"
           ],
-          "treeEntries": 488,
-          "skeletonHits": 0,
-          "cutNotices": 10
+          "treeEntries": 655,
+          "skeletonHits": 21,
+          "cutNotices": 9
         },
         "60000": {
-          "sha256": "c064fd095a946307dae1612a20e7d2fbe87baaca19d4c74f9e3b09875b766322",
-          "bytes": 58911,
-          "repos": 0,
+          "sha256": "011fb128de7e5a2dcceede15eb6ddd4e7b3aa62c31f33d22258b90902716268d",
+          "bytes": 58921,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "internal/modules/app/app.go",
@@ -529,14 +529,14 @@
             "go.mod",
             "internal/audit/entry.go"
           ],
-          "treeEntries": 1089,
-          "skeletonHits": 0,
+          "treeEntries": 1129,
+          "skeletonHits": 21,
           "cutNotices": 7
         },
         "64000": {
-          "sha256": "134d54ff5cb67f87f97aed9b0a7dc65879fbab62750dfa9251d6965adc9d1830",
-          "bytes": 63856,
-          "repos": 0,
+          "sha256": "e77e18b6c1e63133e2b7d64ef3234a24e476ce3fe03e3ca23edc220f2abcbe5f",
+          "bytes": 63828,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "internal/modules/app/app.go",
@@ -559,9 +559,9 @@
             "go.mod",
             "internal/audit/entry.go"
           ],
-          "treeEntries": 1169,
-          "skeletonHits": 0,
-          "cutNotices": 6
+          "treeEntries": 1243,
+          "skeletonHits": 21,
+          "cutNotices": 0
         }
       }
     },
@@ -570,9 +570,9 @@
       "idea": "给 Neovim 写一个 AI 补全插件，接本地模型",
       "budgets": {
         "8000": {
-          "sha256": "8fb1a4b74b0ac6fc023e32f73c77924acd96db16f67b34c87258fbd0b53564a8",
-          "bytes": 8677,
-          "repos": 0,
+          "sha256": "f8932ee28f0bfb5f0a9917e7d91a5fd4300520fe7052acb219de2412f6fe3b7b",
+          "bytes": 7291,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "lua/minuet/blink.lua",
@@ -600,9 +600,9 @@
           "cutNotices": 12
         },
         "12000": {
-          "sha256": "fe6d0638ec3a574d22f64e1596dd136f13ffd847c28d8d3f679f1fe1f30ffccb",
-          "bytes": 11209,
-          "repos": 0,
+          "sha256": "64e559d84430787ba87abcbcbeac6d03836f23eab2a164c20a07b3c8329da090",
+          "bytes": 9922,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "lua/minuet/blink.lua",
@@ -630,9 +630,9 @@
           "cutNotices": 12
         },
         "16000": {
-          "sha256": "4980b47fce05f10e0ca1a9d1fc55c6d95feeaf54f25acaa7744c6e22f09030b6",
-          "bytes": 13860,
-          "repos": 0,
+          "sha256": "b867408de63b08b7a19dc01580daab145f3751bf9779a0c6d38ad415c166fa32",
+          "bytes": 15190,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "lua/minuet/blink.lua",
@@ -655,14 +655,14 @@
             "ftplugin/AvanteInput.lua",
             "ftplugin/AvantePromptInput.lua"
           ],
-          "treeEntries": 73,
+          "treeEntries": 92,
           "skeletonHits": 0,
           "cutNotices": 12
         },
         "24000": {
-          "sha256": "c9c908669a00b9e307c48c98af112061ca17578138f8d4d1cfd89c085b2bec6a",
-          "bytes": 21844,
-          "repos": 0,
+          "sha256": "3a77fc2481f1c11f6400aea1768e5a2f2345d17913c45fea7846e54ab9ea8cb0",
+          "bytes": 20481,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "lua/minuet/blink.lua",
@@ -690,9 +690,9 @@
           "cutNotices": 12
         },
         "28000": {
-          "sha256": "15e3e269ade94348666a4d2b551c52e5fcd000e9571a3eb0aff743ff1a3798a0",
-          "bytes": 26444,
-          "repos": 0,
+          "sha256": "567af5f79ba87d938a2241e16e368e158a08d5be70df511ed205dd9d7bf25843",
+          "bytes": 24973,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "lua/minuet/blink.lua",
@@ -720,9 +720,9 @@
           "cutNotices": 11
         },
         "40000": {
-          "sha256": "0eaf242e3da05bb0b4171dd79eecd15c3be13ad00ce7e7347e72eb679af91fcc",
-          "bytes": 38116,
-          "repos": 0,
+          "sha256": "251927088f32b1182803e43dd97232d7500120fd43a700a4468b89958bf08db4",
+          "bytes": 36340,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "lua/minuet/blink.lua",
@@ -750,39 +750,9 @@
           "cutNotices": 9
         },
         "60000": {
-          "sha256": "6054c469edd750332626745cdacd56cdfd7776dc79b45d584256138785b2848e",
-          "bytes": 57457,
-          "repos": 1,
-          "filesRead": [
-            "README.md",
-            "lua/minuet/blink.lua",
-            "lua/minuet/cmp.lua",
-            "lua/minuet/config.lua",
-            "README.md",
-            "doc/architecture.md",
-            "lua/codecompanion/config.lua",
-            "lua/codecompanion/health.lua",
-            "README.md",
-            "lua/gp/config.lua",
-            "lua/gp/defaults.lua",
-            "lua/gp/deprecator.lua",
-            "README.md",
-            "lua/sidekick/commands.lua",
-            "lua/sidekick/config.lua",
-            "lua/sidekick/debug.lua",
-            "README.md",
-            "Cargo.toml",
-            "ftplugin/AvanteInput.lua",
-            "ftplugin/AvantePromptInput.lua"
-          ],
-          "treeEntries": 892,
-          "skeletonHits": 0,
-          "cutNotices": 4
-        },
-        "64000": {
-          "sha256": "5ffce0197f51f61636b20970ba68c01988841b441feddeee91a4456d6d9f6388",
-          "bytes": 60425,
-          "repos": 1,
+          "sha256": "5a8d8e61fd995b8d38f20fddaf04aade5abc744dc5c8c12e84da9d9531347137",
+          "bytes": 58447,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "lua/minuet/blink.lua",
@@ -807,7 +777,37 @@
           ],
           "treeEntries": 932,
           "skeletonHits": 0,
-          "cutNotices": 3
+          "cutNotices": 4
+        },
+        "64000": {
+          "sha256": "2a167f616b211be1c8686769b0533543fc3db47d7d4533a5abecead92e6d5ab9",
+          "bytes": 62711,
+          "repos": 5,
+          "filesRead": [
+            "README.md",
+            "lua/minuet/blink.lua",
+            "lua/minuet/cmp.lua",
+            "lua/minuet/config.lua",
+            "README.md",
+            "doc/architecture.md",
+            "lua/codecompanion/config.lua",
+            "lua/codecompanion/health.lua",
+            "README.md",
+            "lua/gp/config.lua",
+            "lua/gp/defaults.lua",
+            "lua/gp/deprecator.lua",
+            "README.md",
+            "lua/sidekick/commands.lua",
+            "lua/sidekick/config.lua",
+            "lua/sidekick/debug.lua",
+            "README.md",
+            "Cargo.toml",
+            "ftplugin/AvanteInput.lua",
+            "ftplugin/AvantePromptInput.lua"
+          ],
+          "treeEntries": 981,
+          "skeletonHits": 0,
+          "cutNotices": 0
         }
       }
     },
@@ -816,9 +816,9 @@
       "idea": "一个团队用的「周报自动生成器」，从 GitHub PR/issue 里抽工作项",
       "budgets": {
         "8000": {
-          "sha256": "f47045c384d03f95fb19cf83269be8dc1b26018cebaeea3637923a7c70a6744b",
-          "bytes": 8583,
-          "repos": 0,
+          "sha256": "b05524d662ffdff19e19383878fd4d406670c94de8cea088bd8804baad170ee7",
+          "bytes": 7197,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "go.mod",
@@ -845,9 +845,9 @@
           "cutNotices": 12
         },
         "12000": {
-          "sha256": "839a91d463aaba50fdbb3768d61c1bb64adc13dd6875af71969bb1180d3ddf77",
-          "bytes": 10443,
-          "repos": 0,
+          "sha256": "b71c286a43ec9b085ba4391180cc28d5e61908a88f091dcdb6340bfb38e14008",
+          "bytes": 11829,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "go.mod",
@@ -869,14 +869,14 @@
             "requirements.txt",
             "app/db.py"
           ],
-          "treeEntries": 49,
-          "skeletonHits": 0,
+          "treeEntries": 73,
+          "skeletonHits": 3,
           "cutNotices": 12
         },
         "16000": {
-          "sha256": "b7990ea746688e5bbbe54a9a134d47142f182f95cb86f9d56ceec5281e58f893",
-          "bytes": 15811,
-          "repos": 0,
+          "sha256": "029318c066fac714287868a821b0565563cb24c2d3dbafabf81a7e972a09d149",
+          "bytes": 14486,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "go.mod",
@@ -899,13 +899,13 @@
             "app/db.py"
           ],
           "treeEntries": 92,
-          "skeletonHits": 0,
+          "skeletonHits": 3,
           "cutNotices": 12
         },
         "24000": {
-          "sha256": "aa4b4fd5d179749431631d51b713a162ce82104031c5e1d5d0158d2fd7210d07",
-          "bytes": 22118,
-          "repos": 0,
+          "sha256": "0ada69fb8d15a6b397cbbb7e3c022b5a42181f8966f259c3db9e7e96f8927cc9",
+          "bytes": 20737,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "go.mod",
@@ -928,13 +928,13 @@
             "app/db.py"
           ],
           "treeEntries": 148,
-          "skeletonHits": 0,
+          "skeletonHits": 12,
           "cutNotices": 12
         },
         "28000": {
-          "sha256": "2e755ad7c435455be480a3ec9af0dd42e509ae58af2c6f13e2a3cc19f61c9fb5",
-          "bytes": 26038,
-          "repos": 0,
+          "sha256": "554a85a0a77d5e00626897a9789f1fe139bb7b2fac23d6dd008c8a105d408148",
+          "bytes": 24517,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "go.mod",
@@ -957,13 +957,13 @@
             "app/db.py"
           ],
           "treeEntries": 288,
-          "skeletonHits": 0,
+          "skeletonHits": 12,
           "cutNotices": 11
         },
         "40000": {
-          "sha256": "f20b012d2456f0f9f5b18beb7d06e48682490e17458edbd2628a4f81243f13b4",
-          "bytes": 35206,
-          "repos": 0,
+          "sha256": "ccb258ec239f863f91e2a60a10e31527fb0cc05dda0dd09d9847031edecb721e",
+          "bytes": 38706,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "go.mod",
@@ -985,14 +985,14 @@
             "requirements.txt",
             "app/db.py"
           ],
-          "treeEntries": 535,
-          "skeletonHits": 0,
-          "cutNotices": 9
+          "treeEntries": 688,
+          "skeletonHits": 12,
+          "cutNotices": 8
         },
         "60000": {
-          "sha256": "704ca1797d95ae110e33dbcb615e4d10718b777259de0d7890a1efb0e405e574",
-          "bytes": 56592,
-          "repos": 0,
+          "sha256": "3b7e49b3f7fcbdc8892779d3d1584b4bc17dedb505354445b49b12a347ecd379",
+          "bytes": 54227,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "go.mod",
@@ -1015,13 +1015,13 @@
             "app/db.py"
           ],
           "treeEntries": 1132,
-          "skeletonHits": 0,
+          "skeletonHits": 12,
           "cutNotices": 0
         },
         "64000": {
-          "sha256": "704ca1797d95ae110e33dbcb615e4d10718b777259de0d7890a1efb0e405e574",
-          "bytes": 56592,
-          "repos": 0,
+          "sha256": "3b7e49b3f7fcbdc8892779d3d1584b4bc17dedb505354445b49b12a347ecd379",
+          "bytes": 54227,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "go.mod",
@@ -1044,7 +1044,7 @@
             "app/db.py"
           ],
           "treeEntries": 1132,
-          "skeletonHits": 0,
+          "skeletonHits": 12,
           "cutNotices": 0
         }
       }
@@ -1054,9 +1054,9 @@
       "idea": "一个桌面剪贴板历史管理器，支持搜索和固定常用片段",
       "budgets": {
         "8000": {
-          "sha256": "02616e512d9f1ac8248b4c6918e053e8bf77b13a5dc56146612766e890029f32",
-          "bytes": 5808,
-          "repos": 0,
+          "sha256": "a7ae7bcb3d370911304002046c60c2f4193224474fb882119a3b53c4898d288f",
+          "bytes": 7733,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "pyproject.toml",
@@ -1071,14 +1071,14 @@
             "Maccy/Accessibility.swift",
             "Maccy/AppDelegate.swift"
           ],
-          "treeEntries": 21,
+          "treeEntries": 40,
           "skeletonHits": 0,
           "cutNotices": 8
         },
         "12000": {
-          "sha256": "165e880643d19e66c5acf72d1189f120aa0092f89e4391cf8edf2351335faeee",
-          "bytes": 11124,
-          "repos": 0,
+          "sha256": "8925fbf4c5bd152e62644482019cff6ade9f46c4e770ef5792dd9a87585c61d4",
+          "bytes": 10374,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "pyproject.toml",
@@ -1098,9 +1098,9 @@
           "cutNotices": 8
         },
         "16000": {
-          "sha256": "50e1eb67b42b9055c1877356b1071f33fd854e01a6b329e0ad218fabca54be47",
-          "bytes": 13835,
-          "repos": 0,
+          "sha256": "7e79979cdf809b7540ceec63d0b1a547bab4088741db328cad77d56a28b102cb",
+          "bytes": 13062,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "pyproject.toml",
@@ -1116,13 +1116,13 @@
             "Maccy/AppDelegate.swift"
           ],
           "treeEntries": 82,
-          "skeletonHits": 0,
+          "skeletonHits": 2,
           "cutNotices": 8
         },
         "24000": {
-          "sha256": "470fcb2526d7c218eeb89b51c4c1e676066c1e4ce30faf52e602233aaf467d67",
-          "bytes": 22865,
-          "repos": 0,
+          "sha256": "40ad1adb9772cbff82a9b8055ce1dfa7c5dc1daa9b91fc6b53b8902633f71975",
+          "bytes": 21915,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "pyproject.toml",
@@ -1138,13 +1138,13 @@
             "Maccy/AppDelegate.swift"
           ],
           "treeEntries": 259,
-          "skeletonHits": 0,
+          "skeletonHits": 2,
           "cutNotices": 6
         },
         "28000": {
-          "sha256": "84c2e752a336faf9ef5ac867204cf7eb799fbf0867d1b86d58d47acf5a839b55",
-          "bytes": 27844,
-          "repos": 0,
+          "sha256": "cb5ca5095203814308d34f7f62cb1205690231a42d3370b9584c72721ce056cb",
+          "bytes": 26795,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "pyproject.toml",
@@ -1160,13 +1160,13 @@
             "Maccy/AppDelegate.swift"
           ],
           "treeEntries": 358,
-          "skeletonHits": 0,
+          "skeletonHits": 2,
           "cutNotices": 5
         },
         "40000": {
-          "sha256": "5809916acba13613c33256337b927d0317a13272b75f1207f7ad53ab3c45499c",
-          "bytes": 35237,
-          "repos": 0,
+          "sha256": "7aa99d6e64089ef69979f787b12b4f09a1c72837fe9c03116133ecb429e96074",
+          "bytes": 34038,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "pyproject.toml",
@@ -1182,13 +1182,13 @@
             "Maccy/AppDelegate.swift"
           ],
           "treeEntries": 508,
-          "skeletonHits": 0,
+          "skeletonHits": 2,
           "cutNotices": 0
         },
         "60000": {
-          "sha256": "5809916acba13613c33256337b927d0317a13272b75f1207f7ad53ab3c45499c",
-          "bytes": 35237,
-          "repos": 0,
+          "sha256": "7aa99d6e64089ef69979f787b12b4f09a1c72837fe9c03116133ecb429e96074",
+          "bytes": 34038,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "pyproject.toml",
@@ -1204,13 +1204,13 @@
             "Maccy/AppDelegate.swift"
           ],
           "treeEntries": 508,
-          "skeletonHits": 0,
+          "skeletonHits": 2,
           "cutNotices": 0
         },
         "64000": {
-          "sha256": "5809916acba13613c33256337b927d0317a13272b75f1207f7ad53ab3c45499c",
-          "bytes": 35237,
-          "repos": 0,
+          "sha256": "7aa99d6e64089ef69979f787b12b4f09a1c72837fe9c03116133ecb429e96074",
+          "bytes": 34038,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "pyproject.toml",
@@ -1226,7 +1226,7 @@
             "Maccy/AppDelegate.swift"
           ],
           "treeEntries": 508,
-          "skeletonHits": 0,
+          "skeletonHits": 2,
           "cutNotices": 0
         }
       }
@@ -1236,9 +1236,9 @@
       "idea": "一个开源的轻量 feature flag 服务，带管理后台和 SDK",
       "budgets": {
         "8000": {
-          "sha256": "98f04b44cf5f9c462840d22d0e70629199cbd4cc68e3b2e75a5f4a457701e411",
-          "bytes": 8977,
-          "repos": 0,
+          "sha256": "73441ee6f8d36d6bbd75399a7dd9cae75b72788fe7e62004c6d2536c5258c2c9",
+          "bytes": 7591,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "frontend/api/index.js",
@@ -1266,9 +1266,9 @@
           "cutNotices": 12
         },
         "12000": {
-          "sha256": "d36133319070df5718f538013026126a5b51c020f4e0d3892a9f3ab49179c302",
-          "bytes": 11371,
-          "repos": 0,
+          "sha256": "a55d4799bb4320adb4b49d0735da3e16be04e0bb6435269a4288d4ebb0529d1b",
+          "bytes": 10083,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "frontend/api/index.js",
@@ -1292,13 +1292,13 @@
             "packages/core/src/index.ts"
           ],
           "treeEntries": 55,
-          "skeletonHits": 0,
+          "skeletonHits": 1,
           "cutNotices": 12
         },
         "16000": {
-          "sha256": "b1ae8983b3468281a6ec12880d7bc9fc326313bb263f3c82dff139d10939c636",
-          "bytes": 13933,
-          "repos": 0,
+          "sha256": "7ee3388a41c088a49621f9c4171535764889d7c20cf8ea2a226e5761401793f8",
+          "bytes": 15510,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "frontend/api/index.js",
@@ -1321,14 +1321,14 @@
             "package.json",
             "packages/core/src/index.ts"
           ],
-          "treeEntries": 75,
-          "skeletonHits": 0,
+          "treeEntries": 99,
+          "skeletonHits": 4,
           "cutNotices": 12
         },
         "24000": {
-          "sha256": "0c81f0a6f788d5becccd53c36b80beb4d845c2efbc3de650447b02d88a88d70a",
-          "bytes": 23093,
-          "repos": 0,
+          "sha256": "963c66ed71f3bac93104d85304d93d9d567b597bf0542c910c1f421f7511a60c",
+          "bytes": 21703,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "frontend/api/index.js",
@@ -1352,13 +1352,13 @@
             "packages/core/src/index.ts"
           ],
           "treeEntries": 157,
-          "skeletonHits": 0,
+          "skeletonHits": 15,
           "cutNotices": 12
         },
         "28000": {
-          "sha256": "6848f934528f3de8306cb77824aceab6e1fd1b21e153cf10904a83695605b475",
-          "bytes": 25957,
-          "repos": 0,
+          "sha256": "7925b636a556219f29fb4670d05a3bcd605e1e72af8589ef7b2e77ffc998dabc",
+          "bytes": 24502,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "frontend/api/index.js",
@@ -1382,13 +1382,13 @@
             "packages/core/src/index.ts"
           ],
           "treeEntries": 222,
-          "skeletonHits": 0,
+          "skeletonHits": 15,
           "cutNotices": 11
         },
         "40000": {
-          "sha256": "ffe9bb7d35735fd9785a5fdb3117ee2846a8658d1fd087a3a9dcfff4948e064b",
-          "bytes": 35019,
-          "repos": 0,
+          "sha256": "94454f4eca3e635bb19ee0260fef9c446c587c06cd0ec1735f01f47427dda122",
+          "bytes": 39050,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "frontend/api/index.js",
@@ -1411,14 +1411,14 @@
             "package.json",
             "packages/core/src/index.ts"
           ],
-          "treeEntries": 463,
-          "skeletonHits": 0,
-          "cutNotices": 9
+          "treeEntries": 606,
+          "skeletonHits": 15,
+          "cutNotices": 8
         },
         "60000": {
-          "sha256": "cbee2dd11f39a46a6c1451c32ffc41a1d54e7b5f0cc5e3b8ae4c8bf6c1a0d4be",
-          "bytes": 57469,
-          "repos": 0,
+          "sha256": "aca140e5bf93ecf2745ceeea27716946deaeb243d8e4789b77eff5977f9314b9",
+          "bytes": 59730,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "frontend/api/index.js",
@@ -1441,14 +1441,14 @@
             "package.json",
             "packages/core/src/index.ts"
           ],
-          "treeEntries": 924,
-          "skeletonHits": 0,
-          "cutNotices": 6
+          "treeEntries": 979,
+          "skeletonHits": 15,
+          "cutNotices": 5
         },
         "64000": {
-          "sha256": "7696a2feb547f35791498e8737f7911658f25374da52803c5265b0ada5ccfe7f",
-          "bytes": 63250,
-          "repos": 0,
+          "sha256": "9d545cf6d493e0b4e32ce1a8b153d92f2973ea8f5a44b743209c5834cecad4b6",
+          "bytes": 60993,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "frontend/api/index.js",
@@ -1472,7 +1472,7 @@
             "packages/core/src/index.ts"
           ],
           "treeEntries": 1024,
-          "skeletonHits": 0,
+          "skeletonHits": 15,
           "cutNotices": 0
         }
       }
@@ -1482,9 +1482,9 @@
       "idea": "把会议录音转成结构化纪要（谁说了什么、决议、待办）",
       "budgets": {
         "8000": {
-          "sha256": "874d324fef9f626ef0583c314490755fcace69fc104eade6516881cfcf47d762",
-          "bytes": 7391,
-          "repos": 0,
+          "sha256": "c0bdff5e0aaac81e0babf37b6c4c18e4f40e678645157d732df9e17346316a74",
+          "bytes": 6401,
+          "repos": 4,
           "filesRead": [
             "README.md",
             "frontend/src/types/index.ts",
@@ -1508,35 +1508,9 @@
           "cutNotices": 10
         },
         "12000": {
-          "sha256": "f0a088a605b5128a104d864cc7c28f24fcb938d05ed8d4f1c915ad94324b8422",
-          "bytes": 10200,
-          "repos": 0,
-          "filesRead": [
-            "README.md",
-            "frontend/src/types/index.ts",
-            "backend/app/main.py",
-            "Cargo.toml",
-            "README.md",
-            "crates/mcp/src/index.ts",
-            "sidecars/diarize-streaming/src/main.rs",
-            "Cargo.toml",
-            "README.md",
-            "src/index.ts",
-            "package.json",
-            "src/describe.ts",
-            "README.md",
-            "frontend/src/main.tsx",
-            "backend/src/imeeting/main.py",
-            "backend/pyproject.toml"
-          ],
-          "treeEntries": 51,
-          "skeletonHits": 0,
-          "cutNotices": 10
-        },
-        "16000": {
-          "sha256": "62fc1285faf5c0fc01d4a932bd01a53efeb7f9390473989ab3ff8c2f1f906e26",
-          "bytes": 13003,
-          "repos": 0,
+          "sha256": "b85875aa65f5994c95a342e57016f600eae67cb2bc456ed2bdf45ac0413e1a21",
+          "bytes": 11969,
+          "repos": 4,
           "filesRead": [
             "README.md",
             "frontend/src/types/index.ts",
@@ -1556,13 +1530,39 @@
             "backend/pyproject.toml"
           ],
           "treeEntries": 72,
-          "skeletonHits": 0,
+          "skeletonHits": 2,
+          "cutNotices": 10
+        },
+        "16000": {
+          "sha256": "e3cee41b33e0b0a74e1c30336b2e37155350509043faca8110672b76ea188ab9",
+          "bytes": 14959,
+          "repos": 4,
+          "filesRead": [
+            "README.md",
+            "frontend/src/types/index.ts",
+            "backend/app/main.py",
+            "Cargo.toml",
+            "README.md",
+            "crates/mcp/src/index.ts",
+            "sidecars/diarize-streaming/src/main.rs",
+            "Cargo.toml",
+            "README.md",
+            "src/index.ts",
+            "package.json",
+            "src/describe.ts",
+            "README.md",
+            "frontend/src/main.tsx",
+            "backend/src/imeeting/main.py",
+            "backend/pyproject.toml"
+          ],
+          "treeEntries": 99,
+          "skeletonHits": 6,
           "cutNotices": 10
         },
         "24000": {
-          "sha256": "36ef9a2893f0b42fd4be346a5f8f3993ef21cb32c986414e5a7127b0ee955601",
-          "bytes": 23815,
-          "repos": 0,
+          "sha256": "88672dafe8b5939cfa0bb570a7bea3d90b7b3045448ab2bdcfe0a76148352e2c",
+          "bytes": 22600,
+          "repos": 4,
           "filesRead": [
             "README.md",
             "frontend/src/types/index.ts",
@@ -1582,13 +1582,13 @@
             "backend/pyproject.toml"
           ],
           "treeEntries": 253,
-          "skeletonHits": 0,
+          "skeletonHits": 11,
           "cutNotices": 9
         },
         "28000": {
-          "sha256": "305795b669941713c0c4d9ae1c62c450b0df3548baddf4dce0f7ac50c43dc3b3",
-          "bytes": 23815,
-          "repos": 0,
+          "sha256": "ebd086afa8af78b5c54e906ebf0b4d30d6aae00673a6b9cf0a4cc1b91eb76591",
+          "bytes": 27289,
+          "repos": 4,
           "filesRead": [
             "README.md",
             "frontend/src/types/index.ts",
@@ -1607,14 +1607,14 @@
             "backend/src/imeeting/main.py",
             "backend/pyproject.toml"
           ],
-          "treeEntries": 253,
-          "skeletonHits": 0,
-          "cutNotices": 9
+          "treeEntries": 374,
+          "skeletonHits": 11,
+          "cutNotices": 8
         },
         "40000": {
-          "sha256": "dc7a7fa9c6e47618ef5975cd928b91c424109febbba05fbc74688fe6a6d567c0",
-          "bytes": 34348,
-          "repos": 0,
+          "sha256": "5b757d8e948a9e6cc18e22601061b508c55afd5748f62b08782bd5324ada0683",
+          "bytes": 39707,
+          "repos": 4,
           "filesRead": [
             "README.md",
             "frontend/src/types/index.ts",
@@ -1633,14 +1633,14 @@
             "backend/src/imeeting/main.py",
             "backend/pyproject.toml"
           ],
-          "treeEntries": 491,
-          "skeletonHits": 0,
-          "cutNotices": 7
+          "treeEntries": 653,
+          "skeletonHits": 11,
+          "cutNotices": 6
         },
         "60000": {
-          "sha256": "ce2cefe5b0d2831cb0bdf1e86a904aced5406064c0b81081ee244f2db8d71fee",
-          "bytes": 53004,
-          "repos": 0,
+          "sha256": "3145ff9deafa2160ecec23c88781ed7f2e2d2a113ecc61c4811bff0e5743178c",
+          "bytes": 51169,
+          "repos": 4,
           "filesRead": [
             "README.md",
             "frontend/src/types/index.ts",
@@ -1660,13 +1660,13 @@
             "backend/pyproject.toml"
           ],
           "treeEntries": 873,
-          "skeletonHits": 0,
+          "skeletonHits": 11,
           "cutNotices": 0
         },
         "64000": {
-          "sha256": "ce2cefe5b0d2831cb0bdf1e86a904aced5406064c0b81081ee244f2db8d71fee",
-          "bytes": 53004,
-          "repos": 0,
+          "sha256": "3145ff9deafa2160ecec23c88781ed7f2e2d2a113ecc61c4811bff0e5743178c",
+          "bytes": 51169,
+          "repos": 4,
           "filesRead": [
             "README.md",
             "frontend/src/types/index.ts",
@@ -1686,7 +1686,7 @@
             "backend/pyproject.toml"
           ],
           "treeEntries": 873,
-          "skeletonHits": 0,
+          "skeletonHits": 11,
           "cutNotices": 0
         }
       }
@@ -1696,9 +1696,9 @@
       "idea": "一个可视化的 SQL 查询构建器，给不写 SQL 的人用",
       "budgets": {
         "8000": {
-          "sha256": "f6757b2e3c9e8000a7d6b415e2c01e54b4e0c9913ca0a96ad33de6cf3c019bb7",
-          "bytes": 9987,
-          "repos": 0,
+          "sha256": "a6f096b496e9d45ae1e5ead045a2122e33ffedda24a03347ff280bb56c1b7b9f",
+          "bytes": 8719,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "src/main.ts",
@@ -1746,9 +1746,9 @@
           "cutNotices": 12
         },
         "12000": {
-          "sha256": "1deb2203625031c280d1da9477c8ec2bc14453b4277104f42a185c52c1aab57b",
-          "bytes": 9870,
-          "repos": 0,
+          "sha256": "f81dafb290f04f85e01cb235b8483feb78d7b919c4f20f13b6bc635b40e9d812",
+          "bytes": 8602,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "src/main.ts",
@@ -1796,9 +1796,9 @@
           "cutNotices": 12
         },
         "16000": {
-          "sha256": "49a2632cc7554742bbe98a1098993b1b80c242107ff0894040833052da06a7d6",
-          "bytes": 15451,
-          "repos": 0,
+          "sha256": "5fed0584b7d48dfb18aa732f1a457dab78bca75abc7c1f440e0d7433dea1ce6a",
+          "bytes": 14139,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "src/main.ts",
@@ -1842,13 +1842,13 @@
             "src/utils/sqlSplitter/index.ts"
           ],
           "treeEntries": 79,
-          "skeletonHits": 0,
+          "skeletonHits": 1,
           "cutNotices": 12
         },
         "24000": {
-          "sha256": "67b4b34dcb902814a7c23a90c39afedebd9fe27e6b6598e0f9f7c8d45ce895d2",
-          "bytes": 21220,
-          "repos": 0,
+          "sha256": "8d62a5ee45f08c6e78c1947ae0f62ee28f84cf9a1ec2bcf7ecd77953504e1aae",
+          "bytes": 19860,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "src/main.ts",
@@ -1892,13 +1892,13 @@
             "src/utils/sqlSplitter/index.ts"
           ],
           "treeEntries": 127,
-          "skeletonHits": 0,
+          "skeletonHits": 4,
           "cutNotices": 12
         },
         "28000": {
-          "sha256": "f8ee1cbf713e9ffdbbb93093270b435ac14cc68078062fab60eeb596c50cd81c",
-          "bytes": 27268,
-          "repos": 0,
+          "sha256": "9a0c6f6efa5ebdfa0e201c2c4c97f3faaf4c20d0a53c86e3c8b108a259fd4a23",
+          "bytes": 25855,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "src/main.ts",
@@ -1942,13 +1942,13 @@
             "src/utils/sqlSplitter/index.ts"
           ],
           "treeEntries": 180,
-          "skeletonHits": 0,
+          "skeletonHits": 10,
           "cutNotices": 12
         },
         "40000": {
-          "sha256": "0e242916f54ebe3001ce5fc4ab7a85a393eb7aebe08d2e6f04e2080bd170a6c2",
-          "bytes": 33363,
-          "repos": 0,
+          "sha256": "bb97fc5b86d0c9e478f7c849677b8d049e78f1d370b13d3ce43c79d1e783b35d",
+          "bytes": 38657,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "src/main.ts",
@@ -1991,14 +1991,14 @@
             "packages/plugin-api/src/index.ts",
             "src/utils/sqlSplitter/index.ts"
           ],
-          "treeEntries": 234,
-          "skeletonHits": 0,
+          "treeEntries": 300,
+          "skeletonHits": 29,
           "cutNotices": 12
         },
         "60000": {
-          "sha256": "9d987d695f8f1673620b73b92faf2aa3fc6c3a569921f09b747391bdcc2c2afc",
-          "bytes": 57859,
-          "repos": 0,
+          "sha256": "20cc1272cc753caf002b25561affeeed9bd6ccb6959d7d55d7ae91cd33c121da",
+          "bytes": 55889,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "src/main.ts",
@@ -2042,13 +2042,13 @@
             "src/utils/sqlSplitter/index.ts"
           ],
           "treeEntries": 737,
-          "skeletonHits": 0,
+          "skeletonHits": 29,
           "cutNotices": 10
         },
         "64000": {
-          "sha256": "320a4ad8076265bd51e35b00e21cce8df31f1fe848b309351d15e3c7b5b9d59e",
-          "bytes": 57672,
-          "repos": 0,
+          "sha256": "32c588f7d69b1803028d625398501a137caf903ef187286e1ec826f4591467ea",
+          "bytes": 55702,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "src/main.ts",
@@ -2092,7 +2092,7 @@
             "src/utils/sqlSplitter/index.ts"
           ],
           "treeEntries": 737,
-          "skeletonHits": 0,
+          "skeletonHits": 29,
           "cutNotices": 9
         }
       }
@@ -2102,9 +2102,9 @@
       "idea": "把国产智能家居设备接进 Home Assistant 的集成插件",
       "budgets": {
         "8000": {
-          "sha256": "11cef709852fb9cf1950ce462418db5dfcdc82ac416203126e65c57622468722",
-          "bytes": 6726,
-          "repos": 0,
+          "sha256": "80cb91caf3164bea32be231dac1007ede6e2b3939de874d5ae218d546bf929dd",
+          "bytes": 6013,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/xiaomi_home/__init__.py",
@@ -2135,9 +2135,9 @@
           "cutNotices": 8
         },
         "12000": {
-          "sha256": "d27aed663726b33dfcbbb694f5a7c0c76bc94071340e7a5af13f01d2e4c84373",
-          "bytes": 11515,
-          "repos": 0,
+          "sha256": "d1d2d7939080b3b5ae7ce48d09bac5614d7127170c930e8f2391a88b15aaa8c5",
+          "bytes": 10751,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/xiaomi_home/__init__.py",
@@ -2164,13 +2164,13 @@
             "tinytuya/CoverDevice.py"
           ],
           "treeEntries": 73,
-          "skeletonHits": 0,
+          "skeletonHits": 11,
           "cutNotices": 8
         },
         "16000": {
-          "sha256": "3400ab1d7219e1a147d9247a0516d23eb6bd18095d3a44d8030cc311182946f9",
-          "bytes": 11515,
-          "repos": 0,
+          "sha256": "d0bc1bff09a04534accd5aee94cfda0278b3320bc47e19ca22259490e274d951",
+          "bytes": 10751,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/xiaomi_home/__init__.py",
@@ -2197,13 +2197,13 @@
             "tinytuya/CoverDevice.py"
           ],
           "treeEntries": 73,
-          "skeletonHits": 0,
+          "skeletonHits": 11,
           "cutNotices": 8
         },
         "24000": {
-          "sha256": "8c0e386b242853435e226618222669bf99bffb1320b14bede0e295fb8741cfc6",
-          "bytes": 23263,
-          "repos": 0,
+          "sha256": "d1b17ea32f1fffc2613b9bfa8d5afea256a33c405412d4623bc9146ecf88e404",
+          "bytes": 22405,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/xiaomi_home/__init__.py",
@@ -2230,13 +2230,13 @@
             "tinytuya/CoverDevice.py"
           ],
           "treeEntries": 167,
-          "skeletonHits": 0,
+          "skeletonHits": 13,
           "cutNotices": 8
         },
         "28000": {
-          "sha256": "19f7d74678c209d3f82cafffb59753e55d35ddde8946542b2264a766ab51103c",
-          "bytes": 23263,
-          "repos": 0,
+          "sha256": "d685a61d403e6aae5f095aa331dff16affa6d64c41a3a0b6b146dfeecc3dc035",
+          "bytes": 22405,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/xiaomi_home/__init__.py",
@@ -2263,13 +2263,13 @@
             "tinytuya/CoverDevice.py"
           ],
           "treeEntries": 167,
-          "skeletonHits": 0,
+          "skeletonHits": 13,
           "cutNotices": 8
         },
         "40000": {
-          "sha256": "efa80795b7f936ff9a05f6e3ad2ce38a8d5572eb7cebcf67a951d6e736382113",
-          "bytes": 31456,
-          "repos": 0,
+          "sha256": "aeefd0eb3e370cdbcb7bd8136b222da8122ab98963f4a663a77afc13548de234",
+          "bytes": 30335,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/xiaomi_home/__init__.py",
@@ -2296,46 +2296,13 @@
             "tinytuya/CoverDevice.py"
           ],
           "treeEntries": 430,
-          "skeletonHits": 0,
+          "skeletonHits": 13,
           "cutNotices": 7
         },
         "60000": {
-          "sha256": "40e67ec2b57b4b87de19e7f6360bcdb1e6b7aa22115ec13692b1a3c26bf91e54",
-          "bytes": 58548,
-          "repos": 0,
-          "filesRead": [
-            "README.md",
-            "custom_components/xiaomi_home/__init__.py",
-            "custom_components/xiaomi_home/binary_sensor.py",
-            "custom_components/xiaomi_home/button.py",
-            "custom_components/xiaomi_home/climate.py",
-            "custom_components/xiaomi_home/config_flow.py",
-            "custom_components/xiaomi_home/cover.py",
-            "custom_components/xiaomi_home/device_tracker.py",
-            "README.md",
-            "pyproject.toml",
-            "util/best_match.py",
-            "util/catalog.py",
-            "util/common_funcs.py",
-            "util/config_match.py",
-            "util/duplicates.py",
-            "README.md",
-            "setup.py",
-            "tinytuya/__init__.py",
-            "tinytuya/__main__.py",
-            "tinytuya/BulbDevice.py",
-            "tinytuya/cli.py",
-            "tinytuya/Cloud.py",
-            "tinytuya/CoverDevice.py"
-          ],
-          "treeEntries": 989,
-          "skeletonHits": 0,
-          "cutNotices": 4
-        },
-        "64000": {
-          "sha256": "2666fe6c0050169bbd810dd30e3671f84824bd14ee3fa0ec6e6f5b93fa8f7f47",
-          "bytes": 61385,
-          "repos": 0,
+          "sha256": "23f071b078b2425575d3aeb519cdbd582c70f7df2c86eaf1296ab9372d2ef99b",
+          "bytes": 59635,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/xiaomi_home/__init__.py",
@@ -2362,7 +2329,40 @@
             "tinytuya/CoverDevice.py"
           ],
           "treeEntries": 1059,
-          "skeletonHits": 0,
+          "skeletonHits": 13,
+          "cutNotices": 0
+        },
+        "64000": {
+          "sha256": "23f071b078b2425575d3aeb519cdbd582c70f7df2c86eaf1296ab9372d2ef99b",
+          "bytes": 59635,
+          "repos": 3,
+          "filesRead": [
+            "README.md",
+            "custom_components/xiaomi_home/__init__.py",
+            "custom_components/xiaomi_home/binary_sensor.py",
+            "custom_components/xiaomi_home/button.py",
+            "custom_components/xiaomi_home/climate.py",
+            "custom_components/xiaomi_home/config_flow.py",
+            "custom_components/xiaomi_home/cover.py",
+            "custom_components/xiaomi_home/device_tracker.py",
+            "README.md",
+            "pyproject.toml",
+            "util/best_match.py",
+            "util/catalog.py",
+            "util/common_funcs.py",
+            "util/config_match.py",
+            "util/duplicates.py",
+            "README.md",
+            "setup.py",
+            "tinytuya/__init__.py",
+            "tinytuya/__main__.py",
+            "tinytuya/BulbDevice.py",
+            "tinytuya/cli.py",
+            "tinytuya/Cloud.py",
+            "tinytuya/CoverDevice.py"
+          ],
+          "treeEntries": 1059,
+          "skeletonHits": 13,
           "cutNotices": 0
         }
       }
@@ -2372,9 +2372,9 @@
       "idea": "把国产智能家居设备接进 Home Assistant 的集成插件",
       "budgets": {
         "8000": {
-          "sha256": "65b96fc0ea77089067fd0c459e841f2a82125b802f20c4d452b6b4225aa6a8cd",
-          "bytes": 6426,
-          "repos": 0,
+          "sha256": "b38565a14e92b41c8ba97cd56210913805b36a1d71ac576662b29e326556772a",
+          "bytes": 5710,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/localtuya/__init__.py",
@@ -2391,9 +2391,9 @@
           "cutNotices": 8
         },
         "12000": {
-          "sha256": "5310d02f02e108b528c160d0b0587550a1ca73eb0ff51dc2626832ae5abc8321",
-          "bytes": 11916,
-          "repos": 0,
+          "sha256": "c7f486b8e587b013b3c9394e6fab0f6b333636ab454ae753d2d9d5fb19f96509",
+          "bytes": 11159,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/localtuya/__init__.py",
@@ -2410,9 +2410,9 @@
           "cutNotices": 8
         },
         "16000": {
-          "sha256": "2c7435f998c98e1921c2a9e3d1abf9cb1d7e9c448579074a4a4269b9672949e9",
-          "bytes": 13149,
-          "repos": 0,
+          "sha256": "faf73f455f1f572e801d08fdce985497e7b51dd89f97d4272399bb40b055cde9",
+          "bytes": 12376,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/localtuya/__init__.py",
@@ -2429,9 +2429,9 @@
           "cutNotices": 7
         },
         "24000": {
-          "sha256": "b9ada4b71f1205a53c8643308947cf643090d78a961b303844ab3647d4e84a39",
-          "bytes": 23074,
-          "repos": 0,
+          "sha256": "d3f486e828eaf0e52a7e8470ba33576e6e44c2df99356cc8a723fa52ae06869b",
+          "bytes": 22067,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/localtuya/__init__.py",
@@ -2448,9 +2448,9 @@
           "cutNotices": 4
         },
         "28000": {
-          "sha256": "7703ffc8994c3f145865fc51984c55e440b1b71ad1da7d8cac1f1ef8d2f54bca",
-          "bytes": 25339,
-          "repos": 0,
+          "sha256": "4a233c4072f34b9eeba2fa3410b0e8bf3d61519948c121d7240417ea755fe1ce",
+          "bytes": 27141,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/localtuya/__init__.py",
@@ -2462,14 +2462,14 @@
             "app.py",
             "README.md"
           ],
-          "treeEntries": 356,
+          "treeEntries": 411,
           "skeletonHits": 0,
-          "cutNotices": 3
+          "cutNotices": 0
         },
         "40000": {
-          "sha256": "8cfc71e58f39b6489ade695c3bd9f9eaf45573d9a03238d2a4d3a5a38536c7e3",
-          "bytes": 28243,
-          "repos": 0,
+          "sha256": "4a233c4072f34b9eeba2fa3410b0e8bf3d61519948c121d7240417ea755fe1ce",
+          "bytes": 27141,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/localtuya/__init__.py",
@@ -2486,9 +2486,9 @@
           "cutNotices": 0
         },
         "60000": {
-          "sha256": "8cfc71e58f39b6489ade695c3bd9f9eaf45573d9a03238d2a4d3a5a38536c7e3",
-          "bytes": 28243,
-          "repos": 0,
+          "sha256": "4a233c4072f34b9eeba2fa3410b0e8bf3d61519948c121d7240417ea755fe1ce",
+          "bytes": 27141,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/localtuya/__init__.py",
@@ -2505,9 +2505,9 @@
           "cutNotices": 0
         },
         "64000": {
-          "sha256": "8cfc71e58f39b6489ade695c3bd9f9eaf45573d9a03238d2a4d3a5a38536c7e3",
-          "bytes": 28243,
-          "repos": 0,
+          "sha256": "4a233c4072f34b9eeba2fa3410b0e8bf3d61519948c121d7240417ea755fe1ce",
+          "bytes": 27141,
+          "repos": 3,
           "filesRead": [
             "README.md",
             "custom_components/localtuya/__init__.py",
@@ -2530,9 +2530,9 @@
       "idea": "一个自托管的家庭照片管理服务，带人脸聚类和自然语言搜索",
       "budgets": {
         "8000": {
-          "sha256": "88dd44e528186c8327566bf70aa8fcf4de16061a15355f8348b394e6c1fe8aea",
-          "bytes": 8941,
-          "repos": 0,
+          "sha256": "f1e4b6040566a435160e65fdeaa5070b51272f12309f4312e7def1fa0f58727a",
+          "bytes": 7555,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "server/src/main.ts",
@@ -2560,9 +2560,9 @@
           "cutNotices": 12
         },
         "12000": {
-          "sha256": "2ff3b3802ddbf30d9e8064ae0a167922b2a6ce5c78573138d731965ce9038fc2",
-          "bytes": 11361,
-          "repos": 0,
+          "sha256": "361c3eab6ece2a00b10f1e1bea24a9a1a0a1c0442e387697ed21eed8189eaf70",
+          "bytes": 10073,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "server/src/main.ts",
@@ -2586,13 +2586,13 @@
             "packages/api-server/src/index.js"
           ],
           "treeEntries": 55,
-          "skeletonHits": 0,
+          "skeletonHits": 1,
           "cutNotices": 12
         },
         "16000": {
-          "sha256": "bf13c34a2410e4ee2b7eb4b75b3c784cd2515ffc7d11355caeed7900df3ac6c3",
-          "bytes": 13928,
-          "repos": 0,
+          "sha256": "0da7abf93773f311d34047dc51c5b537c44242439827e411f2e95073bc571915",
+          "bytes": 15253,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "server/src/main.ts",
@@ -2615,14 +2615,14 @@
             "package.json",
             "packages/api-server/src/index.js"
           ],
-          "treeEntries": 74,
-          "skeletonHits": 0,
+          "treeEntries": 96,
+          "skeletonHits": 3,
           "cutNotices": 12
         },
         "24000": {
-          "sha256": "0c939ecbd157ea6e6021335d96813ccb2a28cb986bc6bf0a0e14fd39366660da",
-          "bytes": 22231,
-          "repos": 0,
+          "sha256": "bc1510164c22440b17e552a083b7a525b39a3d77d09bdbccb9dd6feaa608924b",
+          "bytes": 20857,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "server/src/main.ts",
@@ -2646,13 +2646,13 @@
             "packages/api-server/src/index.js"
           ],
           "treeEntries": 141,
-          "skeletonHits": 0,
+          "skeletonHits": 5,
           "cutNotices": 12
         },
         "28000": {
-          "sha256": "eda9bdde53775d5a5b545cfddc44243d4ebe2efb8e1e5ca188718a6832cff3ac",
-          "bytes": 26264,
-          "repos": 0,
+          "sha256": "badc9ca585b6a0fa91cf34a7dd1e4f2d171778349c7ba7b3a8d0ea531deb5f6d",
+          "bytes": 24781,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "server/src/main.ts",
@@ -2676,13 +2676,13 @@
             "packages/api-server/src/index.js"
           ],
           "treeEntries": 250,
-          "skeletonHits": 0,
+          "skeletonHits": 5,
           "cutNotices": 11
         },
         "40000": {
-          "sha256": "5ed74ffb21929499b5204cbefd2418d9203d03d7b5cfcf157628317cac085174",
-          "bytes": 35245,
-          "repos": 0,
+          "sha256": "5660c06f1559884c4b109e7d1fee3b3345ba2d4b7b9fd8c4c668fed734487849",
+          "bytes": 39172,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "server/src/main.ts",
@@ -2705,14 +2705,14 @@
             "package.json",
             "packages/api-server/src/index.js"
           ],
-          "treeEntries": 465,
-          "skeletonHits": 0,
-          "cutNotices": 9
+          "treeEntries": 596,
+          "skeletonHits": 5,
+          "cutNotices": 8
         },
         "60000": {
-          "sha256": "5c024e46e7baa00bfc2700c253548634fc1cd069086d4f4b8e4d06b7c4aace37",
-          "bytes": 58319,
-          "repos": 0,
+          "sha256": "a109980d737b260caf3baeb18bc45c1ac6238322d90916b5e5b4344e6fe7d333",
+          "bytes": 56243,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "server/src/main.ts",
@@ -2736,13 +2736,13 @@
             "packages/api-server/src/index.js"
           ],
           "treeEntries": 843,
-          "skeletonHits": 0,
+          "skeletonHits": 5,
           "cutNotices": 7
         },
         "64000": {
-          "sha256": "e2974cb7b148d5cd57b05e84b59ff2b39bf881ea3719ffb8d0206a8362b67b39",
-          "bytes": 63807,
-          "repos": 0,
+          "sha256": "5935dab5efe7ac5c7d398f513d84e47379e2743cc21d260e9cfdc9ef190f33bb",
+          "bytes": 62566,
+          "repos": 5,
           "filesRead": [
             "README.md",
             "server/src/main.ts",
@@ -2765,9 +2765,9 @@
             "package.json",
             "packages/api-server/src/index.js"
           ],
-          "treeEntries": 919,
-          "skeletonHits": 0,
-          "cutNotices": 3
+          "treeEntries": 943,
+          "skeletonHits": 5,
+          "cutNotices": 0
         }
       }
     }
