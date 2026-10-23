@@ -19,9 +19,6 @@ dsh plugin --profile web add dsh-find-ideas
 
 # 或从 GitHub 安装
 dsh plugin --profile web add github:tianyao2003/dsh-find-ideas
-
-# 或从本地目录安装
-dsh plugin --profile web add /path/to/dsh-find-ideas
 ```
 
 ### 配置 GitHub token（推荐）
