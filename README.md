@@ -19,12 +19,7 @@ dsh plugin --profile web add dsh-find-ideas
 
 # or from GitHub
 dsh plugin --profile web add github:tianyao2003/dsh-find-ideas
-
-# or from a local directory
-dsh plugin --profile web add /path/to/dsh-find-ideas
 ```
-
-The npm package is 391 KB to download, 805 KB unpacked, 28 files, and has no runtime dependencies. Installing from GitHub runs the build once at install time and needs pnpm to allow build scripts; the npm package ships the compiled output, so there is no such step.
 
 ### Configure a GitHub token (recommended)
 
