@@ -17,7 +17,7 @@
 
 <br>
 
-**Other Languages:** [中文](README.md)
+**English** [中文](README.md)
 
 </div>
 
@@ -153,7 +153,7 @@ A tool that does not tell you where its limits are is not worth installing.
 
 ## Compatibility
 
-Requires Node ≥ 22. The `@deepseek-ai/dsh-tools` peer range accepts every published version from `0.1.0-rc.6` on, which covers the current DSH release lines — `latest` (0.2.1-rc.2) and `next` (0.2.1-rc.3). `npm run check:peers` re-checks that against the npm registry.
+Requires Node ≥ 22. The `@deepseek-ai/dsh-tools` peer range accepts every published version from `0.1.0-rc.6` on, which covers the current DSH release lines — `latest` (0.2.1-rc.2) and `next` (0.2.1-rc.3). 
 
 ## Version
 
@@ -193,8 +193,6 @@ MIT. See [LICENSE](LICENSE).
 ---
 
 <div align="center">
-
-**Checking first is cheaper than finding out you rebuilt it.**
 
 <sub>MIT License © <a href="https://github.com/tianyao2003">tianyao2003</a></sub>
 
