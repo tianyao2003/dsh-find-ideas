@@ -194,7 +194,6 @@ MIT [LICENSE](LICENSE)。
 
 <div align="center">
 
-**先查再建，比建完才发现重名便宜。**
 
 <sub>MIT License © <a href="https://github.com/tianyao2003">tianyao2003</a></sub>
 
