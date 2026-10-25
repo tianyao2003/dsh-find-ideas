@@ -192,7 +192,6 @@ MIT [LICENSE](LICENSE)。
 
 <div align="center">
 
-
 <sub>MIT License © <a href="https://github.com/tianyao2003">tianyao2003</a></sub>
 
 </div>
