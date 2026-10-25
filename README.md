@@ -17,7 +17,7 @@
 
 <br>
 
-**其他语言 / Other Languages:** [English](README_EN.md)
+**English:** [English](README_EN.md)
 
 </div>
 
