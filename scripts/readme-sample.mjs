@@ -119,8 +119,8 @@ const REFUSED_IDEA = '一个本地优先的笔记应用'
 
 /** The lead-in line above the refused sample, per README language. */
 const REFUSAL_LEAD = {
-  'README.md': 'And when a call cannot be completed, it still returns a value:',
-  'README.zh.md': '调用无法完成时，它同样返回一个值：',
+  'README.md': '调用无法完成时，它同样返回一个值：',
+  'README_EN.md': 'And when a call cannot be completed, it still returns a value:',
 }
 
 /**
