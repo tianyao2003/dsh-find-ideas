@@ -1,7 +1,7 @@
 # dsh-find-ideas
 
 ![license](https://img.shields.io/badge/license-MIT-blue) ![node](https://img.shields.io/badge/node-%3E%3D22-brightgreen) ![runtime deps](https://img.shields.io/badge/runtime%20deps-0-brightgreen)
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.2.0--rc.2%20%7C%200.2.1--rc.2-blue)](#兼容性) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.2%20%7C%200.2.1--rc.3-blue)](#兼容性) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
 
 [English](README.md) | 中文
 
@@ -41,7 +41,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 - 「我想做一个本地优先的 Markdown 笔记应用，帮我看一下 GitHub 上的项目。」
 - 「我想做一个 UI 增强的 DSH 插件，GitHub 上有哪些项目？」
 
-`scout_projects` → `rank_candidates` → `inspect_projects` → `read_repo_files` 四个工具彼此独立，不共享状态。0–10 的 relevance 由 agent 给出；工具只负责检索、计算、排序和读取，不判断语义相关性。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`。排序卡片固定八列：序号、项目、最近更新、relevance、stars、得分、语言、简介。
+四个工具可以独立调用，除了缓存与本地先验文件之外不共享状态；先验文件只作为上下文展示，不改变排序。`rank_candidates` 既接受旧的单个 0–10 `relevance`，也接受可解释的 `problem_fit`、`workflow_fit`、`technical_fit`（0–5，未知保持未知），由固定权重派生 relevance；`borrowability` 单独展示，不参与排序。排序公式是 `relevance × (1 + log10(max(stars, 10) + 1)) / 2`，卡片始终保持八列。
 
 ## 工作方式
 
@@ -49,14 +49,15 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 - **`scout_projects`**：把想法拆成多条 GitHub 搜索查询，返回按 star 排序的候选池，刻意**不**按相关性排序。想法里不含拉丁字母时，会先翻译成英文检索词；如果做不到（调用方没给拉丁字母的 `keywords`、又没有可用的 LLM），就返回 `plan_failed`。
 - **`rank_candidates`**：用 `relevance × (1 + log10(max(stars, 10) + 1)) / 2` 给候选池打分并生成卡片。
-- **`inspect_projects`**：最多读 5 个仓库，包括 README、依赖清单、目录树摘要和几个关键文件。返回的卡片固定封顶 24 KB：装得下的卡片逐字节原样返回；装不下的按「最便宜的损失优先」裁剪（依赖清单 → README → 逐文件摘录 → 声明骨架），并附一行说明，写清被扣掉的是什么、以及怎么拿回来。没有可调的预算参数：两条补读路径是用 `read_repo_files` 点读，或者下次少传几个仓库。
-- **`read_repo_files`**：在**同一个提交**上点读一个仓库里的最多 4 个文件，返回一段行窗口（`focus` 会把窗口落在命中词所在行附近）以及带提交号和行范围的永久链接。它读多少就只返回多少：字节预算是上限，不是建议值。
+- **`inspect_projects`**：最多读 5 个仓库（README、依赖清单、目录树摘要和关键文件），`shallow` 约 6 次请求/仓库、`deep` 约 10 次。卡片封顶 24 KB：装得下的原样返回，装不下的按「最便宜的损失优先」裁剪（依赖清单 → README → 逐文件摘录 → 声明骨架），并说明扣掉了什么、怎么补读——用 `read_repo_files` 点读，或下次少传几个仓库。
+- **`read_repo_files`**：在**同一个提交**上点读一个仓库里的最多 4 个文件，返回一段行窗口（`focus` 会把窗口落在命中词所在行附近）以及带提交号和行范围的永久链接。`max_bytes` 默认 8000（4000–8192），是上限不是建议值。
+- **`read_repo_files(view="architecture")`**：做一次有界的架构侦察，提取入口文件、直接依赖、路由或命令注册、数据模型、保守的两跳调用链、外部服务边界和观察到的测试行为。每条证据尽量带文件路径和行号；读不到或不支持的部分明确写成未知，不声称完整调用图。
 
 ### 返回的结果结构
 
 - 固定八列，顺序固定（序号、项目链接、最近更新时间、relevance、star数、综合得分、开发语言、一句话简介）
-- `relevance` 是 agent 给出的 0–10 判断；`score` 由它和 star 数算出，所以顺序没法用一句话指定。
-- 没测到的数量不会写成 `0`：查询词没单独测过显示「未知（未测得）」，归档数量缺失显示「数据缺失」。
+- `relevance` 由 agent 判断，或由 `problem_fit` / `workflow_fit` / `technical_fit` 维度派生（0–10）；用维度时卡片另起一段列出各维度、`borrowability` 和置信度，`?` 表示未测量。`score` 由它和 star 数算出，所以顺序没法用一句话指定。
+- 没测到的数量不会写成 `0`：查询词没单独测过显示 `未知（未测得）`，归档数量缺失显示 `数据缺失`。
 - 仓库里的文字一律当数据引用，README 里的一行没法冒充卡片结构；能作为链接输出的只有 `github.com` 和 `raw.githubusercontent.com`。
 - 工具不抛异常：失败会返回 `reason` 和 `detail`，结果不完整时会说明为什么不完整。
 
@@ -64,6 +65,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 - 内存里最多 64 条，5 分钟。
 - 磁盘上搜索结果存 24 小时、源码读取存 10 分钟，总量不超过 64 MB，大约每小时清理一次。
+- 本地先验文件只保存仓库名、时间、次数、提交/路径元数据和想法 hash，不保存源码或原始想法；最多 256 条记录/64 KB，只作为上下文展示，不自动改变排序。
 - 都在 `$DSH_HOME/cache/dsh-find-ideas/` 下，删掉这个目录永远安全。
 
 ### 数据去向
@@ -72,13 +74,14 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ## 兼容性
 
-需要 Node ≥ 22。`@deepseek-ai/dsh-tools` 的 peer range 接受从 `0.1.0-rc.6` 起的所有已发布版本，覆盖当前两条 DSH 发布线——`latest`（0.2.0-rc.2）和 `next`（0.2.1-rc.2）。`npm run check:peers` 会拿 npm registry 上的实际版本再核一遍。
+需要 Node ≥ 22。`@deepseek-ai/dsh-tools` 的 peer range 接受从 `0.1.0-rc.6` 起的所有已发布版本，覆盖当前两条 DSH 发布线——`latest`（0.2.1-rc.2）和 `next`（0.2.1-rc.3）。`npm run check:peers` 会拿 npm registry 上的实际版本再核一遍。
 
 ## 版本
 
 | 版本 | 更新 |
 | --- | --- |
-| 0.4.0（当前） | 新增第四个工具 read_repo_files，给结果卡片设了上限。inspect_projects 单次最多返回 24 KB，超出会裁剪，并在卡片里说明扣下了什么、怎么补读：用 read_repo_files 点读，或少传几个仓库；没有可调预算参数。四个工具的 schema 小了 1.7 KB，仓库改为三个一批并行读，卡片版式只声明一次。AB实验：工具调用少 44.8%，工具结果载荷少 10.8%，计费输入基本打平。插件用更少、更准的调用替代大量裸调用。 |
+| 0.4.1（当前） | 新增可解释 relevance 维度（`problem_fit` / `workflow_fit` / `technical_fit`，0–5，按固定权重派生 0–10 relevance，旧的单 relevance 输入继续兼容）；`read_repo_files` 增加证据锚定的 `view="architecture"`；新增只存元数据的有界本地先验（256 条/64 KB），只作上下文、不改变排序。 |
+| 0.4.0 | 新增 `read_repo_files`；`inspect_projects` 卡片固定封顶 24 KB，并说明超限后的补读路径；四个工具 schema 小 1.7 KB，仓库改为三路并行读，卡片版式只声明一次。AB 实验：工具调用少 44.8%，工具结果载荷少 10.8%，计费输入基本打平。 |
 | 0.3.0 | 缓存与包体。简介按 512 字符存储而不是无限长，内存缓存上限 64 条，磁盘缓存会清理过期条目并保持在 64 MB 以内，发布包里不再包含 `src/`、`test/`、`scripts/` 和 source map——解包 805 KB，原来是 2.07 MB。工具名、参数和输出都没变。 |
 | 0.2.1 | 发布到 npm，功能与 0.2.0 相同。 |
 | 0.2.0 | 卡片标出每行被几个查询命中、榜上有多少行是归档仓库。 |
@@ -90,8 +93,10 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 npm install
 npm run build         # tsc -> lib/ ；必须先跑，测试 import 的是 lib/
 npm test              # node test/run-all.test.mjs
+npm run check         # typecheck + build + readme:check
 npm run typecheck     # tsc --noEmit
 npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
+npm run eval:gate     # 用冻结数据复核实验数字
 ```
 
 ## 贡献

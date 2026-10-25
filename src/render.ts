@@ -14,6 +14,7 @@
  */
 
 import type { Degraded, NoiseReport, RankedCandidate, RepoCandidate, Suspicion, TermReport } from './types.ts'
+import type { ArchitectureDependency, ArchitectureEvidence, ArchitectureSnapshot } from './architecture.ts'
 import { TERM_TOTAL_UNKNOWN } from './types.ts'
 import { MIN_RELEVANCE, SCORE_GAP_RELEVANCE, formatStars } from './types.ts'
 import { TAIL_STAR_CEILING } from './github.ts'
@@ -550,7 +551,8 @@ const RANKED_TABLE_DIVIDER = '|---|---|---|---|---|---|---|---|'
  */
 const CODE_AREA_DECLARATION: readonly string[] = [
   '【代码计算区】本区字段分三类，按类读取：',
-  '  · relevance：调用方自己的判断（0-10），工具不计算、也不校验它是否正确。',
+  '  · relevance：调用方自己的判断（0-10），工具不计算、也不校验它是否正确；新输入由 problem/workflow/technical 维度派生，旧输入保留为 legacy。',
+  '    维度缺失显示为未知，不会被当成 0；borrowability 只表示潜在借鉴价值，不进入主排序。',
   '  · stars / pushed_at / description：调用方传入的元数据，来源未经工具核实；',
   '    调用方自带候选时，工具不会去 GitHub 复查这三项。',
   '  · 得分 / 评级 / 顺序：由上面两类派生，可按公式复算（评级是 relevance 的纯函数，本表不单列）。',
@@ -879,6 +881,17 @@ export function renderRanked(
   for (const row of ranked) lines.push(rankedRow(row))
   lines.push('─'.repeat(62))
   lines.push('排序与星级均由代码按公式计算，不可由模型指定。', '复述本卡时，每一行与每一列都必须保留（共八列，含「简介」列）：删掉一行或一列是丢失信息，不是缩短表格。')
+  const breakdowns = ranked
+    .filter((row) => row.relevance_breakdown?.source === 'dimensions')
+    .map((row) => {
+      const d = row.relevance_breakdown
+      const fmt = (value: number | null): string => value === null ? '?' : String(value)
+      return ` · ${escapeUntrusted(row.full_name)}：P${fmt(d.problem_fit)}/W${fmt(d.workflow_fit)}/T${fmt(d.technical_fit)}，` +
+        `借鉴 ${fmt(d.borrowability)}/5，证据 ${d.evidence_level}，置信度 ${d.confidence}`
+    })
+  if (breakdowns.length > 0) {
+    lines.push('', '【相关性维度】以下维度由调用方提供，relevance 由代码派生；? 表示未测量。', ...breakdowns)
+  }
   if (dropped.length > 0) lines.push(`已排除 ${dropped.length} 个 relevance=0 的噪声项目。`)
   if (belowThreshold.length > 0) {
     lines.push(`已排除 ${belowThreshold.length} 个 relevance<${MIN_RELEVANCE} 的弱相关项目（多为宽查询带入的高 star 无关仓库）。`)
@@ -1846,6 +1859,64 @@ export function renderReadFiles(
     lines.push(`⚠️ 降级提示：${escapeUntrusted(degraded.detail)}`)
   }
   return lines.join('\n')
+}
+
+/** Render exact-match local history as context only; it never changes ranking. */
+export function renderPriorContext(rows: readonly { repo: string; seen_count: number; inspected_count: number; last_seen: string }[]): string {
+  if (!Array.isArray(rows) || rows.length === 0) return ''
+  return [
+    '【本地先验】以下项目曾在本机被检索或检查；这只是历史上下文，不参与本次排序：',
+    ...rows.slice(0, 12).map((row) => ` · ${escapeUntrusted(row.repo)}：检索 ${row.seen_count} 次，检查 ${row.inspected_count} 次，最近 ${escapeUntrusted(row.last_seen)}`),
+  ].join('\n')
+}
+
+/** Render a bounded, evidence-first architecture snapshot. */
+export function renderArchitecture(
+  repo: string,
+  ref: string,
+  refKind: ReadRefKind,
+  architecture: ArchitectureSnapshot,
+  degraded: Degraded | null,
+): string {
+  const lines: string[] = []
+  lines.push(`🏗️ ${escapeUntrusted(repo)} 的架构侦察`)
+  if (refKind === 'commit') lines.push(`   证据固定在提交 ${ref}；每条事实都来自本次读到的文件。`)
+  else lines.push('   ⚠️ 提交号不可用；以下证据来自默认分支当时返回的内容，链接不是永久快照。')
+  lines.push('   这是结构化侦察，不是完整调用图；没有读到的内容不会被推断成已存在。', '')
+  for (const line of UNTRUSTED_BANNER) lines.push(line)
+  const section = (title: string, entries: ArchitectureEvidence[], limit = 8): void => {
+    lines.push('', CARD_RULE, title)
+    if (entries.length === 0) {
+      lines.push('   未观察到可引用证据。')
+      return
+    }
+    for (const item of entries.slice(0, limit)) {
+      lines.push(`   · ${escapeUntrusted(item.path)}#L${item.start_line}${item.end_line !== item.start_line ? `-L${item.end_line}` : ''}（${item.confidence}）`)
+      lines.push(`     ${escapeUntrusted(item.evidence)}`)
+    }
+    if (entries.length > limit) lines.push(`   … 其余 ${entries.length - limit} 条证据未展开。`)
+  }
+  section('入口文件', architecture.entry_points)
+  lines.push('', CARD_RULE, '直接依赖')
+  if (architecture.dependencies.length === 0) lines.push('   未观察到可引用的直接依赖声明。')
+  for (const item of architecture.dependencies.slice(0, 12)) renderDependency(lines, item)
+  if (architecture.dependencies.length > 12) lines.push(`   … 其余 ${architecture.dependencies.length - 12} 条依赖未展开。`)
+  section('路由与命令注册', architecture.routes_commands)
+  section('数据模型声明', architecture.data_models)
+  section('保守调用链（最多两跳）', architecture.call_chain)
+  section('外部服务边界', architecture.external_boundaries)
+  section('测试行为', architecture.test_behaviors)
+  lines.push('', CARD_RULE, '未知与限制')
+  if (architecture.unknowns.length === 0) lines.push('   未记录额外未知项。')
+  else for (const unknown of architecture.unknowns.slice(0, 12)) lines.push(`   · ${escapeUntrusted(unknown)}`)
+  lines.push('', CARD_RULE, '证据规则：路径和行号指向本次读取的文件；observed 是文本中直接出现的证据，heuristic 是有限启发式，unknown 表示当前证据不足。')
+  if (degraded !== null) lines.push('', `⚠️ 降级提示：${escapeUntrusted(degraded.detail)}`)
+  return lines.join('\n')
+}
+
+function renderDependency(lines: string[], item: ArchitectureDependency): void {
+  lines.push(`   · ${escapeUntrusted(item.name)}（${escapeUntrusted(item.ecosystem)} / ${item.kind}）`)
+  lines.push(`     ${escapeUntrusted(item.manifest)}#L${item.evidence.start_line}（${item.evidence.confidence}）：${escapeUntrusted(item.evidence.evidence)}`)
 }
 
 /** What one repository inspection produced. */

@@ -156,6 +156,38 @@ export function finalScore(relevance: number, stars: number): number {
   return relevance * (1 + Math.log10(Math.max(STAR_FLOOR, Math.max(0, stars)) + 1)) / 2
 }
 
+/** Evidence level available when the relevance judgement was made. */
+export type RelevanceEvidenceLevel = 'metadata' | 'readme' | 'source'
+
+/**
+ * Explainable relevance dimensions. A null dimension means the caller did not
+ * have evidence for that dimension; it is never silently treated as zero.
+ */
+export interface RelevanceDimensions {
+  /** Same core user problem, 0-5. */
+  problem_fit: number | null
+  /** Same user/workflow shape, 0-5. */
+  workflow_fit: number | null
+  /** Same technical constraints or architecture, 0-5. */
+  technical_fit: number | null
+  /** Potential value to borrow, 0-5; displayed but not in finalScore yet. */
+  borrowability?: number | null
+}
+
+/** The deterministic relevance result carried with a ranked row. */
+export interface RelevanceBreakdown {
+  problem_fit: number | null
+  workflow_fit: number | null
+  technical_fit: number | null
+  borrowability: number | null
+  /** How much evidence was available when the judgement was made. */
+  evidence_level: RelevanceEvidenceLevel
+  /** Low when one or more ranking dimensions were unknown. */
+  confidence: 'low' | 'medium' | 'high'
+  /** Whether this came from dimensions or the migration fallback. */
+  source: 'dimensions' | 'legacy'
+}
+
 /** One agent-supplied relevance judgement, as passed to `rank_candidates`. */
 export interface RelevanceInput {
   /** `owner/name`, must match a candidate returned by `scout_projects`. */
@@ -176,7 +208,11 @@ export interface RelevanceInput {
    * agent has a way to discard keyword-bait repos (`Obsidian-Windows-Download`)
    * instead of letting them occupy the bottom of the card.
    */
-  relevance: number
+  relevance?: number
+  /** Preferred explainable input. */
+  dimensions?: RelevanceDimensions
+  /** Evidence available to the caller; defaults to metadata. */
+  evidence_level?: RelevanceEvidenceLevel
 }
 
 /** One ranked row, ready to render: candidate metadata joined with its score. */
@@ -205,6 +241,8 @@ export interface RankedCandidate {
   topics: string[]
   /** Agent-judged relevance, integer 0-10. */
   relevance: number
+  /** Explainable dimensions behind the derived relevance. */
+  relevance_breakdown: RelevanceBreakdown
   /** Rating derived from `relevance`; never agent-authored. */
   stars_rating: number
   /** `relevance × (1 + log10(max(stars, STAR_FLOOR) + 1)) / 2`; see {@link finalScore}. */
@@ -429,6 +467,75 @@ function clampRelevance(relevance: number): number {
   return Math.max(0, Math.min(10, Math.round(relevance)))
 }
 
+/** Clamp one explainable dimension to the declared 0-5 domain. */
+function clampDimension(value: number | null | undefined): number | null {
+  if (value === null || value === undefined || !Number.isFinite(value)) return null
+  return Math.max(0, Math.min(5, Math.round(value)))
+}
+
+const RELEVANCE_WEIGHTS = {
+  problem_fit: 0.45,
+  workflow_fit: 0.3,
+  technical_fit: 0.25,
+} as const
+
+/**
+ * Derive the one legacy relevance number from explainable dimensions.
+ *
+ * Unknown dimensions are omitted and the remaining weights are renormalized.
+ * This keeps "not measured" distinct from a measured zero and leaves the
+ * existing stars formula untouched.
+ */
+export function deriveRelevance(
+  entry: RelevanceInput,
+): { relevance: number; breakdown: RelevanceBreakdown } {
+  const evidence = entry.evidence_level ?? 'metadata'
+  const dimensions = entry.dimensions
+  if (dimensions === undefined) {
+    const relevance = clampRelevance(entry.relevance ?? 0)
+    return {
+      relevance,
+      breakdown: {
+        problem_fit: null,
+        workflow_fit: null,
+        technical_fit: null,
+        borrowability: null,
+        evidence_level: evidence,
+        confidence: 'low',
+        source: 'legacy',
+      },
+    }
+  }
+
+  const normalized = {
+    problem_fit: clampDimension(dimensions.problem_fit),
+    workflow_fit: clampDimension(dimensions.workflow_fit),
+    technical_fit: clampDimension(dimensions.technical_fit),
+    borrowability: clampDimension(dimensions.borrowability),
+  }
+  let weighted = 0
+  let totalWeight = 0
+  for (const key of ['problem_fit', 'workflow_fit', 'technical_fit'] as const) {
+    const value = normalized[key]
+    if (value === null) continue
+    weighted += value * RELEVANCE_WEIGHTS[key]
+    totalWeight += RELEVANCE_WEIGHTS[key]
+  }
+  const relevance = totalWeight === 0 ? 0 : clampRelevance((weighted / totalWeight) * 2)
+  const known = ['problem_fit', 'workflow_fit', 'technical_fit'].filter((key) => normalized[key as keyof typeof normalized] !== null).length
+  const confidence: RelevanceBreakdown['confidence'] =
+    known === 3 && evidence === 'source' ? 'high' : known >= 2 ? 'medium' : 'low'
+  return {
+    relevance,
+    breakdown: {
+      ...normalized,
+      evidence_level: evidence,
+      confidence,
+      source: 'dimensions',
+    },
+  }
+}
+
 /**
  * The single effective-score view, shared by the rank and every diagnostic.
  *
@@ -449,8 +556,9 @@ function clampRelevance(relevance: number): number {
 export function judgementIndex(
   byName: Map<string, RepoCandidate>,
   scores: RelevanceInput[],
-): { relevance: Map<string, number>; notes: Map<string, string | undefined>; unknown: string[] } {
+): { relevance: Map<string, number>; breakdowns: Map<string, RelevanceBreakdown>; notes: Map<string, string | undefined>; unknown: string[] } {
   const relevance = new Map<string, number>()
+  const breakdowns = new Map<string, RelevanceBreakdown>()
   const notes = new Map<string, string | undefined>()
   const unknown: string[] = []
   for (const entry of scores) {
@@ -460,10 +568,12 @@ export function judgementIndex(
       continue
     }
     // Last judgement wins, so a repeat entry is idempotent rather than doubling up.
-    relevance.set(key, clampRelevance(entry.relevance))
+    const derived = deriveRelevance(entry)
+    relevance.set(key, derived.relevance)
+    breakdowns.set(key, derived.breakdown)
     notes.set(key, entry.note)
   }
-  return { relevance, notes, unknown }
+  return { relevance, breakdowns, notes, unknown }
 }
 
 /**
@@ -777,7 +887,7 @@ export function rankCandidates(
   // repository produce two card rows when it arrived under two spellings, while
   // every diagnostic — keyed by lowercase `full_name` — saw only one.
   const byName = candidateIndex(candidates)
-  const { relevance: relevanceByName, notes, unknown } = judgementIndex(byName, scores)
+  const { relevance: relevanceByName, breakdowns, notes, unknown } = judgementIndex(byName, scores)
 
   const dropped: string[] = []
   const belowThreshold: string[] = []
@@ -819,6 +929,15 @@ export function rankCandidates(
       // the output the host validates.
       ...(candidate.channels_hit === undefined ? {} : { channels_hit: candidate.channels_hit }),
       relevance,
+      relevance_breakdown: breakdowns.get(key) ?? {
+        problem_fit: null,
+        workflow_fit: null,
+        technical_fit: null,
+        borrowability: null,
+        evidence_level: 'metadata',
+        confidence: 'low',
+        source: 'legacy',
+      },
       stars_rating: ratingFromRelevance(relevance),
       score: finalScore(relevance, candidate.stars),
       ...(note !== undefined && note.trim().length > 0 ? { note } : {}),

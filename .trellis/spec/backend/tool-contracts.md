@@ -296,3 +296,13 @@ total: termTotals.get(term) ?? TERM_TOTAL_UNKNOWN   // src/index.ts:136
 // CORRECT — the key set is pinned; the agent supplies only `relevance`
 //   test/ranking.test.mjs:184
 ```
+
+
+## Additive extensions (v0.4.1)
+
+The public tool surface also carries two additive contracts:
+
+- `rank_candidates` score rows may carry `dimensions` (`problem_fit`, `workflow_fit`, `technical_fit`, optional `borrowability`) and `evidence_level`. The derived relevance stays code-owned (`deriveRelevance`, `src/types.ts:482-540`); the legacy single `relevance` input remains accepted and is marked `source: 'legacy'`.
+- `read_repo_files` accepts `view=files|architecture` and `depth=shallow|deep`. Files mode preserves the point-read contract unchanged. Architecture mode returns a bounded evidence snapshot (`src/architecture.ts`) whose open `architecture` object is validated by the architecture tests and the renderer; unsupported or unread sections are reported as unknown rather than omitted.
+
+When changing either extension, update the schema, the execute return, the output renderer and the tests together. The rendered card remains the caller-facing API.

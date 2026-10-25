@@ -18,16 +18,39 @@ node_modules/
 # commit, in the published package, or on GitHub.
 *报告.md
 
-# EXCEPTION: the A/B experiment reports are not trial-run output. They are the
-# human-readable half of a frozen baseline whose machine-readable half is
-# checked in under `eval/runs/ab-v04*-baseline/`, and `eval/harness/ab-wall-clock.mjs`
-# READS `v0.4.0-AB实验报告.md` to verify the retracted wall-clock claim still
-# appears as a retraction. With the blanket rule above that file is absent from a
-# fresh clone and the gate silently degrades to SKIP — a check that cannot run is
-# how the retracted column survived a 28-item green gate the first time.
-# Committed deliberately; see the commit that added this exception.
-!v0.4.0-AB实验报告.md
-!v0.4.1-AB实验报告.md
+# The A/B experiment reports used to be carved out of the rule above with `!`
+# exceptions, because `eval/harness/ab-wall-clock.mjs` READS
+# `v0.4.0-AB实验报告.md` to verify the retracted wall-clock claim still appears
+# as a retraction, and a file absent from a fresh clone silently degraded that
+# check to SKIP — a check that cannot run is how the retracted column survived a
+# 28-item green gate the first time.
+#
+# They are no longer tracked: `05a46cd chore: 从仓库移除两份本地实验报告` took
+# them out of the repository on the maintainer's decision that they are local
+# records only. The exceptions therefore went with them, and the SKIP risk is
+# accepted knowingly rather than reintroduced by accident: locally the reports
+# are still on disk so the gate still runs, while a fresh clone reports
+# `SKIP  v0.4.0-AB实验报告.md -- file absent from this checkout` instead of
+# passing quietly. Restoring the two `!` lines restores the guarantee.
+#
+# The machine-readable half of the same baseline is still tracked under
+# `eval/runs/ab-v04*-baseline/`, and `eval/harness/ab-v041.mjs` recomputes the
+# v0.4.1 numbers from those files without needing either report.
+
+# Local artefacts that are not inputs to the build and must not reach a commit
+# or the published package:
+#  - `lib-conc1/` is a second build output directory from a concurrency probe;
+#  - `resume-output/` holds personal documents unrelated to this project;
+#  - a `*技术方案.md` beside the code is a report written by USING the plugin
+#    (the same category as `*报告.md` above, just a different filename);
+#  - `eval/fixtures/inspect-live-shape.json` is a 600 KB raw dump captured while
+#    probing the card's live shape. Nothing reads it; the fixtures the harness
+#    actually consumes are `inspect-golden-raw.json` and
+#    `inspect-golden-baseline.json`, both tracked.
+lib-conc1/
+resume-output/
+*技术方案.md
+eval/fixtures/inspect-live-shape.json
 
 # Archify run receipts under `docs/`: these record the machine that ran the
 # render — absolute paths under the user's home directory and the local node

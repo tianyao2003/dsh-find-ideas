@@ -265,3 +265,10 @@ Note the deliberate asymmetry in timestamp representation: the in-memory entry s
 | Replaying an entry produced by an older scanner | It answers a different question; the silence of the old scanner would be attributed to the new one | `src/cache.ts:376-381` |
 | Embedding user text directly in a filename | A long idea, or one containing `..` or a path separator, escapes the cache directory or exceeds filename limits | `src/cache.ts:217-226` |
 | Assuming the cache directory exists | It is created on write with `recursive: true`, and its absence is not an error | `src/cache.ts:441` |
+
+
+## Lightweight prior history
+
+The optional prior history lives beside the existing cache as `prior.json` (`src/prior.ts`). It stores bounded repository metadata, timestamps, counters, commit/path metadata and hashed idea identifiers. It never stores raw source or raw idea text, never issues network requests, and never changes ranking.
+
+The cap is `PRIOR_MAX_RECORDS` (256) records or `PRIOR_MAX_BYTES` (64 KB); a malformed, oversized or missing file degrades to an empty history instead of throwing. Any shape change requires `PRIOR_VERSION` to be bumped, and the prior tests must keep covering corruption, the cap and deletion.

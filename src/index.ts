@@ -32,7 +32,10 @@ import { describeExcerpt, extractReadmeLead, renderReadmeExcerpt } from './excer
 import { mapPool } from './pool.ts'
 import { looksBinary, pickWindow } from './read.ts'
 import { termBudget, translateIdea, translationFailed, type TranslateDeps } from './translate.ts'
-import { INSPECT_FORMAT_VERSION, README_LEAD_CHARS, type Inspection, type ReadFileResult, type ReadRefKind, renderCandidates, renderInspections, renderRanked, renderReadFiles, renderSkeletonCard, type SkeletonCardEntry } from './render.ts'
+import { INSPECT_FORMAT_VERSION, README_LEAD_CHARS, type Inspection, type ReadFileResult, type ReadRefKind, renderCandidates, renderInspections, renderRanked, renderReadFiles, renderSkeletonCard, renderPriorContext, type SkeletonCardEntry } from './render.ts'
+import { extractArchitecture, type ArchitectureSnapshot } from './architecture.ts'
+import { renderArchitecture } from './render.ts'
+import { priorContextFor, recordPrior, type PriorContext } from './prior.ts'
 import {
   type Degraded,
   type RankedCandidate,
@@ -177,6 +180,11 @@ const MAX_INSPECT_REPOS = 5
 
 /** Cap on file paths per point read, for the same reason as MAX_LIMIT. */
 const MAX_READ_PATHS = 4
+
+/** Architecture mode uses the existing shallow/deep inspection budget. */
+const ARCHITECTURE_SHALLOW_FILES = 4
+const ARCHITECTURE_DEEP_FILES = 8
+export const ARCHITECTURE_FORMAT_VERSION = 1
 
 /**
  * Byte budget for one point-read card: default, floor and ceiling.
@@ -346,6 +354,7 @@ export const TIME_BUDGET_SHARE = 0.75
 interface CachedSearch {
   candidates: RepoCandidate[]
   tailIncluded: number
+  priorContext?: PriorContext[]
   /**
    * True when the fetch that filled this entry did NOT retrieve everything it
    * asked for — a query failed, or GitHub reported the quota nearly gone.
@@ -1035,6 +1044,20 @@ export function apply(ctx: Context): void {
           // as "the terms were checked and are fine" — a claim about GitHub that
           // the code is not entitled to make when the truth is a budget fact.
           probe_note: { type: 'string', required: true },
+          prior_context: {
+            type: 'array',
+            required: true,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                repo: { type: 'string', required: true },
+                seen_count: { type: 'integer', required: true },
+                inspected_count: { type: 'integer', required: true },
+                last_seen: { type: 'string', required: true },
+              },
+            },
+          },
           // The schema language has no `null`, so a probed-but-unmeasured term
           // travels as -1 and the render boundary converts it back. This is the
           // ONE place that encoding is spelled out; the renderer itself only ever
@@ -1055,27 +1078,24 @@ export function apply(ctx: Context): void {
           },
         },
       },
-      render: (_args, value) =>
-        [{
-          type: 'text',
-          text: renderCandidates(
-            value.idea,
-            value.candidates,
-            value.degraded,
-            value.cached,
-            value.tail_included,
-            // The schema encodes "no count" as -1, because the tool's schema
-            // language has no null in this position. Converted back to null here
-            // so the renderer keeps one meaning for unknown: absent, not zero.
-            value.query_terms.map((entry) => ({
-              term: entry.term,
-              total: entry.total < 0 ? null : entry.total,
-              verdict: entry.verdict === 'carrying' ? ('carrying' as const) : ('selective' as const),
-            })) as TermReport[],
-            value.probe_note,
-            value.low_star_in_pool,
-          ),
-        }],
+      render: (_args, value) => {
+        const card = renderCandidates(
+          value.idea,
+          value.candidates,
+          value.degraded,
+          value.cached,
+          value.tail_included,
+          value.query_terms.map((entry) => ({
+            term: entry.term,
+            total: entry.total < 0 ? null : entry.total,
+            verdict: entry.verdict === 'carrying' ? ('carrying' as const) : ('selective' as const),
+          })) as TermReport[],
+          value.probe_note,
+          value.low_star_in_pool,
+        )
+        const prior = renderPriorContext(value.prior_context as PriorContext[])
+        return [{ type: 'text', text: prior.length > 0 ? `${card}\n\n${prior}` : card }]
+      },
     },
     execute: async (args, exec) => {
       const idea = args.idea.trim()
@@ -1143,7 +1163,7 @@ export function apply(ctx: Context): void {
             reason: 'plan_failed',
             detail: translationNote === null ? refusal : `${refusal}\n\n${translationNote}`,
           }
-          return { idea, candidates: [], degraded, cached: false, tail_included: 0, low_star_in_pool: 0, query_terms: [], probe_note: '' }
+          return { idea, candidates: [], degraded, cached: false, tail_included: 0, low_star_in_pool: 0, query_terms: [], probe_note: '', prior_context: [] }
         }
       }
 
@@ -1181,7 +1201,7 @@ export function apply(ctx: Context): void {
           detail: describePlanFailure(planned.error, effectiveKeywords),
         }
         degraded.detail = `${degraded.detail}${withProxyHint()}`
-        return { idea, candidates: [], degraded, cached: false, tail_included: 0, low_star_in_pool: 0, query_terms: [], probe_note: '' }
+        return { idea, candidates: [], degraded, cached: false, tail_included: 0, low_star_in_pool: 0, query_terms: [], probe_note: '', prior_context: [] }
       }
       queries = planned.planned.queries
       unknownTerms = planned.planned.diagnostics.unknownTerms
@@ -1238,6 +1258,7 @@ export function apply(ctx: Context): void {
         // storing it would be a second copy of a derivable fact — exactly the
         // kind of duplicate that goes stale. Same helper as the cold path, so
         // the two cannot answer with different thresholds.
+        const priorContext = await priorContextFor(hit.candidates.map((candidate) => candidate.full_name))
         return {
           idea,
           candidates: hit.candidates,
@@ -1247,6 +1268,7 @@ export function apply(ctx: Context): void {
           low_star_in_pool: countLowStar(hit.candidates),
           query_terms: [],
           probe_note: describeUnavailableProbeDiagnostic(),
+          prior_context: priorContext,
         }
       }
 
@@ -1280,16 +1302,19 @@ export function apply(ctx: Context): void {
         // reflects a weak query rather than a fact about GitHub, and caching it
         // would replay that bad outcome for a full day even after the caller
         // retries with better keywords.
+        const priorContext = await priorContextFor(candidates.map((candidate) => candidate.full_name))
         if (candidates.length > 0) {
           // `incomplete` records whether this fetch got everything it asked for,
           // so a replay can say "these rows are missing something" without
           // claiming any query failed just now. `thin` records which shortfall
           // this was, for the same reason.
+          await Promise.all(candidates.map((candidate) => recordPrior(candidate.full_name, idea, 'seen')))
           await cacheSet<CachedSearch>(key, {
             candidates,
             tailIncluded,
             incomplete: failures.length > 0,
             thin: thinKind,
+            priorContext,
           })
         }
 
@@ -1329,7 +1354,7 @@ export function apply(ctx: Context): void {
         // 403 or as a smaller result set just as easily as it does as a
         // `fetch failed`, and those paths never reached `proxyHint()` before.
         if (degraded !== null) degraded.detail = `${degraded.detail}${withProxyHint()}`
-        return { idea, candidates, degraded, cached: false, tail_included: tailIncluded, low_star_in_pool: lowStarInPool, query_terms: queryTerms, probe_note: describeProbeOutcome(probe) }
+        return { idea, candidates, degraded, cached: false, tail_included: tailIncluded, low_star_in_pool: lowStarInPool, query_terms: queryTerms, probe_note: describeProbeOutcome(probe), prior_context: priorContext }
       } catch (error) {
         // Partial-result rule: a failed search still returns a well-formed
         // value with a degraded note, so the card can explain itself rather
@@ -1346,7 +1371,7 @@ export function apply(ctx: Context): void {
               detail: describeFailure(error),
             }
         degraded.detail = `${degraded.detail}${withProxyHint()}`
-        return { idea, candidates: [], degraded, cached: false, tail_included: 0, low_star_in_pool: 0, query_terms: [], probe_note: '' }
+        return { idea, candidates: [], degraded, cached: false, tail_included: 0, low_star_in_pool: 0, query_terms: [], probe_note: '', prior_context: [] }
       }
     },
     timeoutMs: 25000,
@@ -1356,14 +1381,18 @@ export function apply(ctx: Context): void {
     name: 'rank_candidates',
     description:
       'STEP 2 of 2, and the ONLY place a card is produced. Turn raw candidates from scout_projects into a ' +
-      'ranked card. Supply a relevance score (integer 0-10) for EVERY candidate: 10 = almost exactly the same ' +
-      'idea, 7-9 = same problem space with a different angle, 4-6 = partial overlap or a useful dependency, ' +
-      '3 = loosely related but worth a mention. Scores below 3 are excluded by code and never appear in the ' +
+      'ranked card. Prefer supplying explainable dimensions for EVERY candidate: problem_fit, workflow_fit and ' +
+      'technical_fit are integers 0-5 (use null when you did not measure one), and borrowability is optional. ' +
+      'The tool derives relevance 0-10 from those dimensions: problem 45%, workflow 30%, technical 25%; unknown ' +
+      'dimensions are omitted and the remaining weights are renormalized. Legacy relevance 0-10 is still accepted ' +
+      'during migration and is marked as legacy. Relevance 10 means almost exactly the same idea, 7-9 means the ' +
+      'same problem space with a different angle, 4-6 means partial overlap or a useful dependency, and 3 means ' +
+      'loosely related but worth a mention. Scores below 3 are excluded by code and never appear in the ' +
       'card — use 1-2 for "barely related" (a general Markdown converter or web scraper that only shares the ' +
       'word "markdown"), and 0 for noise such as keyword-bait repos. Do not inflate a weak match just to fill ' +
       'the card; a short honest card is the intended outcome. ' +
-      'You provide ONLY full_name and relevance. The order, the borrow-worthiness star rating and the score ' +
-      'are all computed in code by relevance × (1 + log10(max(stars, 10) + 1)) / 2; do not attempt to order ' +
+      'You provide ONLY full_name plus dimensions (or legacy relevance). The order, the borrow-worthiness star ' +
+      'rating and the score are all computed in code by relevance × (1 + log10(max(stars, 10) + 1)) / 2; do not attempt to order ' +
       'the list yourself, do not invent a star rating, and do not present your own ranking to the user. ' +
       'Pass every candidate you scored in one call — candidates you omit are excluded. ' +
       'The card is material for you to work with, not a finished message: you are free to re-present it in ' +
@@ -1422,7 +1451,22 @@ export function apply(ctx: Context): void {
           additionalProperties: false,
           properties: {
             full_name: { type: 'string', required: true },
-            relevance: { type: 'integer', required: true, description: 'Integer 0-10. 0 drops the candidate.' },
+            relevance: { type: 'integer', description: 'Legacy integer 0-10. Omit when dimensions are supplied.' },
+            dimensions: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                problem_fit: { oneOf: [{ type: 'integer' }, { type: 'null' }], description: '0-5; null means unmeasured.' },
+                workflow_fit: { oneOf: [{ type: 'integer' }, { type: 'null' }], description: '0-5; null means unmeasured.' },
+                technical_fit: { oneOf: [{ type: 'integer' }, { type: 'null' }], description: '0-5; null means unmeasured.' },
+                borrowability: { oneOf: [{ type: 'integer' }, { type: 'null' }], description: 'Optional 0-5; displayed separately from relevance.' },
+              },
+            },
+            evidence_level: {
+              type: 'string',
+              enum: ['metadata', 'readme', 'source'],
+              description: 'What evidence supported the dimensions; defaults to metadata.',
+            },
             note: {
               type: 'string',
               description:
@@ -1485,6 +1529,20 @@ export function apply(ctx: Context): void {
                 // pool carries no count.
                 channels_hit: { type: 'integer' },
                 relevance: { type: 'number', required: true },
+                relevance_breakdown: {
+                  type: 'object',
+                  required: true,
+                  additionalProperties: false,
+                  properties: {
+                    problem_fit: { oneOf: [{ type: 'number' }, { type: 'null' }], required: true },
+                    workflow_fit: { oneOf: [{ type: 'number' }, { type: 'null' }], required: true },
+                    technical_fit: { oneOf: [{ type: 'number' }, { type: 'null' }], required: true },
+                    borrowability: { oneOf: [{ type: 'number' }, { type: 'null' }], required: true },
+                    evidence_level: { type: 'string', required: true },
+                    confidence: { type: 'string', required: true },
+                    source: { type: 'string', required: true },
+                  },
+                },
                 stars_rating: { type: 'number', required: true },
                 score: { type: 'number', required: true },
                 // B10: the fetched canonical url, not a reconstruction from
@@ -1562,7 +1620,7 @@ export function apply(ctx: Context): void {
           type: 'text',
           text: renderRanked(
             value.idea,
-            value.ranked,
+            value.ranked as RankedCandidate[],
             value.unknown,
             value.dropped,
             value.below_threshold,
@@ -2075,6 +2133,7 @@ export function apply(ctx: Context): void {
           }
         : null
 
+      await Promise.all(inspections.filter((item) => item.ok).map((item) => recordPrior(item.full_name, idea, 'inspected', '', item.files_read)))
       return { idea, cached: false, depth, requests_used: requestsUsed, inspections, degraded }
     },
     timeoutMs: INSPECT_TIMEOUT_MS,
@@ -2083,15 +2142,9 @@ export function apply(ctx: Context): void {
   ctx.tools.register(defineTool({
     name: 'read_repo_files',
     description:
-      'STEP 3: point-read files of a repository. Use it when `inspect_projects` did not show a file, or ' +
-      'collapsed part of one — read it here instead of guessing from the name. Each path returns its line range, ' +
-      'the text in an untrusted fence, a commit-pinned link, and the blob sha of these bytes. ' +
-      'FOCUS: the terms you seek; the window centres on the best matching line (±40), not the head — which is how ' +
-      'you find where a concept lives. ' +
-      'BUDGET: `max_bytes` caps the whole response and is split across paths; a file that does not fit is listed ' +
-      'with a note, never silently dropped. One request for the commit plus one per path. ' +
-      'An invalid repo or path, more than 4 paths, or an out-of-range `max_bytes` is refused with the rule it ' +
-      'broke and nothing is fetched. Quote what you read and name the lines; say so when a file was not returned.',
+      'STEP 3: read files or run a bounded architecture view for one repository. Files mode rejects more than 4 paths, ' +
+      'commit links and blob hashes. Architecture mode extracts evidence-backed structure; it is not a complete call graph. ' +
+      'Focus centres a window on matching lines. max_bytes bounds the response; unread or omitted evidence is stated.',
     parameters: {
       repo: {
         type: 'string',
@@ -2100,10 +2153,18 @@ export function apply(ctx: Context): void {
       },
       paths: {
         type: 'array',
-        required: true,
         items: { type: 'string' },
-        description:
-          `Repository-relative paths (no leading /), at most ${MAX_READ_PATHS} per call, all read at one commit.`,
+        description: 'Repository-relative paths. Required in files mode; optional in architecture mode.',
+      },
+      view: {
+        type: 'string',
+        enum: ['files', 'architecture'],
+        description: 'files (default) or architecture.',
+      },
+      depth: {
+        type: 'string',
+        enum: ['shallow', 'deep'],
+        description: 'Architecture depth: shallow or deep.',
       },
       focus: {
         type: 'string',
@@ -2113,9 +2174,7 @@ export function apply(ctx: Context): void {
       },
       max_bytes: {
         type: 'number',
-        description:
-          `Optional byte budget for the whole response (default ${READ_BYTES_DEFAULT}, ` +
-          `${READ_BYTES_FLOOR}–${READ_BYTES_CEILING}), split across the paths.`,
+        description: `Optional total byte budget (${READ_BYTES_FLOOR}–${READ_BYTES_CEILING}; default ${READ_BYTES_DEFAULT}).`,
       },
     },
     output: {
@@ -2124,6 +2183,8 @@ export function apply(ctx: Context): void {
         additionalProperties: false,
         properties: {
           repo: { type: 'string', required: true },
+          view: { type: 'string', required: true },
+          depth: { type: 'string', required: true },
           ref: { type: 'string', required: true },
           ref_kind: { type: 'string', required: true },
           requests_used: { type: 'number', required: true },
@@ -2150,6 +2211,16 @@ export function apply(ctx: Context): void {
               },
             },
           },
+          architecture: {
+            required: true,
+            oneOf: [
+              {
+                type: 'object',
+                additionalProperties: true,
+              },
+              { type: 'null' },
+            ],
+          },
           degraded: {
             required: true,
             oneOf: [
@@ -2169,18 +2240,31 @@ export function apply(ctx: Context): void {
       render: (_args, value) => [
         {
           type: 'text',
-          text: renderReadFiles(
-            value.repo,
-            value.ref,
-            value.ref_kind as ReadRefKind,
-            value.files as ReadFileResult[],
-            value.degraded as Degraded | null,
-          ),
+          text: value.view === 'architecture' && value.architecture !== null
+            ? renderArchitecture(
+                value.repo,
+                value.ref,
+                value.ref_kind as ReadRefKind,
+                value.architecture as unknown as ArchitectureSnapshot,
+                value.degraded as Degraded | null,
+              )
+            : renderReadFiles(
+                value.repo,
+                value.ref,
+                value.ref_kind as ReadRefKind,
+                value.files as ReadFileResult[],
+                value.degraded as Degraded | null,
+              ),
         },
       ],
     },
     execute: async (args, exec) => {
-      const empty = { repo: '', ref: '', ref_kind: 'default-branch', requests_used: 0, files: [] as ReadFileResult[], degraded: null as Degraded | null }
+      const view: 'files' | 'architecture' = args.view === 'architecture' ? 'architecture' : 'files'
+      const depth: 'shallow' | 'deep' = args.depth === 'deep' ? 'deep' : 'shallow'
+      const empty = {
+        repo: '', view, depth, ref: '', ref_kind: 'default-branch', requests_used: 0,
+        files: [] as ReadFileResult[], architecture: null as any, degraded: null as Degraded | null,
+      }
 
       // Same discipline as `inspect_projects`: validate first, refuse rather
       // than drop, and name the rule that was broken.
@@ -2215,17 +2299,21 @@ export function apply(ctx: Context): void {
         return { ...empty, repo, degraded: { reason: 'invalid_paths', detail } }
       }
       const requestedPaths = pathCheck.values
-      if (requestedPaths.length === 0) {
+      if (view === 'files' && requestedPaths.length === 0) {
         const detail = '没有提供任何文件路径。请传入形如 ["src/main.ts"] 的数组。'
         return { ...empty, repo, degraded: { reason: 'no_paths', detail } }
       }
-      if (requestedPaths.length > MAX_READ_PATHS) {
+      const pathLimit = view === 'architecture'
+        ? depth === 'deep' ? ARCHITECTURE_DEEP_FILES : ARCHITECTURE_SHALLOW_FILES
+        : MAX_READ_PATHS
+      if (requestedPaths.length > pathLimit) {
         const detail =
-          `一次最多点读 ${MAX_READ_PATHS} 个文件，收到 ${requestedPaths.length} 个。` +
+          `本次 ${view === 'files' ? '点读' : '架构视图'} 最多读取 ${pathLimit} 个文件，收到 ${requestedPaths.length} 个。` +
+          (view === 'files' ? '最多点读 4 个文件。' : '') +
           `请只保留这次真正要读的文件，分批调用；每个 path 都要花一个请求。`
         return { ...empty, repo, degraded: { reason: 'too_many_paths', detail } }
       }
-      const paths = requestedPaths.slice(0, MAX_READ_PATHS)
+      let paths = requestedPaths.slice(0, pathLimit)
 
       const rawBudget = args.max_bytes
       if (rawBudget !== undefined && (!Number.isFinite(rawBudget) || rawBudget < READ_BYTES_FLOOR || rawBudget > READ_BYTES_CEILING)) {
@@ -2305,6 +2393,29 @@ export function apply(ctx: Context): void {
         )
       }
 
+      let architectureTree: { entries: Array<{ path: string; type?: string }>; truncated: boolean } | undefined
+      if (view === 'architecture' && paths.length === 0) {
+        const tree = await getTree(repo, 20000, {
+          ...options,
+          branch: ref.length > 0 ? ref : undefined,
+        })
+        architectureTree = { entries: tree.entries, truncated: tree.truncated }
+        if (tree.entries.length === 0 && tree.error !== undefined) {
+          const detail = `架构视图无法读取目录树：${tree.error}。本次没有读取文件，请改用 files 视图或稍后重试。`
+          return { ...empty, repo, ref, ref_kind: refKind, requests_used: requestsUsed, degraded: { reason: 'architecture_tree_failed', detail } }
+        }
+        paths = pickArchitectureFiles(tree.entries, pathLimit)
+      } else if (view === 'architecture') {
+        architectureTree = { entries: paths.map((path) => ({ path, type: 'blob' })), truncated: false }
+      }
+      if (view === 'architecture' && paths.length === 0) {
+        const detail = '架构视图没有找到可读取的文件。目录树可能为空或只包含无法识别的路径。'
+        return { ...empty, repo, ref, ref_kind: refKind, requests_used: requestsUsed, architecture: {
+          entry_points: [], dependencies: [], routes_commands: [], data_models: [], call_chain: [], external_boundaries: [], test_behaviors: [],
+          unknowns: ['tree: no readable architecture files were selected'],
+        }, degraded: { reason: 'architecture_no_files', detail } }
+      }
+
       // Read, then window. Every file is read at the SAME commit so the card is a
       // snapshot; a read that fails is reported per file and never silently
       // replaced by a neighbouring path.
@@ -2360,9 +2471,44 @@ export function apply(ctx: Context): void {
       }
 
       const okFiles = files.filter(file => file.ok)
+      if (view === 'architecture') {
+        const architecture = extractArchitecture(files, architectureTree)
+        const available = Math.max(MIN_WINDOW_BYTES, Math.floor(Math.max(0, budget - 3200) / Math.max(1, okFiles.length)))
+        const architectureFiles = files.map(file => {
+          if (!file.ok) return file
+          const window = pickWindow(file.text, terms, available)
+          return {
+            ...file,
+            start_line: window.startLine,
+            end_line: window.endLine,
+            hit_line: window.hitLine,
+            window_kind: window.kind,
+            text: window.text,
+            truncated: window.truncated,
+          }
+        })
+        const architectureCard = renderArchitecture(repo, ref, refKind, architecture, null)
+        const architectureBytes = Buffer.byteLength(architectureCard, 'utf8')
+        const failed = architectureFiles.filter(file => !file.ok)
+        const degraded: Degraded | null = failed.length > 0 || refKind === 'default-branch' || architectureBytes > budget
+          ? {
+              reason: architectureBytes > budget ? 'architecture_budget' : failed.length > 0 ? 'partial' : 'ref_unavailable',
+              detail: [
+                failed.length > 0 ? `读取失败：${failed.map(file => `${file.path}（${file.error}）`).join('；')}` : '',
+                refKind === 'default-branch' ? '提交号不可用，链接指向默认分支。' : '',
+                architectureBytes > budget ? `架构摘要约 ${architectureBytes} 字节，超过 max_bytes=${budget}；已限制证据条数，请减少 focus 或使用 shallow。` : '',
+              ].filter(Boolean).join(' '),
+            }
+          : null
+        const architectureJson = JSON.parse(JSON.stringify(architecture))
+        return {
+          repo, view, depth, ref, ref_kind: refKind, requests_used: requestsUsed,
+          files: architectureFiles, architecture: architectureJson, degraded,
+        }
+      }
       if (okFiles.length === 0) {
         const detail = `没有读到任何文件正文：${files.map(file => `${file.path}（${file.error}）`).join('；')}`
-        return { repo, ref, ref_kind: refKind, requests_used: requestsUsed, files, degraded: { reason: 'read_failed', detail } }
+        return { repo, view, depth, ref, ref_kind: refKind, requests_used: requestsUsed, files, architecture: null, degraded: { reason: 'read_failed', detail } }
       }
 
       // Split the budget: measure the framing with the real metadata and empty
@@ -2443,7 +2589,8 @@ export function apply(ctx: Context): void {
           : deferred.length > 0 ? 'budget_trimmed' : ''
       const degraded: Degraded | null = reason.length === 0 ? null : { reason, detail: notes.join(' ') }
 
-      return { repo, ref, ref_kind: refKind, requests_used: requestsUsed, files: rows, degraded }
+      await recordPrior(repo, '', 'read', ref, rows.filter((row) => row.ok).map((row) => row.path))
+      return { repo, view, depth, ref, ref_kind: refKind, requests_used: requestsUsed, files: rows, architecture: null, degraded }
     },
     timeoutMs: READ_TIMEOUT_MS,
   }))
