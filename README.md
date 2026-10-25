@@ -17,7 +17,7 @@
 
 <br>
 
-**English:** [English](README_EN.md)
+**中文** [English](README_EN.md)
 
 </div>
 
@@ -29,7 +29,7 @@
 
 ![排序卡片，以及随后对仓库的源码阅读](https://github.com/user-attachments/assets/e17fcf47-6aa1-45ef-830f-dc3885121908)
 
-下面是一次真实调用返回的卡片，由渲染器直接生成，不是手抄的：
+下面是一次调用会返回的卡片：
 
 <!-- card-sample:start -->
 ```
@@ -149,11 +149,9 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 - **`inspect_projects` 是抽样读，不是通读。** `shallow` 每个仓库最多 4 个文件，`deep` 最多 8 个；架构视图不会声称完整调用图。
 - **卡片 24 KB 封顶。** 装不下时按「最便宜的损失优先」裁剪（依赖清单 → README → 逐文件摘录 → 声明骨架），并说明扣掉了什么、怎么补读——用 `read_repo_files` 点读，或下次少传几个仓库。
 
-一个不告诉你边界在哪的工具，不值得装。
-
 ## 兼容性
 
-需要 Node ≥ 22。`@deepseek-ai/dsh-tools` 的 peer range 接受从 `0.1.0-rc.6` 起的所有已发布版本，覆盖当前两条 DSH 发布线——`latest`（0.2.1-rc.2）和 `next`（0.2.1-rc.3）。`npm run check:peers` 会拿 npm registry 上的实际版本再核一遍。
+需要 Node ≥ 22。`@deepseek-ai/dsh-tools` 的 peer range 接受从 `0.1.0-rc.6` 起的所有已发布版本，覆盖当前两条 DSH 发布线——`latest`（0.2.1-rc.2）和 `next`（0.2.1-rc.3）。
 
 ## 版本
 
