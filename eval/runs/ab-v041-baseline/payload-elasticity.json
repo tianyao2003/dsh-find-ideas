@@ -1,0 +1,46 @@
+{
+  "fit": {
+    "newPerStep": {
+      "slope": 0.33494633992609785,
+      "intercept": 89.71506572606177,
+      "r2": 0.8552941399257505,
+      "se": 0.032473140764692,
+      "t": 10.314565577539838,
+      "n": 20
+    },
+    "ctxPerStep": {
+      "slope": 0.26240482058471987,
+      "intercept": 17791.77627966082,
+      "r2": 0.028572406119109495,
+      "se": 0.36063457983755554,
+      "t": 0.7276196883363699,
+      "n": 20
+    }
+  },
+  "perByteBilled": 0.36118682198456986,
+  "bytesPerToken": 2.9855528507062914,
+  "stepsB": 7.4,
+  "payloadPerStepNow": 7667.939801587303,
+  "payloadPerStepNeeded": 4179.237981032212,
+  "cutNeededPct": 45.49725103257738,
+  "scenarios": [
+    {
+      "label": "measured arm B",
+      "payloadPerStep": 7667.939801587303,
+      "billed": 34324.541113293766,
+      "kind": "measured"
+    },
+    {
+      "label": "inspect_projects returns nothing",
+      "payloadPerStep": 4462.740964523811,
+      "billed": 25757.741808065515,
+      "kind": "extrapolated"
+    },
+    {
+      "label": "every tool returns nothing",
+      "payloadPerStep": 0,
+      "billed": 13829.805933321864,
+      "kind": "extrapolated"
+    }
+  ]
+}

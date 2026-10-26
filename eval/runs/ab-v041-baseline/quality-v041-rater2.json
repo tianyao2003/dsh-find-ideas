@@ -1,0 +1,22 @@
+[
+  {"id":"r01","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 1 条把 react-awesome-query-builder 的规则树结构（{type,properties:{field,operator,value,valueSrc,valueType},children1}）与 export/sql.js 的 meta.errors 可翻译性检查都落到接口级，第 3 条 cube 的 measures/dimensions/joins YAML 也具体；但全文未交代哪些是读 README、哪些是凭描述推断"},
+  {"id":"r02","dim1":5,"dim2":5,"dim3":2,"dim4":2,"total":14,"reason":"第 2 条抄到 BUILTIN_SENSITIVE_TAG_NAMES 保留标签与 is_pinned 置顶排序这类源码级细节，但空白只点了「检索」一处（各候选都无 FTS/倒排索引），证据边界仅靠「README 明确写了」「源码里」零星标注"},
+  {"id":"r03","dim1":5,"dim2":5,"dim3":3,"dim4":2,"total":15,"reason":"第 2 条把 tsugi 的 confidence=0.7 逐 token 截断与 confidence_message=0.15 都给到默认值级，三处空白（prompt cache 复用、FIM 上下文去重、本地服务探测）也点得实；但只有「README 把默认值全列出来了」一句来源标注，未说明哪些未读"},
+  {"id":"r04","dim1":4,"dim2":5,"dim3":3,"dim4":1,"total":13,"reason":"第 2 条 quarrydb 的 StepType 联合类型与 SelectStep/JoinStep 字段定义可直接照搬，空白（业务语义层）也点到；扣分在第 1 条 tabularis 是面向开发者的 SQL 工作台，与「非技术运营」场景偏一档，且全文无证据边界"},
+  {"id":"r05","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 5 条 rote 的退出码约定（超时 124、runner 126、任务不存在 127）与 history_limit 同事务裁剪是可照抄的取舍，空白两处（多机 failover、告警升级）也准；但全文未交代证据来源"},
+  {"id":"r06","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 3 条 flagr 的 crc32(salt+entityID)%1000 加 PercentsAccumulated 二分定位落到算法级，空白（轻量前端组合、按指标自动回滚）也具体；全文没有任何证据边界说明"},
+  {"id":"r07","dim1":5,"dim2":5,"dim3":3,"dim4":2,"total":15,"reason":"第 3 条 pyannote 的 (turn.start,turn.end,speaker) 三元组持久化与第 5 条 4minitz 的 responsibles/priority/isOpen 字段契约都很实，待办提取这一处空白说得透（缺中文标注集与评测）；但只有「（README 基准表）」一处来源标注"},
+  {"id":"r08","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 3 条给出 OpenCLIP ViT-B/32、512 维未归一化向量、内积排序与 31.3/138.9 两个实测阈值，第 2 条 Qdrant HNSW m=16/ef_construct=100 也到参数级；但全文未说明这些是读源码还是看 README 得到"},
+  {"id":"r09","dim1":4,"dim2":5,"dim3":2,"dim4":1,"total":12,"reason":"第 4 条 python-miio 的 MiotMapping/MiotValueType 枚举映射具体可用，但 5 个候选里 4 个属小米系、分层偏同赛道，空白只归到「非小米/非涂鸦品牌的统一协议」一处，且全文无证据边界"},
+  {"id":"r10","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 2 条 NVIDIA 的 PodcastOutline→PodcastSegment→DialogueEntry 三段 schema 与第 3 条 Introduction/Conclusion 锚点裁剪都可直接照搬，两处空白（批量调度层、公式图表转口语）也准；全文未交代证据边界"},
+  {"id":"r11","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 2 条 tuya-local 的 devices/*.yaml 里 dp1=switch、dp3=speed(1..6)、dp102 的 breeze→nature 映射具体到数据文件级，两处空白（跨生态统一模型、私有云品牌）也到位；但全文无证据边界说明"},
+  {"id":"r12","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 3 条 GitPulse 的 evidence 字段（commit sha/PR 链接）与「AI 只做 diff 式润色、失败回退本地模板」是可照搬的机制，空白（跨人跨仓去重合并）也点明；全文未交代哪些读过、哪些是推断"},
+  {"id":"r13","dim1":5,"dim2":5,"dim3":2,"dim4":1,"total":13,"reason":"第 3 条 dagu 的 overlap policy/catch-up window/timezone 三字段与 _ internal/runtime/builtin 的 blank import 注册方式很实，但空白只归到「告警去重/抑制/升级」一处，且全文无证据边界"},
+  {"id":"r14","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 2 条 neocodeium 的 horz_move 增量 extmark 切前缀与 clear_timer 350ms 是渲染层可直接照抄的细节，两处空白（模型探测与降级、仓库级检索）也具体；全文未交代证据来源"},
+  {"id":"r15","dim1":5,"dim2":5,"dim3":3,"dim4":2,"total":15,"reason":"第 3 条 LibrePhotos 的 /build/ 接 image_hashes+embeddings+begin/commit 与按 user_id 分目录建索引到接口级，空白两处（中文查询理解加分数融合、聚类纠错交互）也在；但只有「README 明确写」一处来源标注"},
+  {"id":"r16","dim1":4,"dim2":4,"dim3":3,"dim4":1,"total":12,"reason":"第 5 条 weekly-report 的借鉴停在 data/<year>/W<week>/ 目录布局与两份 yaml、第 3 条 devlog 只到 db:migrate 层；第 1 条 probot 自评相关性 6/10 且只是 webhook 管道，四个微仓又偏同质；全文无证据边界"},
+  {"id":"r17","dim1":5,"dim2":5,"dim3":3,"dim4":2,"total":15,"reason":"第 2 条 offmute 的 GenerateDescriptionOptions(audioModel, mergeModel) 与 IntermediateOutput 逐块落盘可断点续跑很具体，对齐与待办提取两处空白都说得透；但只有「（README 明示）」一处来源标注"},
+  {"id":"r18","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 1 条 tiez 的 idx_clipboard_history_pinned_order_time(is_pinned,pinned_order,timestamp) 与第 5 条指出 CatClipboard 的 external-content FTS5 触发器缺陷，都到索引与触发器级，三处空白也准；全文无证据边界"},
+  {"id":"r19","dim1":4,"dim2":5,"dim3":3,"dim4":1,"total":13,"reason":"第 3 条 davidmcdougall 的 input_limit=60_000 与 prompt_character_limit=180_000 硬切、第 5 条 hmac.compare_digest 加 Range 支持都具体可用；但五个候选全是 0–4 star 小项目、缺少成熟锚点，且全文无证据边界"},
+  {"id":"r20","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 4 条 emilbogdanov 的 RulesetBroadcaster 加 KnownVersions(max_age) 版本号推送与 DrainingServer.end_streams() 是可直接照搬的结构，三处空白也具体；全文未交代证据边界"}
+]

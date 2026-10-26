@@ -1,0 +1,60 @@
+# A1 — 我想把手机里几千张截图变成能搜索的笔记
+# 盲构造候选池：不含 star、不含任何插件输出。规则见 README.md。
+# 通道：search = 关键词搜索，readme = in:readme 宽搜，memory = 凭记忆/种子，interference = 故意的错域干扰项。
+
+idea_id: A1
+generated: "2026-10-19"
+provenance: "GitHub REST 直连搜索，未经被测插件"
+
+channels:
+  search: ["travisvn/obsidian-vision-recall", "aungkokomm/MyNotebook", "teejayen/vex", "hypefi/screenshot_identifier", "Abdev314/Video2Notes-AI", "kuroko1t/anygrep", "virecorenlm/SCREENSHOTS-TO-NOTES", "MossBack360/ScreenShotPedia", "VarunJoshi591/SnapNote-AI"]
+  readme: ["screenpipe/screenpipe", "octalmage/robotjs", "Automattic/_s", "jaywcjlove/awesome-mac", "vorssaint/vorssaint-utils", "openclaw/Peekaboo", "ParthJadhav/app-store-screenshots"]
+  memory: ["PaddlePaddle/PaddleOCR", "tesseract-ocr/tesseract"]
+
+# 仅供实验者核对，不要出现在发给标注者的表格里
+interference: ["yebto/screenshot-api", "DevinoSolutions/upapi-node"]
+
+notes: ""
+
+# 打乱后的顺序 = 标注顺序。标注时只能看 repo 和 description。
+candidates:
+  - repo: "tesseract-ocr/tesseract"
+    description: "Tesseract Open Source OCR Engine (main repository)"
+  - repo: "Abdev314/Video2Notes-AI"
+    description: "Video2Notes-AI turns any video into clean, structured study notes with chapters, summaries, and key points automatically. It helps you review long lectures faster by converting them into readable, searchable notes with screenshots and timestamps."
+  - repo: "VarunJoshi591/SnapNote-AI"
+    description: "AI-powered SaaS that converts screenshots into smart, searchable notes using OCR and Large Language Models."
+  - repo: "PaddlePaddle/PaddleOCR"
+    description: "Turn any PDF or image document into structured data for your AI. A powerful, lightweight OCR toolkit that bridges the gap between images/PDFs and LLMs. Supports 100+ languages."
+  - repo: "hypefi/screenshot_identifier"
+    description: "make it easier to search through your screenshots in Mac OS, by mining the data in the pictures using optical character recognition (OCR), and putting it in the title"
+  - repo: "teejayen/vex"
+    description: "Screenshots into a searchable catalogue: local OCR, cheap model classification, notes, purge, Photos cleanup. macOS."
+  - repo: "ParthJadhav/app-store-screenshots"
+    description: "end to end app store screenshot creation using AI"
+  - repo: "vorssaint/vorssaint-utils"
+    description: "Free and open-source macOS menu bar toolkit."
+  - repo: "aungkokomm/MyNotebook"
+    description: "Fast, private, portable notebook for Windows 11. OCR-searchable screenshots, Myanmar-aware search, themes, export, voice reader. C# WinUI 3."
+  - repo: "MossBack360/ScreenShotPedia"
+    description: "An AI based screenshot note app that lets you group images, extract OCR text, and save structured notes for easy browsing and search."
+  - repo: "jaywcjlove/awesome-mac"
+    description: " This project is dedicated to collecting high-quality macOS software and organizing them systematically by different categories for easy search and use."
+  - repo: "yebto/screenshot-api"
+    description: "PHP SDK for the YEB Screenshot API. Capture website screenshots, PDFs, videos, OCR and more."
+  - repo: "virecorenlm/SCREENSHOTS-TO-NOTES"
+    description: "Create a web application that allows users to upload screenshots, extract text using OCR (Optical Character Recognition), and organize the extracted text into searchable notes."
+  - repo: "Automattic/_s"
+    description: "Inactive project – please visit https://themeshaper.com/block-themes/ to learn more about the future of WordPress themes with Block Themes."
+  - repo: "travisvn/obsidian-vision-recall"
+    description: "Transform screenshots into searchable Obsidian notes using AI vision and text analysis"
+  - repo: "octalmage/robotjs"
+    description: "Node.js Desktop Automation."
+  - repo: "openclaw/Peekaboo"
+    description: "Peekaboo is a macOS CLI & optional MCP server that enables AI agents to capture screenshots of applications, or the entire system, with optional visual question answering through local or remote AI models."
+  - repo: "kuroko1t/anygrep"
+    description: "Search your notes, PDFs and screenshots by meaning, locally on the CPU"
+  - repo: "DevinoSolutions/upapi-node"
+    description: "Official upAPI TypeScript SDK — one key and one pooled quota for 61 data APIs (Google Maps, social reads, screenshots, OCR, transcription). npm: @upapi/sdk"
+  - repo: "screenpipe/screenpipe"
+    description: "YC (S26) | Open Computer History | Continuously record your company computer work, map your workflows, help you find work worth automating, and power your agents' context"

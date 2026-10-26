@@ -1,0 +1,60 @@
+# D2 — 做一个 VS Code 扩展，选中代码就能生成单元测试
+# 盲构造候选池：不含 star、不含任何插件输出。规则见 README.md。
+# 通道：search = 关键词搜索，readme = in:readme 宽搜，memory = 凭记忆/种子，interference = 故意的错域干扰项。
+
+idea_id: D2
+generated: "2026-10-19"
+provenance: "GitHub REST 直连搜索，未经被测插件"
+
+channels:
+  search: ["Manjiri-Bangali/VSCode-Extension", "Maistik-Studio/openai-unit-test-generator", "pavsorab/vscode-ext-pytest-gen", "crystas-sc/TecT-gemini-tdd", "dahhou-ilyas/genCode-extension", "joshuakessell/JavaTestDataMaster", "RitualIced/Instagram-spammer-"]
+  readme: ["spring-io/initializr", "react/yoga", "viatsko/awesome-vscode", "chipsalliance/rocket-chip", "withfig/autocomplete", "microsoft/vscode-generator-code", "varletjs/varlet", "humanloop/awesome-chatgpt", "seanpmaxwell/express-generator-typescript", "microsoft/rushstack", "ixartz/Next-js-Boilerplate"]
+  memory: []
+
+# 仅供实验者核对，不要出现在发给标注者的表格里
+interference: ["firsttris/vscode-jest-runner", "microsoft/vscode-extension-test-runner"]
+
+notes: ""
+
+# 打乱后的顺序 = 标注顺序。标注时只能看 repo 和 description。
+candidates:
+  - repo: "microsoft/vscode-generator-code"
+    description: "Visual Studio Code extension generator"
+  - repo: "crystas-sc/TecT-gemini-tdd"
+    description: "VsCode extension to generate Unit test cases from acceptance criteria through Gemini model"
+  - repo: "Maistik-Studio/openai-unit-test-generator"
+    description: "Use OpenAi to instantly generate unit tests in any language(vscode extension)."
+  - repo: "firsttris/vscode-jest-runner"
+    description: "VS Code extension to run and debug Jest, Vitest, Playwright, Rstest, Bun, Deno and Node.js tests with one click. CodeLens above every test, native Test Explorer, code coverage, watch mode, monorepo and Create React App support. Zero configuration: reads your jest.config, vitest.config and playwright.config."
+  - repo: "spring-io/initializr"
+    description: "A quickstart generator for Spring projects"
+  - repo: "chipsalliance/rocket-chip"
+    description: "Rocket Chip Generator"
+  - repo: "seanpmaxwell/express-generator-typescript"
+    description: "CLI that generates a production-ready Express + TypeScript project — prettier, ESLint, and a working CRUD example baked in."
+  - repo: "joshuakessell/JavaTestDataMaster"
+    description: "JavaTestData is a smart VSCode extension that generates realistic mock data for your Java classes using the OpenAI API. Just select a class, choose your format (Java, JSON, CSV), and get context-aware fake data instantly — perfect for unit tests, prototyping, and fixtures. ⚡🧪"
+  - repo: "dahhou-ilyas/genCode-extension"
+    description: "Developing a plugin for the VSCode IDE that enables the following functionalities: Generating code based on comments/textual descriptions, Refactoring existing code to improve its quality, Fixing existing bugs in code, Generating unit tests for pre-existing code, Commenting on existing code."
+  - repo: "humanloop/awesome-chatgpt"
+    description: "Curated list of awesome tools, demos, docs for ChatGPT and GPT-3"
+  - repo: "microsoft/rushstack"
+    description: "Monorepo for tools developed by the Rush Stack community"
+  - repo: "Manjiri-Bangali/VSCode-Extension"
+    description: "A VSCode Extension to generate jest unit tests by leveraging the power of OpenAI"
+  - repo: "microsoft/vscode-extension-test-runner"
+    description: "Runs tests in the UI for VS Code extensions"
+  - repo: "viatsko/awesome-vscode"
+    description: "🎨 A curated list of delightful VS Code packages and resources."
+  - repo: "pavsorab/vscode-ext-pytest-gen"
+    description: "This extension is specifically made to generate pytest unit test for your Python code."
+  - repo: "ixartz/Next-js-Boilerplate"
+    description: "🚀🎉📚 Nextjs Boilerplate and Starter with App Router and Page Router support, Tailwind CSS 4 and TypeScript ⚡️ Made with developer experience first: Next.js 16 + TypeScript + ESLint + Prettier + Drizzle ORM + Husky + Lint-Staged + Vitest + Testing Library + Playwright + Storybook + Commitlint + VSCode + Sentry + PostCSS + Tailwind CSS ✨"
+  - repo: "withfig/autocomplete"
+    description: "IDE-style autocomplete for your existing terminal & shell"
+  - repo: "varletjs/varlet"
+    description: "A Vue3 component library based on Material Design 2 and 3, supporting mobile and desktop."
+  - repo: "react/yoga"
+    description: "Yoga is an embeddable layout engine targeting web standards."
+  - repo: "RitualIced/Instagram-spammer-"
+    description: "Instagram spammer coveragerc coverage.sh cov_html/ venv/ venv3/ .vscode/ docs/_build docs/_static docs/_templates *.iml .idea/ # OS generated files # .DS_Store .DS_Store? ._* .Spotlight-V100 .Trashes ehthumbs.db Thumbs.db # Byte-compiled / optimized / DLL files __pycache__/ *.py[cod] *$py.class # C extensions *.so # Distribution / packaging .Python env/ build/ develop-eggs/ dist/ downloads/ eggs/ .eggs/ lib/ lib64/ parts/ sdist/ var/ *.egg-info/ .installed.cfg *.egg # PyInstaller # Usually these files are written by a python script from a template # before PyInstaller builds the exe, so as to inject date/other infos into it. *.manifest *.spec # Installer logs pip-log.txt pip-delete-this-directory.txt # Unit test / coverage reports htmlcov/ .tox/ .coverage .coverage.* .cache nosetests.xml coverage.xml *,cover .hypothesis/ # Translations *.mo *.pot # Django stuff: *.log # Sphinx documentation docs/_build/ # PyBuilder target/ #Ipython Notebook .ipynb_checkpoints"

@@ -1,0 +1,41 @@
+# What this workflow is for
+# -------------------------
+# `npm run check` runs the typecheck, the build and the README sample check. It
+# does NOT run the test suite: the 6823 assertions under `test/` are a separate
+# script. A CI that stopped at `check` would report green on a tree whose
+# behaviour is broken, so the suite runs here too — after `check`, which is what
+# produces the `lib/` build output those tests import.
+#
+# Node 22 is the version `package.json` claims in `engines`, and the claim is
+# worth nothing unless something tests it, so the matrix runs the declared floor
+# as well as the current release instead of picking one.
+#
+# `npm ci` (not `npm install`) so the lockfile is authoritative and a drifted
+# `package.json` fails here rather than silently resolving a different tree.
+
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: check (node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['22', '24']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test

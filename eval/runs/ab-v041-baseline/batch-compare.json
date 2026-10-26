@@ -1,0 +1,50 @@
+{
+  "v04": {
+    "A": {
+      "steps": 7.6,
+      "newPerStep": 1951.4473684210527,
+      "ctxPerStep": 16239.157894736843,
+      "billedPerStep": 3575.355263157895,
+      "billed": 27172.7,
+      "payload": 44945,
+      "payloadPerStep": 5913.815789473684,
+      "calls": 8.8,
+      "out": 7360.1
+    },
+    "B": {
+      "steps": 7.1,
+      "newPerStep": 2382.1830985915494,
+      "ctxPerStep": 22255.774647887327,
+      "billedPerStep": 4607.760563380281,
+      "billed": 32715.1,
+      "payload": 60291,
+      "payloadPerStep": 8491.69014084507,
+      "calls": 6.3,
+      "out": 8898.5
+    }
+  },
+  "v041": {
+    "A": {
+      "steps": 9,
+      "newPerStep": 2349.6777777777775,
+      "ctxPerStep": 17545.955555555556,
+      "billedPerStep": 4104.288888888888,
+      "billed": 36938.6,
+      "payload": 63715.9,
+      "payloadPerStep": 7079.544444444445,
+      "calls": 13.4,
+      "out": 7267.8
+    },
+    "B": {
+      "steps": 7.4,
+      "newPerStep": 2728.8918918918916,
+      "ctxPerStep": 22839.351351351354,
+      "billedPerStep": 5012.851351351351,
+      "billed": 37095.1,
+      "payload": 56836,
+      "payloadPerStep": 7680.54054054054,
+      "calls": 7.4,
+      "out": 10847.8
+    }
+  }
+}

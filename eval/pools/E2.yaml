@@ -1,0 +1,60 @@
+# E2 — 做一个支持多智能体协作和工具调用的 agent 框架
+# 盲构造候选池：不含 star、不含任何插件输出。规则见 README.md。
+# 通道：search = 关键词搜索，readme = in:readme 宽搜，memory = 凭记忆/种子，interference = 故意的错域干扰项。
+
+idea_id: E2
+generated: "2026-10-19"
+provenance: "GitHub REST 直连搜索，未经被测插件"
+
+channels:
+  search: ["microsoft/agent-framework", "TauricResearch/TradingAgents", "zai-org/Open-AutoGLM", "agent0ai/agent-zero", "TEN-framework/ten-framework", "openai/openai-agents-python", "HKUDS/AutoAgent"]
+  readme: ["ollama/ollama", "ashishpatel26/500-AI-Agents-Projects", "OpenBMB/ChatDev", "Shubhamsaboo/awesome-llm-apps", "microsoft/semantic-kernel", "patchy631/ai-engineering-hub", "NirDiamant/GenAI_Agents"]
+  memory: ["microsoft/autogen", "crewAIInc/crewAI", "langchain-ai/langgraph", "Significant-Gravitas/AutoGPT"]
+
+# 仅供实验者核对，不要出现在发给标注者的表格里
+interference: ["A9T9/RPA", "yihleego/robotic-process-automation"]
+
+notes: ""
+
+# 打乱后的顺序 = 标注顺序。标注时只能看 repo 和 description。
+candidates:
+  - repo: "TEN-framework/ten-framework"
+    description: "Open-source framework for conversational voice AI agents"
+  - repo: "A9T9/RPA"
+    description: "Browser and desktop automation with an MCP server for AI assistants. Record macros or write JavaScript to automate websites, extract data, and control desktop apps with OCR and image recognition."
+  - repo: "zai-org/Open-AutoGLM"
+    description: "An Open Phone Agent Model & Framework. Unlocking the AI Phone for Everyone"
+  - repo: "ashishpatel26/500-AI-Agents-Projects"
+    description: "The 500 AI Agents Projects is a curated collection of AI agent use cases across various industries. It showcases practical applications and provides links to open-source projects for implementation, illustrating how AI agents are transforming sectors such as healthcare, finance, education, retail, and more."
+  - repo: "ollama/ollama"
+    description: "Get up and running with Kimi, GLM, MiniMax, DeepSeek, gpt-oss, Qwen, Gemma and other models."
+  - repo: "microsoft/autogen"
+    description: "A programming framework for agentic AI"
+  - repo: "yihleego/robotic-process-automation"
+    description: "🤖 Robotic process automation (RPA) for WeChat, WeCom, etc. Support multiple clients and keep the computer unlocked when disconnect from the remote desktop."
+  - repo: "Significant-Gravitas/AutoGPT"
+    description: "AutoGPT is the vision of accessible AI for everyone, to use and to build on. Our mission is to provide the tools, so that you can focus on what matters."
+  - repo: "Shubhamsaboo/awesome-llm-apps"
+    description: "100+ AI Agents, Agent Skills and RAG Apps - Free and Open Source."
+  - repo: "patchy631/ai-engineering-hub"
+    description: "In-depth tutorials on LLMs, RAGs and real-world AI agent applications."
+  - repo: "OpenBMB/ChatDev"
+    description: "ChatDev 2.0: Dev All through LLM-powered Multi-Agent Collaboration"
+  - repo: "microsoft/agent-framework"
+    description: "A framework for building, orchestrating and deploying AI agents and multi-agent workflows with support for Python and .NET."
+  - repo: "HKUDS/AutoAgent"
+    description: "\"AutoAgent: Fully-Automated and Zero-Code LLM Agent Framework\""
+  - repo: "NirDiamant/GenAI_Agents"
+    description: "50+ tutorials and implementations for Generative AI Agent techniques, from basic conversational bots to complex multi-agent systems."
+  - repo: "langchain-ai/langgraph"
+    description: "Build resilient agents."
+  - repo: "microsoft/semantic-kernel"
+    description: "Integrate cutting-edge LLM technology quickly and easily into your apps"
+  - repo: "agent0ai/agent-zero"
+    description: "Agent Zero AI framework"
+  - repo: "TauricResearch/TradingAgents"
+    description: "TradingAgents: Multi-Agents LLM Financial Trading Framework"
+  - repo: "openai/openai-agents-python"
+    description: "A lightweight, powerful framework for multi-agent workflows"
+  - repo: "crewAIInc/crewAI"
+    description: "Framework for orchestrating role-playing, autonomous AI agents. By fostering collaborative intelligence, CrewAI empowers agents to work together seamlessly, tackling complex tasks."

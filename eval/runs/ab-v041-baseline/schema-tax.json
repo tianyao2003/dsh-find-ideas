@@ -1,0 +1,183 @@
+{
+  "headerByArm": {
+    "A": {
+      "n": 25,
+      "total": 20840,
+      "pluginBytes": 2,
+      "pluginCount": 0,
+      "names": [
+        "create_goal",
+        "edit",
+        "exit_plan_mode",
+        "get_goal",
+        "glob",
+        "grep",
+        "interrupt_agent",
+        "job_kill",
+        "job_list",
+        "job_output",
+        "list_agents",
+        "pwsh",
+        "read",
+        "read_image",
+        "send_message",
+        "skill",
+        "subagent",
+        "subagent_fork",
+        "todo_write",
+        "update_goal",
+        "web_fetch",
+        "web_search",
+        "workflow",
+        "working_directory",
+        "write"
+      ]
+    },
+    "B": {
+      "n": 29,
+      "total": 33885,
+      "pluginBytes": 13046,
+      "pluginCount": 4,
+      "names": [
+        "create_goal",
+        "edit",
+        "exit_plan_mode",
+        "get_goal",
+        "glob",
+        "grep",
+        "inspect_projects",
+        "interrupt_agent",
+        "job_kill",
+        "job_list",
+        "job_output",
+        "list_agents",
+        "pwsh",
+        "rank_candidates",
+        "read",
+        "read_image",
+        "read_repo_files",
+        "scout_projects",
+        "send_message",
+        "skill",
+        "subagent",
+        "subagent_fork",
+        "todo_write",
+        "update_goal",
+        "web_fetch",
+        "web_search",
+        "workflow",
+        "working_directory",
+        "write"
+      ]
+    }
+  },
+  "taxBytes": 13046,
+  "per": {
+    "A": {
+      "ctxPerStep": [
+        13895.111111111111,
+        13127.111111111111,
+        18709.333333333332,
+        15027.2,
+        18636.8,
+        17834.666666666668,
+        23296,
+        17664,
+        15987.2,
+        16358.4
+      ],
+      "newPerStep": [
+        1324.2222222222222,
+        1771.2222222222222,
+        4572,
+        3484.4,
+        2193.1,
+        4257.333333333333,
+        2290.125,
+        2502.1111111111113,
+        1637,
+        1575.2
+      ],
+      "billedPerStep": [
+        2713.777777777778,
+        3083.8888888888887,
+        6443,
+        4987.2,
+        4056.8,
+        6040.833333333333,
+        4619.75,
+        4268.555555555556,
+        3235.7,
+        3211
+      ],
+      "steps": [
+        9,
+        9,
+        6,
+        5,
+        10,
+        6,
+        16,
+        9,
+        10,
+        10
+      ]
+    },
+    "B": {
+      "ctxPerStep": [
+        18773.333333333332,
+        23734.85714285714,
+        25792,
+        22688,
+        22432,
+        19989.333333333332,
+        19776,
+        24561.777777777777,
+        24281.6,
+        23594.666666666668
+      ],
+      "newPerStep": [
+        3625.5,
+        3914.4285714285716,
+        2616,
+        2255.125,
+        2674.375,
+        2593.5,
+        2611.6666666666665,
+        2101.777777777778,
+        2668.4,
+        2598.1666666666665
+      ],
+      "billedPerStep": [
+        5502.833333333333,
+        6287.857142857143,
+        5195.25,
+        4523.875,
+        4917.625,
+        4592.5,
+        4589.333333333333,
+        4558,
+        5096.6,
+        4957.666666666667
+      ],
+      "steps": [
+        6,
+        7,
+        8,
+        8,
+        8,
+        6,
+        6,
+        9,
+        10,
+        6
+      ]
+    }
+  },
+  "decomposition": {
+    "base": 38394.266500000005,
+    "withStep": 31568.61912222223,
+    "withNew": 33087.26620952382,
+    "full": 37163.75941587302
+  }
+}

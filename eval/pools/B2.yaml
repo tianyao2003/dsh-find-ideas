@@ -1,0 +1,60 @@
+# B2 — 用 Rust 写一个全文搜索引擎，要支持中文分词
+# 盲构造候选池：不含 star、不含任何插件输出。规则见 README.md。
+# 通道：search = 关键词搜索，readme = in:readme 宽搜，memory = 凭记忆/种子，interference = 故意的错域干扰项。
+
+idea_id: B2
+generated: "2026-10-19"
+provenance: "GitHub REST 直连搜索，未经被测插件"
+
+channels:
+  search: ["toshi-search/Toshi", "tinysearch/tinysearch", "alexiob/tantivy_ex", "myscale/tantivy-search", "Dicklesworthstone/ultrasearch", "0x0c/unfydqry", "jasonthird/high-performance-search-engine"]
+  readme: ["thedotmack/claude-mem", "RediSearch/RediSearch", "manticoresoftware/manticoresearch", "shuaiplus/inkstone", "MihaiValentin/lunr-languages", "lcomplete/huntly", "SharzyL/tg_searcher"]
+  memory: ["quickwit-oss/tantivy", "meilisearch/meilisearch", "valeriansaliou/sonic", "quickwit-oss/quickwit"]
+
+# 仅供实验者核对，不要出现在发给标注者的表格里
+interference: ["tomrijndorp/vscode-finditfaster", "kantord/SeaGOAT"]
+
+notes: ""
+
+# 打乱后的顺序 = 标注顺序。标注时只能看 repo 和 description。
+candidates:
+  - repo: "tinysearch/tinysearch"
+    description: "🔍 Tiny, full-text search engine for static websites built with Rust and Wasm"
+  - repo: "SharzyL/tg_searcher"
+    description: "A bot to provide CJK optimized searching for telegram chats."
+  - repo: "myscale/tantivy-search"
+    description: "Tantivy-search is a C++ wrapper for Tantivy, a full-text search engine written in Rust. It is designed to integrate with MyScaleDB and ClickHouse."
+  - repo: "thedotmack/claude-mem"
+    description: "Persistent Context Across Sessions for Every Agent – Captures everything your agent does during sessions, compresses it with AI, and injects relevant context back into future sessions. Works with Claude Code, OpenClaw, Codex, Gemini, Hermes, Copilot, OpenCode + More"
+  - repo: "shuaiplus/inkstone"
+    description: "A self-hosted Markdown notebook that runs entirely on Cloudflare Workers."
+  - repo: "kantord/SeaGOAT"
+    description: "local-first semantic code search engine"
+  - repo: "meilisearch/meilisearch"
+    description: "A lightning-fast search engine API bringing AI-powered hybrid search to your sites and applications."
+  - repo: "jasonthird/high-performance-search-engine"
+    description: "High-performance full-text search engine in Rust — BM25 top-k with exact Block-Max WAND over compressed, memory-mapped posting lists"
+  - repo: "valeriansaliou/sonic"
+    description: "🦔 Fast, lightweight & schema-less search backend. An alternative to Elasticsearch that runs on a few MBs of RAM."
+  - repo: "tomrijndorp/vscode-finditfaster"
+    description: "Find it, but faster! Fast file search for VS Code."
+  - repo: "alexiob/tantivy_ex"
+    description: "Elixir full-text search engine powered by Tantivy Rust library"
+  - repo: "Dicklesworthstone/ultrasearch"
+    description: "Windows desktop search engine combining NTFS MFT enumeration (instant filename search) with Tantivy full-text content indexing, in a multi-process Rust architecture"
+  - repo: "quickwit-oss/tantivy"
+    description: "Tantivy is a full-text search engine library inspired by Apache Lucene and written in Rust"
+  - repo: "0x0c/unfydqry"
+    description: "A shared full-text search engine written in Rust + UniFFI that is usable from both iOS and Android."
+  - repo: "RediSearch/RediSearch"
+    description: "A query and indexing engine for Redis, providing secondary indexing, full-text search, vector similarity search and aggregations."
+  - repo: "MihaiValentin/lunr-languages"
+    description: "A collection of languages stemmers and stopwords for Lunr Javascript library"
+  - repo: "toshi-search/Toshi"
+    description: "A full-text search engine in rust"
+  - repo: "manticoresoftware/manticoresearch"
+    description: "Open-source search database for full-text, vector, and hybrid search with real-time indexing and SQL."
+  - repo: "quickwit-oss/quickwit"
+    description: "Cloud-native OSS search engine for observability"
+  - repo: "lcomplete/huntly"
+    description: "Your Personal AI-Powered Information Hub"

@@ -1,0 +1,22 @@
+[
+  {"id":"r01","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 1 条抄 react-awesome-query-builder 的 {type:\"group\"/\"rule\"…} 树与 export/sql.js 的 meta.errors 可翻译性检查，具体到字段级；两处缺口（指标审批、join 路径消歧）都实，但全文没有一句证据边界说明。"},
+  {"id":"r02","dim1":5,"dim2":5,"dim3":2,"dim4":2,"total":14,"reason":"第 2 条 BUILTIN_SENSITIVE_TAG_NAMES 与第 1 条多格式 MIME 快照都落到实现层；缺口只归到检索/中文分词一处，证据边界靠「README 明确写了」「search 模块摘录里也没看到 FTS」零星带过。"},
+  {"id":"r03","dim1":5,"dim2":5,"dim3":3,"dim4":2,"total":15,"reason":"第 2 条 tsugi 的 confidence=0.7 逐 token 截断与第 4 条 neocodeium 的 extmark 原地更新可直接照搬，prompt cache 复用等三处缺口也准；边界仅第 3 条一句「README 把默认值全列出来了」。"},
+  {"id":"r04","dim1":5,"dim2":5,"dim3":2,"dim4":1,"total":13,"reason":"第 2 条 quarrydb 的 StepType 有序流水线与 SelectStep/JoinStep 字段具体可用，但五个候选最高仅 5.2k stars、缺成熟同类锚点，缺口也只归为「业务语义层」一个组合。"},
+  {"id":"r05","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 5 条 rote 的退出码约定（124/126/127）与「插入 run 与裁剪同事务」是源码级取舍，多机故障转移与告警升级两处缺口都实；通篇未交代哪些结论读过源码。"},
+  {"id":"r06","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 3 条 flagr 的 crc32(salt+entityID)%1000 分桶加 PercentsAccumulated 二分可直接复现，自动回滚与轻量前端两处缺口都准；但没有说明哪些数字来自 README、哪些是推断。"},
+  {"id":"r07","dim1":5,"dim2":5,"dim3":3,"dim4":2,"total":15,"reason":"第 5 条 4minitz 的 actionItem 字段契约（responsibles/duedate/isOpen）与第 2 条 assign_word_speakers 都很实，待办提取缺口说透；边界仅第 3 条「README 基准表」一处标注。"},
+  {"id":"r08","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 3 条 LibrePhotos 的 512 维、内积排序与阈值 31.3/138.9 具体到参数，跨年代身份归并等三处缺口也准；但全文未说明哪些数字来自源码、哪些是推断。"},
+  {"id":"r09","dim1":5,"dim2":5,"dim3":2,"dim4":1,"total":13,"reason":"第 4 条 python-miio 的 MiotMapping/MiotValueType 与第 1 条 manifest 声明可直接照搬，但缺口只归为「非小米/非涂鸦品牌」一个环节，且无任何证据边界说明。"},
+  {"id":"r10","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 2 条 NVIDIA 的 PodcastOutline→PodcastSegment→DialogueEntry 与第 5 条 RSS guid/itunes:duration 都落到结构层，批量层与公式转口语两处缺口都实；全文未交代证据边界。"},
+  {"id":"r11","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 2 条 tuya-local 的 devices/*.yaml 按 dp1/dp3/dp102 声明映射与第 3 条 coordinator+special device 分层很实，两处缺口也准；但没有任何一句说明未读或未扫描的部分。"},
+  {"id":"r12","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 3 条 GitPulse 的 evidence 字段与第 5 条外置 prompt 的 {activity_data} 占位符可直接照搬，跨人跨仓归并等三处缺口都准；但证据边界全文缺位。"},
+  {"id":"r13","dim1":5,"dim2":5,"dim3":2,"dim4":1,"total":13,"reason":"第 3 条 dagu 的 Entry{ID,Timestamp,Category,Action} 与 overlap/catch-up/timezone 三字段点得准，但缺口只归到告警去重/抑制/升级一处，且无证据边界说明。"},
+  {"id":"r14","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 1 条 minuet 的 16000 字符预算/0.75 前缀偏置与时间戳丢弃过期回调、第 4 条 bropilot 的 stop 参数都可直接抄，模型探测与仓库级检索两处缺口也实；全文未交代证据边界。"},
+  {"id":"r15","dim1":5,"dim2":5,"dim3":3,"dim4":2,"total":15,"reason":"第 3 条 LibrePhotos 的 RetrievalIndex(store_dir=…) 与 /build 的 begin/commit 增量提交具体到接口，中文查询理解与聚类纠错两处缺口都准；边界仅第 5 条一句「README 明确写」。"},
+  {"id":"r16","dim1":4,"dim2":4,"dim3":3,"dim4":1,"total":12,"reason":"第 1 条 probot 自评「相关性 6/10」且本身不生成周报，只能算基础设施位，其余四个候选都是 0–1 星微项目；第 3 条借鉴停在「前后端分离 + db:migrate」层，证据边界也无交代。"},
+  {"id":"r17","dim1":5,"dim2":5,"dim3":3,"dim4":2,"total":15,"reason":"第 2 条 offmute 的 IntermediateOutput 逐块落盘断点续跑与第 5 条 protocool 的 protocol→tasks→letters 链式模型很实，对齐与待办两处缺口说透；边界仅第 4 条「README 明示」一句。"},
+  {"id":"r18","dim1":5,"dim2":5,"dim3":3,"dim4":1,"total":14,"reason":"第 1 条 tiez 的 saved_tags/entry_tags 双表与 idx_clipboard_history_pinned_order_time 索引具体到 DDL，第 5 条还标出 external-content FTS5 必须用 'delete' 命令的坑，三处缺口都准；全文无证据边界。"},
+  {"id":"r19","dim1":4,"dim2":5,"dim3":3,"dim4":1,"total":13,"reason":"第 3 条 input_limit=60_000/prompt_character_limit 与第 5 条 token URL + HTTP Range 都具体，批量层与学术 PDF 版面两处缺口也实；但五个候选最高仅 4 stars，漏掉 podcastfy 这类成熟同类。"},
+  {"id":"r20","dim1":5,"dim2":5,"dim3":3,"dim4":2,"total":15,"reason":"第 4 条 RulesetBroadcaster 版本号推送 + DrainingServer.end_streams() 优雅停服很实，轻量编辑器 UI、审计审批、三合一组合三处缺口都准；仅第 4 条以「描述与本想法逐条对上」交代依据。"}
+]

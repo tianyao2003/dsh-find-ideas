@@ -1,0 +1,136 @@
+{
+  "note": "step-1 prompt size = inputTokens + cacheReadTokens; arms share system prompt and user message, so the difference is the plugin tool schemas",
+  "A": [
+    {
+      "id": "I01",
+      "prompt": 8703,
+      "input": 213,
+      "cacheRead": 8192
+    },
+    {
+      "id": "I02",
+      "prompt": 8619,
+      "input": 2268,
+      "cacheRead": 6144
+    },
+    {
+      "id": "I03",
+      "prompt": 8614,
+      "input": 2262,
+      "cacheRead": 6144
+    },
+    {
+      "id": "I04",
+      "prompt": 8971,
+      "input": 2266,
+      "cacheRead": 6144
+    },
+    {
+      "id": "I05",
+      "prompt": 8719,
+      "input": 2259,
+      "cacheRead": 6144
+    },
+    {
+      "id": "I06",
+      "prompt": 8598,
+      "input": 2260,
+      "cacheRead": 6144
+    },
+    {
+      "id": "I07",
+      "prompt": 9170,
+      "input": 2264,
+      "cacheRead": 6144
+    },
+    {
+      "id": "I08",
+      "prompt": 8602,
+      "input": 2259,
+      "cacheRead": 6144
+    },
+    {
+      "id": "I09",
+      "prompt": 8605,
+      "input": 2260,
+      "cacheRead": 6144
+    },
+    {
+      "id": "I10",
+      "prompt": 9402,
+      "input": 2261,
+      "cacheRead": 6144
+    }
+  ],
+  "B": [
+    {
+      "id": "I01",
+      "prompt": 11733,
+      "input": 9835,
+      "cacheRead": 1664
+    },
+    {
+      "id": "I02",
+      "prompt": 11622,
+      "input": 2290,
+      "cacheRead": 9216
+    },
+    {
+      "id": "I03",
+      "prompt": 11827,
+      "input": 2284,
+      "cacheRead": 9216
+    },
+    {
+      "id": "I04",
+      "prompt": 11693,
+      "input": 2288,
+      "cacheRead": 9216
+    },
+    {
+      "id": "I05",
+      "prompt": 11598,
+      "input": 2281,
+      "cacheRead": 9216
+    },
+    {
+      "id": "I06",
+      "prompt": 11706,
+      "input": 2282,
+      "cacheRead": 9216
+    },
+    {
+      "id": "I07",
+      "prompt": 11671,
+      "input": 2286,
+      "cacheRead": 9216
+    },
+    {
+      "id": "I08",
+      "prompt": 11645,
+      "input": 2281,
+      "cacheRead": 9216
+    },
+    {
+      "id": "I09",
+      "prompt": 11763,
+      "input": 2282,
+      "cacheRead": 9216
+    },
+    {
+      "id": "I10",
+      "prompt": 11713,
+      "input": 2283,
+      "cacheRead": 9216
+    }
+  ],
+  "meanPrompt": {
+    "A": 8800.3,
+    "B": 11697.1
+  },
+  "taxTokens": 2896.800000000001,
+  "bytesPerToken": 4.503590168461749,
+  "billedPerRun": 2143.632000000001,
+  "shareOfB": 0.05778747058236805,
+  "shareOfA": 0.05803230225292786
+}

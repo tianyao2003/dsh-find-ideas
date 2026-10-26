@@ -1,0 +1,130 @@
+{
+  "baseline": "ab-v041",
+  "frozenAt": "2026-10-21T06:20:00.000Z",
+  "plugin": {
+    "name": "dsh-find-ideas",
+    "version": "0.3.0",
+    "gitSha": "4b8af47d12370e70eb79994fc35e2af37d2a05fd",
+    "formatVersion": 4,
+    "changesSincePreviousBaseline": ["M1 schema slimming", "M2 card payload reduction", "M3 parallel repo reads", "M4 fixed card byte budget"]
+  },
+  "model": {
+    "provider": "deepseek-official",
+    "model": "deepseek-flash"
+  },
+  "runtime": {
+    "node": "v24.21.0",
+    "platform": "win32"
+  },
+  "arms": {
+    "A": {
+      "description": "no plugin; pwsh + gh.cjs helper",
+      "helper": "work_space2/ab-v041/bin/gh.cjs",
+      "helperSha256": "bb61ddb4ec97fe1e7497d322f3e849183baf45545407fb01ae8a0ba114b9bf97",
+      "toolCallCeiling": 15
+    },
+    "B": {
+      "description": "dsh-find-ideas plugin; 4 tools",
+      "toolCallCeiling": 15
+    }
+  },
+  "inputs": {
+    "ideas": "work_space2/ab-v041/ideas.md (10 fixed ideas, identical text to ab-v04)",
+    "briefA": "work_space2/ab-v041/brief-armA.md",
+    "briefB": "work_space2/ab-v041/brief-armB.md",
+    "rubric": "work_space2/ab-v041/rubric.md"
+  },
+  "execution": {
+    "concurrency": 1,
+    "concurrencyNote": "The runner exits(2) on any concurrency other than 1. The previous batch used 2 and overlapped 1.95x, which made its wall-clock column meaningless (retracted in the previous baseline).",
+    "cache": "cold per run",
+    "cacheEvidence": "runner clears $DSH_HOME/cache/dsh-find-ideas before every run and records cacheBeforeRun.remaining in each metrics row; all 20 rows record remaining=0.",
+    "sessionBinding": "Every metrics row carries the sessionId of the run that produced it; payload and wall-clock are re-derived from that session's durable log, never from the --json stream."
+  },
+  "frozenFiles": [
+    "eval/runs/ab-v041-baseline/metrics-armA.json",
+    "eval/runs/ab-v041-baseline/metrics-armB.json",
+    "eval/runs/ab-v041-baseline/payload-truth.json",
+    "eval/runs/ab-v041-baseline/quality-v041.json",
+    "eval/runs/ab-v041-baseline/quality-v041-rater1.json",
+    "eval/runs/ab-v041-baseline/quality-v041-rater2.json",
+    "eval/runs/ab-v041-baseline/blind-v041-map.json",
+    "eval/runs/ab-v041-baseline/prefix-tax.json",
+    "eval/runs/ab-v041-baseline/schema-tax.json",
+    "eval/runs/ab-v041-baseline/floor-profile.json",
+    "eval/runs/ab-v041-baseline/wall-decompose.json",
+    "eval/runs/ab-v041-baseline/call-seq.json",
+    "eval/runs/ab-v041-baseline/paired-stats.json",
+    "eval/runs/ab-v041-baseline/quality-stats.json",
+    "eval/runs/ab-v041-baseline/payload-elasticity.json",
+    "eval/runs/ab-v041-baseline/feasibility.json",
+    "eval/runs/ab-v041-baseline/context-mechanism.json",
+    "eval/runs/ab-v041-baseline/floor-analysis.json",
+    "eval/runs/ab-v041-baseline/billed-decomposition.json",
+    "eval/runs/ab-v041-baseline/batch-compare.json",
+    "eval/runs/ab-v041-baseline/m5-main-table.json"
+  ],
+  "published": {
+    "inputTokens": { "a": 21147.1, "b": 20193.8, "d": -953.3, "t": -0.29803, "p": 0.772444 },
+    "outputTokens": { "a": 7267.8, "b": 10847.8, "d": 3580.0, "t": 3.45394, "p": 0.007230 },
+    "cacheReadTokens": { "a": 157913.6, "b": 169011.2, "d": 11097.6, "t": 0.33737, "p": 0.743570 },
+    "billedInputEq": { "a": 36938.6, "b": 37095.1, "d": 156.5, "t": 0.02684, "p": 0.979173 },
+    "steps": { "a": 9.0, "b": 7.4, "d": -1.6, "t": -1.38334, "p": 0.199909 },
+    "toolCalls": { "a": 13.4, "b": 7.4, "d": -6.0, "t": -5.80948, "p": 0.000256 },
+    "wallClockSec": { "a": 73.66, "b": 69.17, "d": -4.49, "t": -0.53099, "p": 0.608278 },
+    "outBytes": { "a": 4837.8, "b": 4542.5, "d": -295.3, "t": -1.29391, "p": 0.227913 },
+    "payloadBytes": { "a": 63715.9, "b": 56836.0, "d": -6879.9, "t": -0.78734, "p": 0.451316 },
+    "quality": { "a": 14.1, "b": 13.7, "d": -0.4, "t": -1.2060, "p": 0.2585 },
+    "errors": { "a": 0, "b": 0 }
+  },
+  "corrections": [],
+  "targets": {
+    "billedInputEq": 25000,
+    "wallClockSec": 50,
+    "status": "unreachable",
+    "evidence": [
+      "feasibility.json: absolute lower bound 29123.47 at the measured prompt floor (11697.1 tokens) with context held constant, which is 16.5% over target",
+      "floor-profile.json: structural floor band 25110.65 (linear, an under-estimate) to 28803.08 (payload-preserving, defensible), both over target",
+      "payload-elasticity.json: even if inspect_projects returned nothing, billed reaches only 25757.74",
+      "wall-decompose.json: 7.40 steps x 6796.36ms of model time = 50293ms with all tool latency set to zero"
+    ]
+  },
+  "comparability": {
+    "comparableWithinBatch": true,
+    "comparableToPreviousBatch": false,
+    "differencesFromAbV04": [
+      {
+        "item": "tool call ceiling",
+        "previous": 10,
+        "current": 15,
+        "impact": "Largest non-comparability. Arm A went from 8.8 to 13.4 calls; 8 of 10 runs used 14 or more, 4 hit the ceiling exactly. Absolute billed for both arms rose; only B/A ratios are interpretable across batches."
+      },
+      {
+        "item": "concurrency",
+        "previous": 2,
+        "current": 1,
+        "impact": "The previous batch overlapped 1.95x, so its wall clock was not wall clock. That column was retracted in the previous baseline."
+      },
+      {
+        "item": "plugin formatVersion",
+        "previous": 3,
+        "current": 4,
+        "impact": "Card copy and trim notice changed, so payload is not byte-comparable across batches."
+      },
+      {
+        "item": "plugin changes in effect",
+        "previous": "none of M1-M4",
+        "current": "M1+M2+M3+M4",
+        "impact": "This batch measures the combined effect of four optimisation rounds, not any single one."
+      }
+    ]
+  },
+  "notes": [
+    "Payload numbers come from durable session logs, not `dsh --json` (8192B clip under-reported the previous batch by 6-42%; the projection ratio here is 0.58-0.94).",
+    "Quality = mean of 2 raters x 4 dimensions, 16-point scale. Rubric was re-derived for this batch; only the within-batch A-vs-B delta is meaningful.",
+    "billedInputEq = inputTokens + 0.1 * cacheReadTokens.",
+    "The quality raters were separate agents given only rubric.md and blind-v041/*.md; blind-v041-map.json maps tags back to (id, arm) and was withheld from them.",
+    "quality-v041.json embeds both raters' raw per-dimension scores and reasons, so inter-rater agreement is recomputable without the original rater files; those are kept anyway as the audit trail.",
+    "Metrics rows retain the full raw counters (inputTokens, cacheReadTokens, steps, toolCalls, sessionId), so every published mean is recomputable from the frozen files alone."
+  ]
+}

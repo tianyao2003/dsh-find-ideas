@@ -1,0 +1,468 @@
+{
+  "rows": [
+    {
+      "tag": "r01",
+      "id": "I10",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r01",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "借鉴点具体到源码结构，但全文未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r01",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "借鉴扎实，但全篇未说明哪些读过源码"
+      }
+    },
+    {
+      "tag": "r02",
+      "id": "I04",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r02",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 3,
+        "total": 16,
+        "reason": "无扣分项：候选分层清晰、借鉴具体，且标注了未扫描的源码"
+      },
+      "quality-rater2.json": {
+        "id": "r02",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 3,
+        "total": 16,
+        "reason": "四维都到位，仅候选偏同一赛道"
+      }
+    },
+    {
+      "tag": "r03",
+      "id": "I07",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r03",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "借鉴密度高，但未区分读源码与看描述，证据边界缺失"
+      },
+      "quality-rater2.json": {
+        "id": "r03",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "接口与表结构具体，未交代证据边界"
+      }
+    },
+    {
+      "tag": "r04",
+      "id": "I05",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r04",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "设计决定具体，但完全未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r04",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "空白与参数都好，未交代证据边界"
+      }
+    },
+    {
+      "tag": "r05",
+      "id": "I03",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r05",
+        "dim1": 5,
+        "dim2": 4,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "首条候选借鉴点偏概括，且未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r05",
+        "dim1": 4,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "参数具体，候选同质且未交代边界"
+      }
+    },
+    {
+      "tag": "r06",
+      "id": "I06",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r06",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 2,
+        "dim4": 1,
+        "total": 13,
+        "reason": "空白只归为一个组合缺口，且未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r06",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 2,
+        "dim4": 1,
+        "total": 13,
+        "reason": "算法与协议最具体，空白只点一个"
+      }
+    },
+    {
+      "tag": "r07",
+      "id": "I06",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r07",
+        "dim1": 5,
+        "dim2": 4,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "借鉴点偏目录布局，且全文未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r07",
+        "dim1": 5,
+        "dim2": 4,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "多停在目录布局，未交代证据边界"
+      }
+    },
+    {
+      "tag": "r08",
+      "id": "I04",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r08",
+        "dim1": 5,
+        "dim2": 4,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "部分借鉴停在工具配置层，且未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r08",
+        "dim1": 4,
+        "dim2": 3,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 11,
+        "reason": "候选是changelog近邻，借鉴多为模板常识"
+      }
+    },
+    {
+      "tag": "r09",
+      "id": "I08",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r09",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "结构与取舍具体，但未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r09",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "MBQL与规则树具体，未交代证据边界"
+      }
+    },
+    {
+      "tag": "r10",
+      "id": "I07",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r10",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 2,
+        "dim4": 2,
+        "total": 14,
+        "reason": "空白只归为一个环节，证据边界仅一句「未核实」"
+      },
+      "quality-rater2.json": {
+        "id": "r10",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 2,
+        "dim4": 2,
+        "total": 14,
+        "reason": "协议细节强，空白只一处、边界含糊"
+      }
+    },
+    {
+      "tag": "r11",
+      "id": "I03",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r11",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "借鉴点极具体，但完全未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r11",
+        "dim1": 4,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "门控与缓存很具体，未交代证据边界"
+      }
+    },
+    {
+      "tag": "r12",
+      "id": "I09",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r12",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "分层与数据驱动设计到位，仅缺证据边界说明"
+      },
+      "quality-rater2.json": {
+        "id": "r12",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "厂商逆向扎实，未交代证据边界"
+      }
+    },
+    {
+      "tag": "r13",
+      "id": "I02",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r13",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "表结构与告警设计具体，但未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r13",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "表结构与选型具体，未交代证据边界"
+      }
+    },
+    {
+      "tag": "r14",
+      "id": "I01",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r14",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 3,
+        "total": 16,
+        "reason": "具体且明确标注未读部分，候选均为单文档项目"
+      },
+      "quality-rater2.json": {
+        "id": "r14",
+        "dim1": 4,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 3,
+        "total": 15,
+        "reason": "边界交代最诚实，候选略偏同类实现"
+      }
+    },
+    {
+      "tag": "r15",
+      "id": "I02",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r15",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 3,
+        "total": 16,
+        "reason": "无扣分项：借鉴具体、空白清楚、明确标注未读实现"
+      },
+      "quality-rater2.json": {
+        "id": "r15",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 3,
+        "total": 16,
+        "reason": "分层接口具体且明说未读实现，无短板"
+      }
+    },
+    {
+      "tag": "r16",
+      "id": "I08",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r16",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "IR 与语义层具体，低星候选精准，但未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r16",
+        "dim1": 5,
+        "dim2": 4,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "IR与端点具体，未交代证据边界"
+      }
+    },
+    {
+      "tag": "r17",
+      "id": "I05",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r17",
+        "dim1": 5,
+        "dim2": 4,
+        "dim3": 3,
+        "dim4": 2,
+        "total": 14,
+        "reason": "借鉴偏清单式，证据边界只有零星 README 归属"
+      },
+      "quality-rater2.json": {
+        "id": "r17",
+        "dim1": 5,
+        "dim2": 4,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "模型具体但含常识条目，未交代边界"
+      }
+    },
+    {
+      "tag": "r18",
+      "id": "I01",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r18",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "流水线设计具体，但未交代证据边界"
+      },
+      "quality-rater2.json": {
+        "id": "r18",
+        "dim1": 5,
+        "dim2": 5,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 14,
+        "reason": "脚本与TTS接口具体，未交代证据边界"
+      }
+    },
+    {
+      "tag": "r19",
+      "id": "I09",
+      "arm": "B",
+      "quality-rater1.json": {
+        "id": "r19",
+        "dim1": 4,
+        "dim2": 5,
+        "dim3": 2,
+        "dim4": 1,
+        "total": 12,
+        "reason": "两个候选与国产设备无关，空白仅归为一个环节"
+      },
+      "quality-rater2.json": {
+        "id": "r19",
+        "dim1": 4,
+        "dim2": 5,
+        "dim3": 2,
+        "dim4": 1,
+        "total": 12,
+        "reason": "两个候选只是工程样板，空白只点一处"
+      }
+    },
+    {
+      "tag": "r20",
+      "id": "I10",
+      "arm": "A",
+      "quality-rater1.json": {
+        "id": "r20",
+        "dim1": 5,
+        "dim2": 4,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "借鉴停在表名与选型层，无接口或参数级细节"
+      },
+      "quality-rater2.json": {
+        "id": "r20",
+        "dim1": 5,
+        "dim2": 4,
+        "dim3": 3,
+        "dim4": 1,
+        "total": 13,
+        "reason": "方案清楚但借鉴偏概念，未交代边界"
+      }
+    }
+  ],
+  "raters": [
+    "quality-rater1.json",
+    "quality-rater2.json"
+  ]
+}
