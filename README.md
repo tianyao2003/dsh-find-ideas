@@ -3,7 +3,7 @@
 # dsh-find-ideas
 
 ![license](https://img.shields.io/badge/license-MIT-blue) ![node](https://img.shields.io/badge/node-%3E%3D22-brightgreen) ![runtime deps](https://img.shields.io/badge/runtime%20deps-0-brightgreen)
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.2%20%7C%200.2.1--rc.3-blue)](#兼容性) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.5-blue)](#兼容性) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
 
 <br>
 
@@ -151,7 +151,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ## 兼容性
 
-需要 Node ≥ 22。`@deepseek-ai/dsh-tools` 的 peer range 接受从 `0.1.0-rc.6` 起的所有已发布版本，覆盖当前两条 DSH 发布线——`latest`（0.2.1-rc.2）和 `next`（0.2.1-rc.3）。
+需要 Node ≥ 22。已针对 DSH `0.2.1-rc.5` 验证兼容：其宿主使用 `@deepseek-ai/dsh-tools` `0.2.1-rc.5`，本插件现有 peer range 可接受该版本；rc.5 相比 rc.4 未改变工具注册接口，四个工具均可正常注册。插件代码无需修改。
 
 ## 版本
 
