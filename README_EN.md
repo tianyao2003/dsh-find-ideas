@@ -3,7 +3,7 @@
 # dsh-find-ideas
 
 ![license](https://img.shields.io/badge/license-MIT-blue) ![node](https://img.shields.io/badge/node-%3E%3D22-brightgreen) ![runtime deps](https://img.shields.io/badge/runtime%20deps-0-brightgreen)
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.2%20%7C%200.2.1--rc.3-blue)](#compatibility) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.5-blue)](#compatibility) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
 
 <br>
 
@@ -151,7 +151,7 @@ Restart dsh after installing, then describe your idea — the agent calls the fo
 
 ## Compatibility
 
-Requires Node ≥ 22. The `@deepseek-ai/dsh-tools` peer range accepts every published version from `0.1.0-rc.6` on, which covers the current DSH release lines — `latest` (0.2.1-rc.2) and `next` (0.2.1-rc.3).
+Requires Node ≥ 22. Compatibility was verified against DSH `0.2.1-rc.5`: its host uses `@deepseek-ai/dsh-tools` `0.2.1-rc.5`, the existing peer range accepts that version, and rc.5 does not change the tool-registration interface used by this plugin, so all four tools still register successfully. No plugin code change is required.
 
 ## Version
 
