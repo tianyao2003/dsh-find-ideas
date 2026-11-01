@@ -151,7 +151,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ## 兼容性
 
-需要 Node ≥ 22。已针对 DSH `0.2.1-rc.5` 验证兼容：其宿主使用 `@deepseek-ai/dsh-tools` `0.2.1-rc.5`，本插件现有 peer range 可接受该版本；rc.5 相比 rc.4 未改变工具注册接口，四个工具均可正常注册。插件代码无需修改。
+需要 Node ≥ 22；兼容 DSH `0.2.1-rc.5`。
 
 ## 版本
 
