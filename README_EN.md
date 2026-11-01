@@ -3,7 +3,7 @@
 # dsh-find-ideas
 
 ![license](https://img.shields.io/badge/license-MIT-blue) ![node](https://img.shields.io/badge/node-%3E%3D22-brightgreen) ![runtime deps](https://img.shields.io/badge/runtime%20deps-0-brightgreen)
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.5-blue)](#compatibility) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/tianyao2003/dsh-find-ideas) [![CI](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml/badge.svg)](https://github.com/tianyao2003/dsh-find-ideas/actions/workflows/ci.yml) [![version](https://img.shields.io/github/package-json/v/tianyao2003/dsh-find-ideas)](https://github.com/tianyao2003/dsh-find-ideas/blob/master/package.json) [![DSH](https://img.shields.io/badge/DSH-0.1.0--rc.6%20%E2%86%92%200.2.1--rc.5-blue)](#compatibility) [![stars](https://img.shields.io/github/stars/tianyao2003/dsh-find-ideas?style=flat)](https://github.com/tianyao2003/dsh-find-ideas/stargazers)
 
 <br>
 
@@ -151,7 +151,7 @@ Restart dsh after installing, then describe your idea — the agent calls the fo
 
 ## Compatibility
 
-Requires Node ≥ 22; compatible with DSH `0.2.1-rc.5`.
+Requires Node ≥ 22; compatible DSH versions: `0.1.0-rc.6+`, `0.1.1-rc.1+`, `0.1.2-alpha.2+`, `0.1.3-alpha.2+`, `0.1.5-alpha.1+`, `0.1.6-alpha.1+`, `0.1.7-alpha.1+`, `0.2.0-rc.1+`, and `0.2.1-alpha.1` through `0.2.1-rc.5`.
 
 ## Version
 
