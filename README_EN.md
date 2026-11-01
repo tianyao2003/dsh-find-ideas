@@ -151,7 +151,7 @@ Restart dsh after installing, then describe your idea — the agent calls the fo
 
 ## Compatibility
 
-Requires Node ≥ 22. Compatibility was verified against DSH `0.2.1-rc.5`: its host uses `@deepseek-ai/dsh-tools` `0.2.1-rc.5`, the existing peer range accepts that version, and rc.5 does not change the tool-registration interface used by this plugin, so all four tools still register successfully. No plugin code change is required.
+Requires Node ≥ 22; compatible with DSH `0.2.1-rc.5`.
 
 ## Version
 
