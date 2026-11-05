@@ -23,6 +23,8 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
+import { registerActivation, resolveAutoScout } from './activation.ts'
+import { frameScoutResult, scoutModeOf } from './brief.ts'
 import { cacheGet, cacheGetWithMeta, cacheSet, SOURCE_TTL_MS } from './cache.ts'
 import { GitHubSearchRateLimited, countLowStar, describeFailure, describeProbeOutcome, describeUnavailableProbeDiagnostic, getCoreQuota, getFileContent, getHeadCommit, getReadme, getTree, proxyHint, searchMerged, type AuthOptions } from './github.ts'
 import { MAX_QUERY_TERMS, describeLexiconMiss, describePartialFailure, describePlanFailure, describeReplayedIncompleteness, describeReplayedThinness, explainThinResult, significantTerms, thinResultKind, tryPlanQueries, type QueryStep, type ThinKind } from './query.ts'
@@ -53,6 +55,14 @@ import {
 
 export const name = 'dsh-find-ideas'
 export const inject = ['tools']
+
+// Re-exported on the plugin's own namespace because that is where cordis looks:
+// `resolveConfig` reads `runtime.Config['~standard'].validate(config)` and, when
+// `runtime.Config` is undefined, hands the raw config straight to `apply` — no
+// validation at all. Measured, not assumed: with `Config` living only in
+// `activation.ts` a real cordis `Context().plugin(module, {autoScout:'bogus'})`
+// loaded the plugin happily. The schema must be exported from the ENTRY module.
+export { Config } from './activation.ts'
 
 /**
  * What GitHub's repository search actually matches (B1, user m00793).
@@ -918,16 +928,23 @@ function collectValidated<T extends string>(
   return { values: [...new Set(values)], refusals }
 }
 
-export function apply(ctx: Context): void {
+export function apply(ctx: Context, config?: unknown): void {
   ctx.tools.register(defineTool({
     name: 'scout_projects',
     description:
-      'STEP 1 of 2. Search GitHub for open-source projects similar to a project the user wants to build. ' +
+      'STEP 1 of 2. Search GitHub for open-source projects similar to an idea the user wants to build. ' +
       'Returns raw candidates (name, owner, description, stars, language, url) sorted by star count — NOT ' +
-      'ranked. Call this when the user describes an app, tool or library they intend to build. ' +
-      'This tool does NOT rank: you MUST then call rank_candidates (step 2) with a relevance score for ' +
-      'every candidate you consider on-topic; order and star ratings are computed in code there and ' +
-      'cannot be set from prose. Do not present your own ordering of these raw results. ' +
+      'ranked. Call this when the user has an idea for something to build, even a vague one, and even if ' +
+      'they never say "GitHub": a request for advice ("我想做个番茄钟，有什么建议？"), a question about how ' +
+      'to start ("这个该怎么做？"), or a wish for a tool ("要是有个能自动整理小红书收藏的工具就好了"). ' +
+      'Do NOT call it when the user is already building the thing, when this same idea was already searched ' +
+      'in this session, when the question is pure technical Q&A or a concept explanation, or when the user ' +
+      'said not to search. Before an unprompted search, say one short sentence about what you are about to ' +
+      'look for — the tool refuses a call that arrives without it — and use limit 5-8 for that first look. ' +
+      'Defaults to mode "brief": a first look whose text says it is unscored. Pass mode "full" when the ' +
+      'user wants a comparison, and then call rank_candidates (step 2) with problem_fit / workflow_fit / ' +
+      'technical_fit for every candidate you consider on-topic; order and star ratings are computed in ' +
+      'code there and cannot be set from prose. Do not present your own ordering of these raw results. ' +
       'Cached 24h per normalized idea + keywords + limit, so identical calls are cheap. ' +
       RETRIEVAL_SURFACE,
     parameters: {
@@ -953,6 +970,16 @@ export function apply(ctx: Context): void {
           'here, AND the tool\'s own translation is unavailable, the call is REFUSED with a ' +
           '`plan_failed` degradation before any search is sent. The tool can only check that Latin ' +
           'terms were supplied, never that they are a good translation.',
+      },
+      mode: {
+        type: 'string',
+        enum: ['brief', 'full'],
+        description:
+          'How much this result asks of you next. "brief" (default) is a first look: show the names ' +
+          'and one-line descriptions, no scoring, no rank_candidates call. "full" is a deliberate ' +
+          'comparison: the result text then asks you to call rank_candidates with the three dimension ' +
+          'scores. Use "brief" for an unprompted first search; use "full" when the user asked to ' +
+          'compare options or pick between projects.',
       },
     },
     output: {
@@ -1078,7 +1105,7 @@ export function apply(ctx: Context): void {
           },
         },
       },
-      render: (_args, value) => {
+      render: (args, value) => {
         const card = renderCandidates(
           value.idea,
           value.candidates,
@@ -1094,7 +1121,7 @@ export function apply(ctx: Context): void {
           value.low_star_in_pool,
         )
         const prior = renderPriorContext(value.prior_context as PriorContext[])
-        return [{ type: 'text', text: prior.length > 0 ? `${card}\n\n${prior}` : card }]
+        return [{ type: 'text', text: frameScoutResult(card, scoutModeOf(args), prior) }]
       },
     },
     execute: async (args, exec) => {
@@ -2594,4 +2621,10 @@ export function apply(ctx: Context): void {
     },
     timeoutMs: READ_TIMEOUT_MS,
   }))
+
+  // The wider activation surface: a system-prompt section that names the
+  // SITUATION (an idea exists) instead of the action (search GitHub), plus the
+  // mechanically-enforced "say a sentence first" and session-budget rules. All
+  // optional services, feature-detected inside — see `src/activation.ts`.
+  registerActivation(ctx, resolveAutoScout(config))
 }

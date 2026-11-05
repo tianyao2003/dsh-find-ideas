@@ -106,10 +106,36 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 ## 使用
 
-装好后重启 dsh，然后直接说出你的想法，agent 会自己调用四个内置工具：
+装好后重启 dsh，然后直接说出你的想法，agent 会自己调用四个内置工具。**不需要说「GitHub」**——只要你的话里有一个想做的东西（哪怕还很模糊）或一句求建议，它就会先打一声招呼，再去小搜一下：
 
 - 「我想做一个本地优先的 Markdown 笔记应用，帮我看一下 GitHub 上的项目。」
-- 「我想做一个 UI 增强的 DSH 插件，GitHub 上有哪些项目？」
+- 「我想做个番茄钟，有什么建议？」
+- 「要是有个能自动整理小红书收藏的工具就好了。」
+
+**它会忍住不搜的情况**：你已经在写代码、改 bug 或问实现细节；同一个想法这次会话已经搜过；你在问纯技术概念（比如「什么是 CRDT」）；或者你明确说了不用搜。自动搜索每个会话最多两次，之后它会先问你要不要搜。
+
+**它会先打招呼再搜**：说一句「我先去 GitHub 小搜一下有没有现成的，稍等」再调工具——你能看见它要干什么，不想搜可以当场叫停。这条规则是机械强制的：没打招呼的调用会被工具拒绝一次，让它先补上那句话。
+
+**先给你看名字，还是先打分**：`scout_projects` 有个 `mode` 参数。默认 `brief`——只把项目名和一句话简介给你看，不跑打分，因为给「有什么建议」这种随口一问先花一次十几 KB 的打分调用不划算。你说「对比一下这几个」「帮我挑一个」时它才用 `full`，那时才会调 `rank_candidates` 出卡片。
+
+**搜索没结果不是坏事**：它会告诉你「GitHub 上没有现成的类似项目」，并把这当作一个空白——可以帮你从零设计。
+
+### 自动搜索的开关
+
+默认 `always`：有了想法就自己小搜一下。想让它每次先问你，或干脆不主动搜，在 profile 的 `cordis.patch.yml` 里给插件加一段 `config`：
+
+```yaml
+- id: find-ideas
+  name: dsh-find-ideas
+  config:
+    autoScout: ask   # always（默认）| ask | off
+```
+
+- `always`：自己判断，打招呼后搜，每个会话最多两次没人要求的搜索。
+- `ask`：把「先问一句再搜」写进引导，你点头它才搜；打招呼和预算规则照旧。
+- `off`：不再主动提这件事（不注册引导段落、不拦截调用），四个工具仍然可以手动用。
+
+配错值（比如 `autoScout: alway`）会让插件加载失败并指出是哪个值不对，而不是悄悄退回默认。
 
 ## 四个工具
 
@@ -117,7 +143,7 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 | 工具 | 做什么 | 边界 |
 | --- | --- | --- |
-| **`scout_projects`** | 把想法拆成多条 GitHub 搜索查询，返回按 star 排序的候选池——刻意**不**按相关性排序 | 想法里不含拉丁字母时先翻译成英文检索词；做不到就返回 `plan_failed` |
+| **`scout_projects`** | 把想法拆成多条 GitHub 搜索查询，返回按 star 排序的候选池——刻意**不**按相关性排序 | 想法里不含拉丁字母时先翻译成英文检索词；做不到就返回 `plan_failed`。`mode="brief"`（默认）只作速览、不要求打分，`mode="full"` 才把打分当作下一步 |
 | **`rank_candidates`** | 按公式给候选池打分并生成卡片 | 接受单个 0–10 `relevance`，或 `problem_fit` / `workflow_fit` / `technical_fit` 三维（0–5）派生 |
 | **`inspect_projects`** | 读仓库的 README、依赖清单、目录树摘要和关键文件 | 一次最多 5 个仓库；`shallow` 约 6 次请求/仓库，`deep` 约 10 次；卡片封顶 24 KB |
 | **`read_repo_files`** | 在**同一个提交**上点读一个仓库里的文件，返回行窗口和带提交号、行范围的永久链接 | 一次最多 4 个文件；`max_bytes` 默认 8000（4000–8192），是上限不是建议值 |
@@ -157,7 +183,8 @@ $env:GITHUB_TOKEN = 'ghp_...'        # PowerShell，仅当前会话
 
 | 版本 | 更新 |
 | --- | --- |
-| 0.4.1（当前） | 新增可解释 relevance 维度（`problem_fit` / `workflow_fit` / `technical_fit`，0–5，按固定权重派生 0–10 relevance，旧的单 relevance 输入继续兼容）；`read_repo_files` 增加证据锚定的 `view="architecture"`；新增只存元数据的有界本地先验（256 条 / 64 KB），只作上下文、不改变排序。 |
+| 0.5.0（当前） | 触发面加宽 + 三档开关。`scout_projects` 的 description 不再把「说 GitHub」当作触发条件，改为描述**情境**（用户有了一个想做的想法、哪怕还很模糊），并列出中文场景例句与四条禁搜边界；新增一段 system prompt 引导（order 160），在工具可见时说明何时该搜、何时该忍住、先打招呼再搜；「先打招呼再搜」做成机械硬约束——`tools.guard` 会在本轮没有任何 assistant 文本时拒绝一次 `scout_projects` 调用并返回补救说明。新增 `mode` 参数（`brief` 默认 / `full`）：速览只给名字和一句话简介、不要求打分，`full` 才要求调 `rank_candidates`。新增 `autoScout` 三档配置（`always` / `ask` / `off`，默认 `always`）与会话内最多两次自动搜索的机械预算（用户回复后放行一次）。新增触发率评测集 `eval:trigger`（28 个场景）。 |
+| 0.4.1 | 新增可解释 relevance 维度（`problem_fit` / `workflow_fit` / `technical_fit`，0–5，按固定权重派生 0–10 relevance，旧的单 relevance 输入继续兼容）；`read_repo_files` 增加证据锚定的 `view="architecture"`；新增只存元数据的有界本地先验（256 条 / 64 KB），只作上下文、不改变排序。 |
 | 0.4.0 | 新增 `read_repo_files`；`inspect_projects` 卡片固定封顶 24 KB，并说明超限后的补读路径；四个工具 schema 小 1.7 KB，仓库改为三路并行读，卡片版式只声明一次。AB 实验：工具调用少 44.8%，工具结果载荷少 10.8%，计费输入基本打平。 |
 | 0.3.0 | 缓存与包体。简介按 512 字符存储而不是无限长，内存缓存上限 64 条，磁盘缓存会清理过期条目并保持在 64 MB 以内，发布包里不再包含 `src/`、`test/`、`scripts/` 和 source map——解包 805 KB，原来是 2.07 MB。工具名、参数和输出都没变。 |
 | 0.2.1 | 发布到 npm，功能与 0.2.0 相同。 |
@@ -174,6 +201,7 @@ npm run check         # typecheck + build + readme:check
 npm run typecheck     # tsc --noEmit
 npm run check:peers   # 检查 peer range 是否覆盖当前的 DSH 版本
 npm run eval:gate     # 用冻结数据复核实验数字
+npm run eval:trigger  # 复核触发率评测集：28 个场景是否都被引导语覆盖
 ```
 
 ## 贡献

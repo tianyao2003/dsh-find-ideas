@@ -1,7 +1,7 @@
 {
   "name": "dsh-find-ideas",
   "description": "Prior-art search for a development idea: search GitHub for similar projects, rank them by relevance weighted with stars, then read the repositories you pick and report what their code actually says.",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -42,7 +42,8 @@
     "eval:wallclock": "node eval/harness/ab-wall-clock.mjs",
     "eval:payload": "node eval/harness/payload-truth.mjs",
     "eval:ab-v041": "node eval/harness/ab-v041.mjs",
-    "eval:gate": "npm run eval:golden && npm run eval:metrics && npm run eval:wallclock && npm run eval:payload && npm run eval:ab-v041"
+    "eval:trigger": "node eval/harness/trigger-coverage.mjs",
+    "eval:gate": "npm run eval:golden && npm run eval:metrics && npm run eval:wallclock && npm run eval:payload && npm run eval:ab-v041 && npm run eval:trigger"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",

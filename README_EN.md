@@ -106,10 +106,36 @@ Everything works without a token, but `inspect_projects` refuses an anonymous ba
 
 ## Usage
 
-Restart dsh after installing, then describe your idea — the agent calls the four built-in tools on its own:
+Restart dsh after installing, then describe your idea — the agent calls the four built-in tools on its own. **You do not need to say "GitHub"**: any sentence that contains something you want to build (even a vague one) or a request for advice is enough. It says one short sentence about what it is about to look for, then takes a quick look:
 
 - "I want to build a local-first Markdown note app — what's out there on GitHub?"
-- "I want to build a UI-enhancing DSH plugin. Which projects exist?"
+- "我想做个番茄钟，有什么建议？" ("I want to make a Pomodoro timer — any advice?")
+- "要是有个能自动整理小红书收藏的工具就好了。" ("It would be nice to have a tool that organises my Xiaohongshu saves.")
+
+**When it holds back**: you are already writing code, debugging, or asking about implementation details; the same idea was already searched in this session; the question is pure technical Q&A or a concept explanation ("what is a CRDT?"); or you said not to search. Unprompted searches are capped at two per session — after that it asks before searching again.
+
+**It announces before searching**: it writes one sentence ("我先去 GitHub 小搜一下有没有现成的，稍等") before calling the tool, so you can see what it is about to do and stop it. This rule is mechanically enforced: a call that arrives without that sentence is refused once, so the model has to add it.
+
+**Names first, or scores first**: `scout_projects` takes a `mode`. The default, `brief`, shows the project names and one-line descriptions and does not ask for scoring — spending a 12 KB `rank_candidates` call on a casual "any advice?" is a bad trade. It switches to `full` when you ask to compare options or pick between them, and only then does it call `rank_candidates` for the card.
+
+**An empty result is information**: it will tell you that GitHub has no similar existing project, and treat that as a blank space worth designing from.
+
+### Turning automatic search on and off
+
+The default is `always`: it takes a quick look on its own judgement. To make it ask first every time, or to stop it advertising the capability, add a `config` block to the plugin in your profile's `cordis.patch.yml`:
+
+```yaml
+- id: find-ideas
+  name: dsh-find-ideas
+  config:
+    autoScout: ask   # always (default) | ask | off
+```
+
+- `always`: its own judgement, announces first, at most two unprompted searches per session.
+- `ask`: the guidance says to ask before searching; you agree, then it searches. The announcement rule and the budget still apply.
+- `off`: it no longer brings the capability up (no guidance section, no guard). The four tools stay registered and can still be used on request.
+
+An invalid value (say `autoScout: alway`) fails the plugin load and names the offending value, rather than silently falling back to the default.
 
 ## The four tools
 
@@ -117,7 +143,7 @@ Restart dsh after installing, then describe your idea — the agent calls the fo
 
 | Tool | What it does | Limits |
 | --- | --- | --- |
-| **`scout_projects`** | Turns the idea into several GitHub search queries and returns a star-sorted pool — deliberately *not* ranked by relevance | Translates an idea with no Latin letters into English search terms first; when that is impossible it returns `plan_failed` |
+| **`scout_projects`** | Turns the idea into several GitHub search queries and returns a star-sorted pool — deliberately *not* ranked by relevance | Translates an idea with no Latin letters into English search terms first; when that is impossible it returns `plan_failed`. `mode="brief"` (default) is a first look that does not ask for scoring; `mode="full"` makes scoring the next step |
 | **`rank_candidates`** | Scores the pool with the formula and produces the card | Accepts either a single 0–10 `relevance` or the `problem_fit` / `workflow_fit` / `technical_fit` dimensions (0–5) it derives from |
 | **`inspect_projects`** | Reads a repository's README, dependency manifest, tree summary and key files | Up to 5 repositories per call; about 6 requests per repo at `shallow`, about 10 at `deep`; the card is capped at 24 KB |
 | **`read_repo_files`** | Point-reads files of one repository at a **single commit**, returning a line window and a permalink with the commit and line range | Up to 4 files per call; `max_bytes` defaults to 8000 (4000–8192) and is a ceiling, not a suggestion |
@@ -157,7 +183,8 @@ Requires Node ≥ 22; compatible DSH versions: `0.1.0-rc.6+`, `0.1.1-rc.1+`, `0.
 
 | Version | What changed |
 | --- | --- |
-| 0.4.1 (current) | Explainable relevance dimensions (`problem_fit` / `workflow_fit` / `technical_fit`, 0–5, deriving a 0–10 relevance with fixed weights, while the legacy single relevance input stays accepted); an evidence-anchored `view="architecture"` for `read_repo_files`; and a bounded local prior (256 records / 64 KB) that stores metadata only, is shown as context and never changes ranking. |
+| 0.5.0 (current) | A wider activation surface, and three settings. The `scout_projects` description no longer treats "the user said GitHub" as the trigger; it describes the *situation* (the user has something they want to build, however vague) and names Chinese example sentences plus the four boundaries where it must hold back. A system-prompt section (order 160) states when to search, when not to, and to announce first. "Announce before searching" is mechanically enforced: a `tools.guard` refuses one `scout_projects` call when the current turn has no assistant text yet, and returns the recovery sentence. New `mode` parameter (`brief` default / `full`): a first look shows names and one-liners and does not ask for scoring; only `full` asks for `rank_candidates`. New `autoScout` setting (`always` / `ask` / `off`, default `always`) and a mechanical budget of two unprompted searches per session, released by one user reply. New trigger-rate eval set, `eval:trigger` (28 scenarios). |
+| 0.4.1 | Explainable relevance dimensions (`problem_fit` / `workflow_fit` / `technical_fit`, 0–5, deriving a 0–10 relevance with fixed weights, while the legacy single relevance input stays accepted); an evidence-anchored `view="architecture"` for `read_repo_files`; and a bounded local prior (256 records / 64 KB) that stores metadata only, is shown as context and never changes ranking. |
 | 0.4.0 | Added `read_repo_files`; `inspect_projects` cards are capped at a fixed 24 KB and state the recovery paths when they overflow; the four tools' schemas are 1.7 KB smaller, repositories are read three at a time, and the card states its framing once instead of per file. A/B test: 44.8% fewer tool calls, 10.8% less tool-result payload, billed input essentially level. |
 | 0.3.0 | Cache and package footprint. Descriptions are stored at 512 characters instead of unbounded, the in-memory cache is capped at 64 entries, the disk cache sweeps expired entries and stays under 64 MB, and the published package no longer ships `src/`, `test/`, `scripts/` or source maps — 805 KB unpacked instead of 2.07 MB. Tool names, parameters and output are unchanged. |
 | 0.2.1 | Published to npm. Same functionality as 0.2.0. |
@@ -174,6 +201,7 @@ npm run check         # typecheck + build + readme:check
 npm run typecheck     # tsc --noEmit
 npm run check:peers   # check the peer range against the current DSH versions
 npm run eval:gate     # re-derive the experiment numbers from frozen data
+npm run eval:trigger  # check the trigger corpus: 28 scenarios covered by the guidance
 ```
 
 ## Contributing
